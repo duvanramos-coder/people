@@ -501,7 +501,6 @@
         let mainChart, pqrsfChart;
 
         const ASESORES_ESP = ["J.MENDOZA382", "L.BUITRAGO104", "M.ARAGONES300"];
-        const ASESORES_ESP_V2 = ["A.BANDA483", "B.CABARCAS334", "H.RINCON224", "K.NIETO798", "S.ORTEGA581", "H.BITAR924", "S.PICO465", "J.ROA074"];
         const ASESORES_REND = ["DEISY.ROMERO", "LISANDRO.GUTIERREZ", "PAULAISABEL.ABELLAESPINOSA", "FRANCY.HERNANDEZ", "CESAR.RIVAS", "MONICA.RUIZ"];
 
         function showLoader(show) {
@@ -547,12 +546,30 @@
                 .login(user, pass);
         }
 
+        function resetDashboardUI() {
+            // Resetear etiquetas por defecto
+            document.getElementById('lblPec').innerText = 'PEC';
+            document.getElementById('lblPenc').innerText = 'PENC';
+            document.getElementById('lblRanking').innerText = 'RANKING';
+            document.getElementById('lblAuditorias').innerText = 'AUDITORÍAS';
+            document.getElementById('lblPqrsfC').innerText = 'PQRSF CREADOS';
+            document.getElementById('lblPqrsfD').innerText = 'PQRSF DEVUELTOS';
+
+            // Resetear visibilidad de tarjetas
+            document.getElementById('boxRanking').style.display = 'block';
+            document.getElementById('boxAuditorias').style.display = 'block';
+            document.getElementById('boxPqrsfC').style.display = 'block';
+            document.getElementById('boxPqrsfD').style.display = 'block';
+            document.getElementById('chartPqrsfBox').style.display = 'block';
+        }
+
         function renderDashboard(user, data) {
+            resetDashboardUI();
             document.getElementById('loginSection').style.display = 'none';
             document.getElementById('dashboardSection').style.display = 'block';
             document.getElementById('asesorNombre').innerText = data.nombre;
 
-            const isEsp = ASESORES_ESP.includes(user) || ASESORES_ESP_V2.includes(user);
+            const isEsp = ASESORES_ESP.includes(user);
             const isRend = ASESORES_REND.includes(user);
 
             // Mapping & UI Logic
@@ -580,16 +597,10 @@
 
         function updateMetricsEsp(user, d) {
             document.getElementById('lblPec').innerText = 'SNC RECIBIDOS';
-            document.getElementById('lblPenc').innerText = 'PQRSF CREADOS';
+            document.getElementById('lblPenc').innerText = 'CANTIDAD RADICADO';
             document.getElementById('lblRanking').innerText = 'RANKING SNC';
-
-            if (ASESORES_ESP.includes(user)) {
-                document.getElementById('lblPqrsfC').innerText = 'POR CORRECCIÓN';
-                document.getElementById('lblPqrsfD').innerText = 'SNC SOLUC.';
-            } else {
-                document.getElementById('lblPqrsfC').innerText = 'PQRSF DEV';
-                document.getElementById('lblPqrsfD').innerText = 'PQRSF DEVUELTOS';
-            }
+            document.getElementById('lblPqrsfC').innerText = 'POR CORRECCIÓN';
+            document.getElementById('lblPqrsfD').innerText = 'SNC SOLUCIONADO';
 
             document.getElementById('valPec').innerText = d.sncRecibidos;
             document.getElementById('valPenc').innerText = d.pqrsfCreados;
@@ -671,7 +682,7 @@
             const configMain = {
                 type: 'bar',
                 data: {
-                    labels: isEsp ? ["SNC Recibidos", "PQRSF Creados"] : ["PEC %", "PENC %"],
+                    labels: isEsp ? ["SNC Recibidos", "Cantidad Radicado"] : ["PEC %", "PENC %"],
                     datasets: [{
                         data: isEsp ? [d.sncRecibidos, d.pqrsfCreados] : [d.pec*100, d.penc*100],
                         backgroundColor: [grad, 'rgba(255,255,255,0.1)'],

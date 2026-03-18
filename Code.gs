@@ -302,15 +302,7 @@ break
 let asesorasEspeciales=[
 "J.MENDOZA382",
 "L.BUITRAGO104",
-"M.ARAGONES300",
-"A.BANDA483",
-"B.CABARCAS334",
-"H.RINCON224",
-"K.NIETO798",
-"S.ORTEGA581",
-"H.BITAR924",
-"S.PICO465",
-"J.ROA074"
+"M.ARAGONES300"
 ]
 
 if(asesorasEspeciales.includes(asesor)){
