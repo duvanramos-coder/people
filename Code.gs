@@ -1,6 +1,6 @@
 function doGet() {
   try {
-    return HtmlService.createHtmlOutputFromFile("Index")
+    return HtmlService.createHtmlOutputFromFile("index")
       .setTitle("Dashboard Pro - People BPO")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   } catch (e) {
