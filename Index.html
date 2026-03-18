@@ -465,7 +465,7 @@
                 </table>
             </div>
 
-            <p class="footer" style="margin-top:40px">SISTEMA DE GESTIÓN DE DESEMPEÑO • PEOPLE BPO 2026</p>
+            <p class="footer" style="margin-top:40px">BY DUVAN RAMOS 2026 • v2.0 PREMIUM</p>
         </div>
     </div>
 
@@ -495,7 +495,11 @@
                 .obtenerUsuarios();
         };
 
-        function logout() { location.reload(); }
+        function logout() {
+            document.getElementById('dashboardSection').style.display = 'none';
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('password').value = '';
+        }
 
         function login() {
             const user = document.getElementById('usuario').value;
