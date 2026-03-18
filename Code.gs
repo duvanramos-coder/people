@@ -180,17 +180,23 @@ function obtenerMetricasConSS(ss, asesor) {
   let promedio = contador > 0 ? suma / contador : 0;
 
   /* ===================== */
-  /* AUDITORIAS, PQRSF, SNC */
+  /* AUDITORIAS */
   /* ===================== */
   for(let i = 1; i < data.length; i++){
-    // Auditorias (Col K)
     if ((data[i][10] || "").toString().trim().toUpperCase() == asesorBuscado) {
       auditorias = data[i][11];
+      break;
     }
-    // PQRSF (Col X)
+  }
+
+  /* ===================== */
+  /* PQRSF */
+  /* ===================== */
+  for(let i = 1; i < data.length; i++){
     if ((data[i][23] || "").toString().trim().toUpperCase() == asesorBuscado) {
       pqrsfDevueltos = Number(data[i][24]) || 0;
       pqrsfCreados = Number(data[i][25]) || 0;
+      break;
     }
   }
 
