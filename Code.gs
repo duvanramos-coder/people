@@ -140,7 +140,7 @@ let sncRecibidos=0
 let sncSolucionado=0
 let rankingSNC=0
 
-
+const asesorBuscado = (asesor || "").toString().trim().toUpperCase();
 
 /* ===================== */
 /* RANKING AUDITORIA */
@@ -196,7 +196,7 @@ penc:penc
 
 asesores.forEach(a=>{
 
-if(a.nombre==asesor){
+if((a.nombre || "").toString().trim().toUpperCase() == asesorBuscado){
 
 notaPEC=a.pec
 notaPENC=a.penc
@@ -217,7 +217,7 @@ let ranking=0
 
 for(let i=0;i<asesores.length;i++){
 
-if(asesores[i].nombre==asesor){
+if((asesores[i].nombre || "").toString().trim().toUpperCase() == asesorBuscado){
 
 ranking=i+1
 
@@ -259,9 +259,11 @@ promedio=suma/contador
 /* AUDITORIAS */
 /* ===================== */
 
-for(let i=31;i<data.length;i++){
+for(let i=1;i<data.length;i++){
 
-if(data[i][10] == asesor){
+let usuarioAuditoria = (data[i][10] || "").toString().trim().toUpperCase();
+
+if(usuarioAuditoria == asesorBuscado){
 
 auditorias = data[i][11]
 break
@@ -276,13 +278,13 @@ break
 /* PQRSF */
 /* ===================== */
 
-for(let i=0;i<data.length;i++){
+for(let i=1;i<data.length;i++){
 
-let usuarioDash = data[i][23]
-let devueltos = data[i][24]
-let creados = data[i][25]
+let usuarioDash = (data[i][23] || "").toString().trim().toUpperCase();
+let devueltos = data[i][24];
+let creados = data[i][25];
 
-if(usuarioDash == asesor){
+if(usuarioDash == asesorBuscado){
 
 pqrsfDevueltos = Number(devueltos) || 0
 pqrsfCreados = Number(creados) || 0
@@ -305,13 +307,13 @@ let asesorasEspeciales=[
 "M.ARAGONES300"
 ]
 
-if(asesorasEspeciales.includes(asesor)){
+if(asesorasEspeciales.includes(asesorBuscado)){
 
-for(let i=0;i<data.length;i++){
+for(let i=1;i<data.length;i++){
 
-let usuarioDash=data[i][24]
+let usuarioDash = (data[i][24] || "").toString().trim().toUpperCase();
 
-if(usuarioDash==asesor){
+if(usuarioDash == asesorBuscado){
 
 sncRecibidos=Number(data[i][26])||0
 pqrsfCreados=Number(data[i][27])||0
@@ -328,9 +330,9 @@ break
 
 let rankingList=[]
 
-for(let i=0;i<data.length;i++){
+for(let i=1;i<data.length;i++){
 
-let usuarioDash=data[i][24]
+let usuarioDash = (data[i][24] || "").toString().trim().toUpperCase();
 let snc=Number(data[i][26])||0
 
 if(usuarioDash){
@@ -348,7 +350,7 @@ rankingList.sort((a,b)=>b.snc-a.snc)
 
 for(let i=0;i<rankingList.length;i++){
 
-if(rankingList[i].usuario==asesor){
+if(rankingList[i].usuario == asesorBuscado){
 
 rankingSNC=i+1
 
