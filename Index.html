@@ -231,6 +231,32 @@
             border-radius: 100px;
             overflow: hidden;
             border: 1px solid var(--glass-border);
+            position: relative;
+            cursor: help;
+        }
+
+        .bono-tooltip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            color: #1a1a2e;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 13px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            max-width: 280px;
+            text-align: left;
+            backdrop-filter: blur(10px);
+            border: 1px solid white;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .bono-tooltip.visible {
+            display: block;
+            opacity: 1;
         }
 
         .progress-fill {
@@ -373,6 +399,8 @@
         <div class="spinner"></div>
         <p style="margin-top: 15px; font-size: 14px; letter-spacing: 1px;">SINCRONIZANDO DATOS...</p>
     </div>
+
+    <div id="tooltipBono" class="bono-tooltip"></div>
 
     <!-- LOGIN SECTION -->
     <div class="container" id="loginSection">
@@ -576,6 +604,12 @@
         function updateProgressBar(user, d, isRend) {
             const bar = document.getElementById('barraProgreso');
             const label = document.getElementById('labelEstado');
+            const track = document.querySelector('.progress-track');
+            const tooltip = document.getElementById('tooltipBono');
+
+            // Limpiar eventos anteriores
+            track.onmousemove = null;
+            track.onmouseleave = null;
 
             if (isRend) {
                 const pec = d.pec * 100;
@@ -589,11 +623,32 @@
                 bar.style.background = col;
             } else {
                 const max = 300000;
-                const pct = (d.bonoGanado / max) * 100;
+                const ganado = d.bonoGanado || 0;
+                const faltante = max - ganado;
+                const pct = (ganado / max) * 100;
                 const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits:0 });
-                label.innerText = `BONO: ${fmt.format(d.bonoGanado)} / ${fmt.format(max)}`;
+
+                label.innerText = `BONO: ${fmt.format(ganado)} / ${fmt.format(max)}`;
                 bar.style.width = Math.min(pct, 100) + "%";
                 bar.style.background = "linear-gradient(90deg, #B7D400, #fff)";
+
+                // Configurar Tooltip
+                track.onmousemove = function(e) {
+                    tooltip.classList.add('visible');
+                    tooltip.style.left = (e.pageX + 15) + 'px';
+                    tooltip.style.top = (e.pageY + 15) + 'px';
+                    tooltip.innerHTML = `
+                        <strong style="display:block; color:#1a1a2e; margin-bottom:5px;">Progreso del Bono</strong>
+                        Te faltan <strong>${fmt.format(faltante)}</strong> para alcanzar el bono máximo.<br>
+                        <span style="font-size:11px; margin-top:5px; display:block; color:#666;">
+                        💡 Mejora tu PENC y reduce PQRSF devueltos para aumentar tu bono.
+                        </span>
+                    `;
+                };
+
+                track.onmouseleave = function() {
+                    tooltip.classList.remove('visible');
+                };
             }
         }
 
