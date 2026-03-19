@@ -71,7 +71,8 @@ function obtenerMetricas(asesor) {
 function obtenerMetricasConSS(ss, asesor) {
   const sheetBase = ss.getSheetByName("Base");
   const lastRowBase = sheetBase.getLastRow();
-  const data = sheetBase.getRange(1, 1, lastRowBase, 31).getValues();
+  // Fetch columns A:AH (1:34)
+  const data = sheetBase.getRange(1, 1, lastRowBase, 34).getValues();
 
   const asesorBuscado = (asesor || "").toString().trim().toUpperCase();
 
@@ -110,7 +111,7 @@ function obtenerMetricasConSS(ss, asesor) {
     const funcionariosData = sheetFuncionarios.getRange(1, 1, lastRowFunc, 9).getValues();
     const tz = ss.getSpreadsheetTimeZone();
     for(let i = 1; i < funcionariosData.length; i++){
-      if(funcionariosData[i][0] == asesor){
+      if((funcionariosData[i][0] || "").toString().trim().toUpperCase() == asesorBuscado){
         let fecha = funcionariosData[i][5];
         if(fecha instanceof Date){
           fecha = Utilities.formatDate(fecha, tz, "dd-MM-yyyy");
@@ -146,7 +147,7 @@ function obtenerMetricasConSS(ss, asesor) {
       if(!isNaN(penc)){
         let nom = data[i][8];
         asesores.push({ nombre: nom, pec: pec, penc: penc });
-        if (nom == asesor) { notaPEC = pec; notaPENC = penc; }
+        if ((nom || "").toString().trim().toUpperCase() == asesorBuscado) { notaPEC = pec; notaPENC = penc; }
       }
     }
     // Bloque 2
@@ -156,7 +157,7 @@ function obtenerMetricasConSS(ss, asesor) {
       if(!isNaN(penc)){
         let nom = data[i][12];
         asesores.push({ nombre: nom, pec: pec, penc: penc });
-        if (nom == asesor) { notaPEC = pec; notaPENC = penc; }
+        if ((nom || "").toString().trim().toUpperCase() == asesorBuscado) { notaPEC = pec; notaPENC = penc; }
       }
     }
   }
@@ -180,17 +181,18 @@ function obtenerMetricasConSS(ss, asesor) {
   let promedio = contador > 0 ? suma / contador : 0;
 
   /* ===================== */
-  /* AUDITORIAS */
+  /* AUDITORIAS (AG/AH) */
   /* ===================== */
   for(let i = 1; i < data.length; i++){
-    if ((data[i][10] || "").toString().trim().toUpperCase() == asesorBuscado) {
-      auditorias = data[i][11];
+    // Column AG is index 32, AH is index 33
+    if ((data[i][32] || "").toString().trim().toUpperCase() == asesorBuscado) {
+      auditorias = data[i][33];
       break;
     }
   }
 
   /* ===================== */
-  /* PQRSF */
+  /* PQRSF (Col X/Y/Z) */
   /* ===================== */
   for(let i = 1; i < data.length; i++){
     if ((data[i][23] || "").toString().trim().toUpperCase() == asesorBuscado) {

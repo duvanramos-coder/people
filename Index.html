@@ -309,7 +309,7 @@
             }
 
             renderCharts(user, data, isEsp, isRend);
-            renderTable(data.tablaData);
+            renderTable(data.tablaData, isEsp);
             updateProgressBar(user, data, isRend);
         }
 
@@ -384,7 +384,7 @@
             }
         }
 
-        function renderTable(data) {
+        function renderTable(data, isEsp) {
             const box = document.getElementById('tableBox');
             const body = document.getElementById('tableBody');
             body.innerHTML = "";
@@ -393,7 +393,12 @@
                 data.forEach(f => {
                     const tr = document.createElement('tr');
                     const link = f.link && f.link.toString().startsWith('http') ? '<a href="'+f.link+'" target="_blank" style="color:#B7D400">ESCUCHAR</a>' : 'N/A';
-                    tr.innerHTML = '<td>'+(f.fecha||'-')+'</td><td>'+(f.positivos||'-')+'</td><td>'+(f.mejora||'-')+'</td><td>'+link+'</td>';
+
+                    if (isEsp) {
+                        tr.innerHTML = '<td>'+(f.fecha||'-')+'</td><td>'+(f.positivos||'-')+'</td><td>'+(f.mejora||'-')+'</td><td style="opacity:0.3">N/A</td>';
+                    } else {
+                        tr.innerHTML = '<td>'+(f.fecha||'-')+'</td><td>'+(f.positivos||'-')+'</td><td>'+(f.mejora||'-')+'</td><td>'+link+'</td>';
+                    }
                     body.appendChild(tr);
                 });
             } else { box.style.display = "none"; }
