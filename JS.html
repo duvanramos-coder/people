@@ -126,57 +126,85 @@
     const res = currentOptions[currentIdx];
     const resultsDiv = document.getElementById('search-results');
 
-    // Customize labels based on mode
-    const contextLabel = currentMode === 'PQRSF' ? 'Contexto del Caso' : 'Tema de Consulta';
-    const dirigidoLabel = currentMode === 'PQRSF' ? 'Dirigido a' : 'Referencia / Área';
-    const accionLabel = currentMode === 'PQRSF' ? 'Acción Recomendada' : 'Respuesta / Guía';
-
-    resultsDiv.innerHTML = `
-      <div class="card result-container fade-up">
-        <div class="resumen-box">
-          <span class="label-neon">${contextLabel}</span>
-          ${res.resumen_caso}
-        </div>
-
-        <div style="margin-bottom: 30px;">
-          <h2 style="margin: 0; color: white; font-size: 26px; font-weight: 700;">${res.tipo}</h2>
-          <p style="color: rgba(255,255,255,0.5); margin-top: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">${res.clasificacion}</p>
-        </div>
-
-        <div class="result-grid">
-          <div>
-            <span class="label-neon">${dirigidoLabel}</span>
-            <div class="value-text">${res.dirigido}</div>
-          </div>
-          <div>
-            <span class="label-neon">${accionLabel}</span>
-            <div class="value-text">${res.accion}</div>
-          </div>
-        </div>
-
-        <div style="margin-top: 30px;">
-           <span class="label-neon">Recordatorio Estratégico</span>
-           <div class="value-text" style="font-size: 14px; color: rgba(255,255,255,0.9);">${res.recordatorio}</div>
-        </div>
-
-        <div class="nav-controls">
-          <div class="source-badge">
-             ${res.fuente}
+    if (currentMode === 'GENERAL') {
+      resultsDiv.innerHTML = `
+        <div class="card result-container fade-up" style="border-left-color: #00e5ff;">
+          <div style="margin-bottom: 25px;">
+            <span class="label-neon" style="color: #00e5ff;">Respuesta / Qué decir</span>
+            <div style="font-size: 22px; font-weight: 600; color: white; line-height: 1.4;">${res.accion}</div>
           </div>
 
-          ${currentOptions.length > 1 ? `
-            <div style="display: flex; gap: 15px; align-items: center;">
-              <span style="font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">${currentIdx + 1} de ${currentOptions.length}</span>
-              <div style="display: flex; gap: 8px;">
-                <button class="btn-outline" onclick="prevOption()" ${currentIdx === 0 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
-                  <span class="material-icons" style="font-size: 18px;">chevron_left</span>
-                </button>
-                <button class="btn-outline" onclick="nextOption()" ${currentIdx === currentOptions.length - 1 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
-                  <span class="material-icons" style="font-size: 18px;">chevron_right</span>
-                </button>
-              </div>
+          <div class="result-grid">
+            <div>
+              <span class="label-neon">Tema de Consulta</span>
+              <div class="value-text" style="opacity: 0.7;">${res.resumen_caso}</div>
             </div>
-          ` : ''}
+            <div>
+              <span class="label-neon">Referencia / Área</span>
+              <div class="value-text">${res.dirigido}</div>
+            </div>
+          </div>
+
+          <div class="nav-controls">
+            <div class="source-badge" style="background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: rgba(0, 229, 255, 0.3);">
+               ${res.fuente}
+            </div>
+            ${renderNavButtons()}
+          </div>
+        </div>
+      `;
+    } else {
+      resultsDiv.innerHTML = `
+        <div class="card result-container fade-up">
+          <div class="resumen-box">
+            <span class="label-neon">Resumen del Caso</span>
+            ${res.resumen_caso}
+          </div>
+
+          <div style="margin-bottom: 30px;">
+            <h2 style="margin: 0; color: white; font-size: 26px; font-weight: 700;">${res.tipo}</h2>
+            <p style="color: rgba(255,255,255,0.5); margin-top: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">${res.clasificacion}</p>
+          </div>
+
+          <div class="result-grid">
+            <div>
+              <span class="label-neon">Dirigido a</span>
+              <div class="value-text" style="font-size: 18px; font-weight: 600;">${res.dirigido}</div>
+            </div>
+            <div>
+              <span class="label-neon">Acción Recomendada</span>
+              <div class="value-text">${res.accion}</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 30px;">
+             <span class="label-neon">Recordatorio</span>
+             <div class="value-text" style="font-size: 14px; color: rgba(255,255,255,0.9);">${res.recordatorio}</div>
+          </div>
+
+          <div class="nav-controls">
+            <div class="source-badge">
+               ${res.fuente}
+            </div>
+            ${renderNavButtons()}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderNavButtons() {
+    if (currentOptions.length <= 1) return '';
+    return `
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <span style="font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">${currentIdx + 1} de ${currentOptions.length}</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-outline" onclick="prevOption()" ${currentIdx === 0 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+            <span class="material-icons" style="font-size: 18px;">chevron_left</span>
+          </button>
+          <button class="btn-outline" onclick="nextOption()" ${currentIdx === currentOptions.length - 1 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+            <span class="material-icons" style="font-size: 18px;">chevron_right</span>
+          </button>
         </div>
       </div>
     `;
