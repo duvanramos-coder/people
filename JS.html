@@ -1,0 +1,108 @@
+<script>
+  let currentUser = null;
+
+  function handleEnter(event, callback) {
+    if (event.key === 'Enter') {
+      callback();
+    }
+  }
+
+  function login() {
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('login-error');
+    const loader = document.getElementById('login-loader');
+
+    errorDiv.innerText = '';
+    loader.style.display = 'block';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        loader.style.display = 'none';
+        if (res.success) {
+          currentUser = res.usuario;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('dashboard-screen').style.display = 'block';
+          document.getElementById('display-user').innerText = currentUser;
+        } else {
+          errorDiv.innerText = 'Usuario o contraseña incorrectos';
+        }
+      })
+      .loginUser(user, pass);
+  }
+
+  function logout() {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('dashboard-screen').style.display = 'none';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('search-input').value = '';
+  }
+
+  function search() {
+    const query = document.getElementById('search-input').value;
+    if (!query) return;
+
+    const loader = document.getElementById('search-loader');
+    const resultsDiv = document.getElementById('search-results');
+
+    loader.style.display = 'block';
+    resultsDiv.innerHTML = '';
+
+    // Log request
+    google.script.run.guardarRegistro(currentUser, query);
+
+    google.script.run
+      .withSuccessHandler(res => {
+        loader.style.display = 'none';
+        if (res.error) {
+          resultsDiv.innerHTML = `<p class="error-msg">${res.error}</p>`;
+        } else {
+          renderResult(res);
+        }
+      })
+      .clasificarConIA(query);
+  }
+
+  function renderResult(res) {
+    const resultsDiv = document.getElementById('search-results');
+    resultsDiv.innerHTML = `
+      <div class="card result-card fade-in">
+        <h3 style="margin-top: 0; color: var(--morado);">${res.tipo}</h3>
+        <p style="font-size: 14px; margin-bottom: 20px;">${res.clasificacion}</p>
+
+        <div class="result-grid">
+          <div class="result-item">
+            <span class="result-label">DIRIGIDO A</span>
+            <span>${res.dirigido}</span>
+          </div>
+          <div class="result-item">
+            <span class="result-label">ACCIÓN RECOMENDADA</span>
+            <span>${res.accion}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+           <span class="result-label">RECORDATORIO</span>
+           <span style="font-size: 13px;">${res.recordatorio}</span>
+        </div>
+
+        <div class="fuente-tag">${res.fuente}</div>
+      </div>
+    `;
+  }
+
+  function toggleAccordion() {
+    const content = document.getElementById('accordion-content');
+    const icon = document.getElementById('accordion-icon');
+    if (content.style.display === 'block') {
+      content.style.display = 'none';
+      icon.innerText = 'expand_more';
+    } else {
+      content.style.display = 'block';
+      icon.innerText = 'expand_less';
+    }
+  }
+</script>
