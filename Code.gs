@@ -33,7 +33,19 @@ function obtenerUsuarios() {
 }
 
 /**
- * Busca dependencias en la hoja "EXTENCIONES" por coincidencia parcial
+ * Normaliza una cadena eliminando tildes y convirtiendo a minúsculas
+ */
+function normalizeString(str) {
+  if (!str) return "";
+  return String(str)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+/**
+ * Busca dependencias en la hoja "EXTENCIONES" por coincidencia parcial e insensible a tildes
  */
 function buscarDependencias(query) {
   try {
@@ -45,17 +57,17 @@ function buscarDependencias(query) {
     // Eliminar encabezados
     const rows = data.slice(1);
 
-    const lowerQuery = query.toLowerCase().trim();
-    if (lowerQuery === "") return [];
+    const normalizedQuery = normalizeString(query);
+    if (normalizedQuery === "") return [];
 
     const results = rows.filter(row => {
-      const dependencia = String(row[0]).toLowerCase();
-      const extension = String(row[1]).toLowerCase();
-      const script = String(row[2]).toLowerCase();
+      const dependencia = normalizeString(row[0]);
+      const extension = normalizeString(row[1]);
+      const script = normalizeString(row[2]);
 
-      return dependencia.includes(lowerQuery) ||
-             extension.includes(lowerQuery) ||
-             script.includes(lowerQuery);
+      return dependencia.includes(normalizedQuery) ||
+             extension.includes(normalizedQuery) ||
+             script.includes(normalizedQuery);
     }).map(row => {
       return {
         dependencia: row[0],
