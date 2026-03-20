@@ -5,7 +5,7 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
       .evaluate()
-      .setTitle('MODULO PQRSF - NEXT GEN')
+      .setTitle('PEOPLE ACADEMY PRO')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -48,78 +48,114 @@ function guardarRegistro(usuario, consulta) {
   sheet.appendRow([new Date(), usuario, consulta]);
 }
 
-function buscarCasos(query) {
+/**
+ * Searches in a specific sheet and column
+ */
+function buscarEnHoja(sheetName, columnIdx, query, limit = 5) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getSheetByName('DATA');
+  const sheet = ss.getSheetByName(sheetName);
+  if (!sheet) return [];
+
   const data = sheet.getDataRange().getValues();
   const queryNormalized = query.toLowerCase();
-
   const results = [];
+
   for (let i = 1; i < data.length; i++) {
-    const caso = data[i][4].toString().toLowerCase(); // Column E: CASO
-    if (caso.includes(queryNormalized)) {
-      results.push({
-        radicado: data[i][0],
-        tipo: data[i][1],
-        dirigido: data[i][2],
-        radicador: data[i][3],
-        caso: data[i][4]
-      });
+    if (!data[i][columnIdx]) continue;
+    const content = data[i][columnIdx].toString().toLowerCase();
+    if (content.includes(queryNormalized)) {
+      results.push(data[i]);
     }
-    if (results.length >= 5) break; // Limit sheet matches to top 5
+    if (results.length >= limit) break;
   }
   return results;
 }
 
-function clasificarConIA(caso) {
+function clasificarConIA(caso, mode) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
   if (!apiKey) return { error: "API Key no configurada" };
 
-  const ejemplosSheet = buscarCasos(caso);
-
-  // Prepare multiple options if sheet matches exist
   const options = [];
-
-  if (ejemplosSheet.length > 0) {
-    ejemplosSheet.forEach(e => {
-       options.push({
-         tipo: e.tipo,
-         dirigido: e.dirigido,
-         clasificacion: "Coincidencia en Base de Datos",
-         accion: "Validar según procedimiento de " + e.dirigido,
-         recordatorio: "Caso real previo detectado en el sistema.",
-         fuente: "Radicado #" + e.radicado,
-         resumen_caso: e.caso
-       });
-    });
-  }
-
-  // Also get an IA generation for the specific input
   let contextEjemplos = "";
-  if (ejemplosSheet.length > 0) {
-    contextEjemplos = "\nCasos similares en BD para referencia:\n" +
-      ejemplosSheet.slice(0,2).map(e => `Caso: ${e.caso} -> Tipo: ${e.tipo}, Dirigido: ${e.dirigido}`).join("\n");
+
+  if (mode === 'PQRSF') {
+    // Search in DATA and CASOS
+    const resultsData = buscarEnHoja('DATA', 4, caso, 3);
+    const resultsCasos = buscarEnHoja('CASOS', 0, caso, 3);
+
+    // Process DATA results
+    resultsData.forEach(r => {
+      options.push({
+        tipo: r[1],
+        dirigido: r[2],
+        clasificacion: "Coincidencia en DATA",
+        accion: "Validar según procedimiento de " + r[2],
+        recordatorio: "Caso real previo detectado.",
+        fuente: "Radicado #" + r[0],
+        resumen_caso: r[4]
+      });
+    });
+
+    // Process CASOS results
+    resultsCasos.forEach(r => {
+      options.push({
+        tipo: r[3] || 'PQRSF',
+        dirigido: r[4] || 'Por asignar',
+        clasificacion: r[3] || 'Trámite Interno',
+        accion: r[1] || 'Sin acción definida',
+        recordatorio: "Guía de la hoja CASOS.",
+        fuente: "Base Documental CASOS",
+        resumen_caso: r[0]
+      });
+    });
+
+    contextEjemplos = options.slice(0, 4).map(o =>
+      `Caso: ${o.resumen_caso} -> Tipo: ${o.tipo}, Dirigido: ${o.dirigido}, Acción: ${o.accion}`
+    ).join("\n");
+
+  } else {
+    // Mode GENERAL
+    const resultsGeneral = buscarEnHoja('GENERAL', 0, caso, 5);
+    resultsGeneral.forEach(r => {
+      options.push({
+        tipo: 'INFORMACIÓN GENERAL',
+        dirigido: r[2] || 'Información',
+        clasificacion: 'CONSULTA GENERAL',
+        accion: r[1] || 'Responder según base',
+        recordatorio: "Información extraída de la hoja GENERAL.",
+        fuente: "Base GENERAL",
+        resumen_caso: r[0]
+      });
+    });
+
+    contextEjemplos = options.map(o =>
+      `Caso/Pregunta: ${o.resumen_caso} -> Respuesta/Qué hacer: ${o.accion}`
+    ).join("\n");
   }
 
   const prompt = `
-    Eres un experto en clasificación de PQRSF de alto nivel.
-    Analiza el siguiente caso y devuelve un objeto JSON con los campos:
-    - tipo: (Tipo de solicitud)
-    - clasificacion: (Clasificación detallada)
-    - dirigido: (Área a la que se dirige)
-    - accion: (Acción estratégica recomendada)
-    - recordatorio: (Recordatorio clave)
+    Eres un experto en procesos de PEOPLE ACADEMY PRO.
+    Analiza el siguiente caso: "${caso}"
 
-    Caso: "${caso}"
-    ${contextEjemplos}
+    INSTRUCCIONES CRÍTICAS:
+    1. Responde ÚNICAMENTE basándote en el contexto proporcionado a continuación.
+    2. Si la información no está en el contexto, indica explícitamente que no se encontró en la base de datos de la academia.
+    3. NO inventes procedimientos ni uses conocimiento previo.
+    4. Devuelve un objeto JSON con los campos: tipo, clasificacion, dirigido, accion, recordatorio.
 
-    Responde ÚNICAMENTE con el objeto JSON.
+    CONTEXTO DE LA BASE DE DATOS:
+    ${contextEjemplos || "No se encontraron coincidencias directas en la base de datos."}
+
+    Responde solo con el JSON.
   `;
 
   const payload = {
     model: "gpt-3.5-turbo",
-    messages: [{ role: "system", content: "Responde solo con JSON válido." }, { role: "user", content: prompt }],
-    temperature: 0.3
+    messages: [
+      { role: "system", content: "Eres un asistente corporativo estricto que solo responde basándose en el contexto dado. Formato: JSON." },
+      { role: "user", content: prompt }
+    ],
+    temperature: 0.1
   };
 
   const fetchOptions = {
@@ -134,15 +170,15 @@ function clasificarConIA(caso) {
     const response = UrlFetchApp.fetch("https://api.openai.com/v1/chat/completions", fetchOptions);
     const json = JSON.parse(response.getContentText());
     const aiResult = JSON.parse(json.choices[0].message.content);
-    aiResult.fuente = "Inteligencia Artificial";
-    aiResult.resumen_caso = "Análisis generado por IA para: " + caso;
+    aiResult.fuente = "Análisis IA (People Academy)";
+    aiResult.resumen_caso = "Interpretación inteligente para: " + caso;
 
-    // Add IA result as an option (preferably first or as an alternative)
+    // Add IA result as first option
     options.unshift(aiResult);
 
     return { options: options };
   } catch (e) {
-    if (options.length > 0) return { options: options }; // Fallback to sheet matches only
-    return { error: "Error procesando con IA: " + e.toString() };
+    if (options.length > 0) return { options: options };
+    return { error: "No se encontró información relacionada en nuestra base de datos." };
   }
 }

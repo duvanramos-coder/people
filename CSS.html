@@ -314,4 +314,37 @@
     height: 45px;
     border-width: 4px;
   }
+
+  /* Search Mode Tabs */
+  .search-tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 15px;
+  }
+
+  .tab-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 12px;
+    transition: 0.3s;
+    border-radius: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .tab-btn.active {
+    color: var(--lima);
+    background: rgba(182, 227, 0, 0.1);
+  }
+
+  .tab-btn:hover:not(.active) {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+  }
 </style>

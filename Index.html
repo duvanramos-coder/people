@@ -15,8 +15,8 @@
     <div id="login-screen" class="fade-up">
       <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center;">
         <div class="header" style="margin-bottom: 40px;">
-          <h1 style="font-size: 42px;">MODULO <span style="color: var(--lima);">PQRSF</span></h1>
-          <p>SISTEMA DE CLASIFICACIÓN INTELIGENTE</p>
+          <h1 style="font-size: 38px;">PEOPLE ACADEMY <span style="color: var(--lima);">PRO</span></h1>
+          <p>FORMACIÓN INTELIGENTE. CALIDAD SIN IMPROVISACIÓN.</p>
         </div>
 
         <div style="text-align: left; margin-bottom: 25px;">
@@ -46,7 +46,7 @@
     <div id="dashboard-screen" style="display: none;" class="fade-up">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 0 10px;">
         <div class="header">
-          <h1>PANEL <span style="color: var(--lima);">CONTROL</span></h1>
+          <h1>PEOPLE ACADEMY <span style="color: var(--lima);">PRO</span></h1>
           <div class="logout-area" style="margin-top: 5px;">
             <div class="user-chip">ID: <span id="display-user"></span></div>
           </div>
@@ -56,7 +56,12 @@
 
       <!-- BUSCADOR ELEGANTE -->
       <div class="card" style="padding: 25px;">
-        <label class="label-neon">Ingresar consulta del usuario</label>
+        <div class="search-tabs">
+          <button id="tab-pqrsf" class="tab-btn active" onclick="setMode('PQRSF')">PQRSF</button>
+          <button id="tab-general" class="tab-btn" onclick="setMode('GENERAL')">Búsqueda General</button>
+        </div>
+
+        <label class="label-neon" id="search-label">Ingresar consulta del usuario</label>
         <div class="search-wrapper">
           <input type="text" id="search-input" class="search-input" placeholder="Ej: No me llegó el pago de la cuota monetaria..." onkeypress="handleEnter(event, search)">
           <button class="btn-primary search-btn" onclick="search()">Analizar</button>

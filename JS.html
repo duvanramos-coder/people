@@ -3,6 +3,7 @@
   let currentOptions = [];
   let currentIdx = 0;
   let rulesShown = false;
+  let currentMode = 'PQRSF';
 
   window.onload = function() {
     google.script.run
@@ -65,6 +66,20 @@
     currentIdx = 0;
   }
 
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'PQRSF') {
+      document.getElementById('tab-pqrsf').classList.add('active');
+      document.getElementById('search-label').innerText = 'Ingresar consulta del usuario';
+      document.getElementById('search-input').placeholder = 'Ej: No me llegó el pago de la cuota monetaria...';
+    } else {
+      document.getElementById('tab-general').classList.add('active');
+      document.getElementById('search-label').innerText = 'Consultar base de conocimiento general';
+      document.getElementById('search-input').placeholder = 'Ej: Requisitos para afiliación independiente...';
+    }
+  }
+
   function search() {
     const query = document.getElementById('search-input').value;
     if (!query) return;
@@ -75,7 +90,7 @@
     loader.style.display = 'block';
     resultsDiv.innerHTML = '';
 
-    google.script.run.guardarRegistro(currentUser, query);
+    google.script.run.guardarRegistro(currentUser, `${currentMode}: ${query}`);
 
     google.script.run
       .withSuccessHandler(res => {
@@ -87,14 +102,14 @@
           currentIdx = 0;
           renderCurrentOption();
 
-          if (!rulesShown) {
+          if (!rulesShown && currentMode === 'PQRSF') {
             showRules();
           }
         } else {
-          resultsDiv.innerHTML = `<p style="text-align: center;">No se encontraron resultados.</p>`;
+          resultsDiv.innerHTML = `<p style="text-align: center;">No se encontraron resultados relacionados en la base de datos de ${currentMode}.</p>`;
         }
       })
-      .clasificarConIA(query);
+      .clasificarConIA(query, currentMode);
   }
 
   function showRules() {
@@ -111,10 +126,15 @@
     const res = currentOptions[currentIdx];
     const resultsDiv = document.getElementById('search-results');
 
+    // Customize labels based on mode
+    const contextLabel = currentMode === 'PQRSF' ? 'Contexto del Caso' : 'Tema de Consulta';
+    const dirigidoLabel = currentMode === 'PQRSF' ? 'Dirigido a' : 'Referencia / Área';
+    const accionLabel = currentMode === 'PQRSF' ? 'Acción Recomendada' : 'Respuesta / Guía';
+
     resultsDiv.innerHTML = `
       <div class="card result-container fade-up">
         <div class="resumen-box">
-          <span class="label-neon">Contexto del Caso</span>
+          <span class="label-neon">${contextLabel}</span>
           ${res.resumen_caso}
         </div>
 
@@ -125,11 +145,11 @@
 
         <div class="result-grid">
           <div>
-            <span class="label-neon">Dirigido a</span>
+            <span class="label-neon">${dirigidoLabel}</span>
             <div class="value-text">${res.dirigido}</div>
           </div>
           <div>
-            <span class="label-neon">Acción Recomendada</span>
+            <span class="label-neon">${accionLabel}</span>
             <div class="value-text">${res.accion}</div>
           </div>
         </div>
