@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MODULO PQRSF</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>PQRSF AI - NEXT GEN</title>
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <?!= include('CSS'); ?>
 </head>
@@ -13,81 +12,93 @@
   <div class="container">
 
     <!-- PANTALLA DE LOGIN -->
-    <div id="login-screen" class="login-container fade-in">
-      <div class="card">
-        <div class="header">
-          <h1>MODULO PQRSF</h1>
-          <p>By Duvan Ramos</p>
+    <div id="login-screen" class="fade-up">
+      <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center;">
+        <div class="header" style="margin-bottom: 40px;">
+          <h1 style="font-size: 42px;">MODULO <span style="color: var(--lima);">PQRSF</span></h1>
+          <p>SISTEMA DE CLASIFICACIÓN INTELIGENTE</p>
         </div>
 
-        <div class="form-group">
-          <input type="text" id="username" placeholder="Usuario" onkeypress="handleEnter(event, login)">
-        </div>
-        <div class="form-group">
-          <input type="password" id="password" placeholder="Contraseña" onkeypress="handleEnter(event, login)">
+        <div style="text-align: left; margin-bottom: 25px;">
+          <label class="label-neon">Seleccionar Asesor</label>
+          <select id="username-select">
+            <option value="" disabled selected>Escoge tu usuario...</option>
+          </select>
+
+          <label class="label-neon">Contraseña de Acceso</label>
+          <input type="password" id="password" placeholder="••••••••" onkeypress="handleEnter(event, login)">
         </div>
 
-        <button onclick="login()">INGRESAR</button>
+        <button class="btn-primary" onclick="login()">Iniciar Sistema</button>
 
-        <div id="login-error" class="error-msg"></div>
-        <div id="login-loader" class="loader">
-          <div class="spinner"></div>
-          <p style="font-size: 11px;">Validando sesión...</p>
+        <div id="login-error" style="color: #ff4d4d; font-size: 13px; margin-top: 15px;"></div>
+
+        <div id="login-loader" style="display: none; margin-top: 20px;">
+          <div class="loader-ring"></div>
+          <p style="font-size: 12px; color: var(--lima); margin-top: 10px; letter-spacing: 2px;">AUTENTICANDO...</p>
         </div>
+
+        <p style="font-size: 11px; margin-top: 40px; opacity: 0.4;">By Duvan Ramos • 2026 Edition</p>
       </div>
     </div>
 
     <!-- DASHBOARD -->
-    <div id="dashboard-screen" style="display: none;" class="fade-in">
-      <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div style="text-align: left;">
-          <h1 style="font-size: 20px;">MÓDULO PQRSF</h1>
-          <p style="margin:0">Bienvenido, <span id="display-user"></span></p>
+    <div id="dashboard-screen" style="display: none;" class="fade-up">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 0 10px;">
+        <div class="header">
+          <h1>PANEL <span style="color: var(--lima);">CONTROL</span></h1>
+          <div class="logout-area" style="margin-top: 5px;">
+            <div class="user-chip">ID: <span id="display-user"></span></div>
+          </div>
         </div>
-        <button onclick="logout()" style="width: auto; padding: 5px 15px; font-size: 12px; background: transparent; border: 1px solid var(--morado); color: var(--morado);">Cerrar Sesión</button>
+        <button class="btn-outline" onclick="logout()">Desconectar</button>
       </div>
 
-      <!-- BUSCADOR -->
-      <div class="card">
-        <div class="search-box">
-          <input type="text" id="search-input" class="search-input" placeholder="Escribe el caso aquí..." onkeypress="handleEnter(event, search)">
-          <button class="search-btn" onclick="search()">BUSCAR</button>
+      <!-- BUSCADOR ELEGANTE -->
+      <div class="card" style="padding: 25px;">
+        <label class="label-neon">Ingresar consulta del usuario</label>
+        <div class="search-wrapper">
+          <input type="text" id="search-input" class="search-input" placeholder="Ej: No me llegó el pago de la cuota monetaria..." onkeypress="handleEnter(event, search)">
+          <button class="btn-primary search-btn" onclick="search()">Analizar</button>
         </div>
 
-        <div id="search-loader" class="loader">
-          <div class="spinner"></div>
-          <p style="font-size: 11px;">Clasificando con IA...</p>
+        <div id="search-loader" style="display: none; text-align: center; margin-top: 25px;">
+          <div class="loader-ring"></div>
+          <p style="font-size: 12px; color: var(--lima); margin-top: 10px; letter-spacing: 2px;">PROCESANDO CON INTELIGENCIA ARTIFICIAL...</p>
         </div>
       </div>
 
-      <!-- RESULTADOS -->
+      <!-- CONTENEDOR DE RESULTADOS DINÁMICOS -->
       <div id="search-results"></div>
 
-      <!-- BANNER RECORDATORIO -->
-      <div class="reminder-banner">
-        <span class="material-icons" style="color: #FBC02D;">lightbulb</span>
-        <span>Este caso puede requerir envío de oficio o soporte al correo <strong>sercliente@cofrem.co</strong></span>
+      <!-- SMART BANNER -->
+      <div class="banner-smart">
+        <span class="material-icons" style="color: var(--lima);">tips_and_updates</span>
+        <span>Recomendación: En casos complejos, remitir oficio a <strong>sercliente@cofrem.co</strong> para soporte técnico.</span>
       </div>
 
-      <!-- ACORDEON RECOMENDACIONES -->
-      <div class="accordion">
-        <div class="accordion-header" onclick="toggleAccordion()">
-          <span>Ver recomendaciones</span>
+      <!-- ACORDEÓN DE REGLAS -->
+      <div class="accordion-ng">
+        <div class="accordion-ng-header" onclick="toggleAccordion()">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-icons" style="font-size: 18px; color: var(--lima);">gavel</span>
+            REGLAS DE ORO DEL RADICADOR
+          </span>
           <span id="accordion-icon" class="material-icons">expand_more</span>
         </div>
-        <div id="accordion-content" class="accordion-content">
+        <div id="accordion-content" class="accordion-ng-content">
           <ul>
-            <li>No radicar sin claridad</li>
-            <li>Validar área</li>
-            <li>No duplicar PQRSF</li>
-            <li>Validar datos</li>
-            <li>Registrar a nombre del trabajador</li>
+            <li>Garantizar claridad absoluta antes de radicar.</li>
+            <li>Validar el área de destino según la naturaleza del trámite.</li>
+            <li>Evitar duplicidad en el sistema PQRSF.</li>
+            <li>Verificar exhaustivamente la veracidad de los datos.</li>
+            <li>El registro debe realizarse estrictamente a nombre del trabajador.</li>
           </ul>
         </div>
       </div>
 
-      <div style="text-align: center; margin-top: 30px; font-size: 11px; color: #999;">
-        By Duvan Ramos
+      <div style="text-align: center; margin-top: 50px; opacity: 0.3; font-size: 11px;">
+        DESIGNED FOR EXCELLENCE BY DUVAN RAMOS
       </div>
     </div>
 
