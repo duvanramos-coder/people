@@ -2,6 +2,7 @@
   let currentUser = null;
   let currentOptions = [];
   let currentIdx = 0;
+  let rulesShown = false;
 
   window.onload = function() {
     google.script.run
@@ -45,6 +46,7 @@
           document.getElementById('login-screen').style.display = 'none';
           document.getElementById('dashboard-screen').style.display = 'block';
           document.getElementById('display-user').innerText = currentUser;
+          rulesShown = false; // Reset rules for new session
         } else {
           errorDiv.innerText = 'Contraseña incorrecta';
         }
@@ -84,11 +86,25 @@
           currentOptions = res.options;
           currentIdx = 0;
           renderCurrentOption();
+
+          if (!rulesShown) {
+            showRules();
+          }
         } else {
           resultsDiv.innerHTML = `<p style="text-align: center;">No se encontraron resultados.</p>`;
         }
       })
       .clasificarConIA(query);
+  }
+
+  function showRules() {
+    document.getElementById('modal-user-name').innerText = currentUser.toUpperCase();
+    document.getElementById('rules-modal').style.display = 'flex';
+    rulesShown = true;
+  }
+
+  function closeModal() {
+    document.getElementById('rules-modal').style.display = 'none';
   }
 
   function renderCurrentOption() {
@@ -102,9 +118,9 @@
           ${res.resumen_caso}
         </div>
 
-        <div style="margin-bottom: 25px;">
-          <h2 style="margin: 0; color: white; font-size: 24px;">${res.tipo}</h2>
-          <p style="color: rgba(255,255,255,0.6); margin-top: 5px; font-size: 14px;">${res.clasificacion}</p>
+        <div style="margin-bottom: 30px;">
+          <h2 style="margin: 0; color: white; font-size: 26px; font-weight: 700;">${res.tipo}</h2>
+          <p style="color: rgba(255,255,255,0.5); margin-top: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">${res.clasificacion}</p>
         </div>
 
         <div class="result-grid">
@@ -118,20 +134,27 @@
           </div>
         </div>
 
-        <div style="margin-top: 25px;">
+        <div style="margin-top: 30px;">
            <span class="label-neon">Recordatorio Estratégico</span>
-           <div class="value-text" style="font-size: 13px;">${res.recordatorio}</div>
+           <div class="value-text" style="font-size: 14px; color: rgba(255,255,255,0.9);">${res.recordatorio}</div>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
-          <div class="user-chip" style="color: var(--lima); border-color: var(--lima);">
-            ${res.fuente}
+        <div class="nav-controls">
+          <div class="source-badge">
+             ${res.fuente}
           </div>
 
           ${currentOptions.length > 1 ? `
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <span style="font-size: 12px; color: rgba(255,255,255,0.4);">${currentIdx + 1} de ${currentOptions.length}</span>
-              <button class="btn-outline" onclick="nextOption()">Siguiente sugerencia ➜</button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+              <span style="font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">${currentIdx + 1} de ${currentOptions.length}</span>
+              <div style="display: flex; gap: 8px;">
+                <button class="btn-outline" onclick="prevOption()" ${currentIdx === 0 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+                  <span class="material-icons" style="font-size: 18px;">chevron_left</span>
+                </button>
+                <button class="btn-outline" onclick="nextOption()" ${currentIdx === currentOptions.length - 1 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+                  <span class="material-icons" style="font-size: 18px;">chevron_right</span>
+                </button>
+              </div>
             </div>
           ` : ''}
         </div>
@@ -140,8 +163,17 @@
   }
 
   function nextOption() {
-    currentIdx = (currentIdx + 1) % currentOptions.length;
-    renderCurrentOption();
+    if (currentIdx < currentOptions.length - 1) {
+      currentIdx++;
+      renderCurrentOption();
+    }
+  }
+
+  function prevOption() {
+    if (currentIdx > 0) {
+      currentIdx--;
+      renderCurrentOption();
+    }
   }
 
   function toggleAccordion() {

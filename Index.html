@@ -74,7 +74,7 @@
       <!-- SMART BANNER -->
       <div class="banner-smart">
         <span class="material-icons" style="color: var(--lima);">tips_and_updates</span>
-        <span>Recomendación: En casos complejos, remitir oficio a <strong>sercliente@cofrem.co</strong> para soporte técnico.</span>
+        <span>Recomendación: Para certificados de aportes o afiliaciones, remitir al asesor de aportes de la oficina más cercana. En casos complejos, usar <strong>sercliente@cofrem.co</strong></span>
       </div>
 
       <!-- ACORDEÓN DE REGLAS -->
@@ -102,6 +102,27 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL REGLAS DE ORO -->
+  <div id="rules-modal" class="modal-overlay">
+    <div class="modal-content fade-up">
+      <span class="material-icons modal-close" onclick="closeModal()">close</span>
+      <h2 style="color: var(--lima); margin-bottom: 5px;">¡HOLA, <span id="modal-user-name"></span>!</h2>
+      <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 25px;">Antes de continuar, recuerda nuestras directrices:</p>
+
+      <div class="accordion-ng-content" style="display: block; border: none; padding: 0;">
+        <ul>
+          <li>Garantizar claridad absoluta antes de radicar.</li>
+          <li>Validar el área de destino según la naturaleza del trámite.</li>
+          <li>Evitar duplicidad en el sistema PQRSF.</li>
+          <li>Verificar exhaustivamente la veracidad de los datos.</li>
+          <li>El registro debe realizarse estrictamente a nombre del trabajador.</li>
+        </ul>
+      </div>
+
+      <button class="btn-primary" style="margin-top: 30px;" onclick="closeModal()">Entendido, continuar</button>
+    </div>
   </div>
 
   <?!= include('JS'); ?>
