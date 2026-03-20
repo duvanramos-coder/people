@@ -23,8 +23,9 @@ function obtenerUsuarios() {
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
 
-    const data = sheet.getRange("A2:A" + lastRow).getValues();
-    return data.map(r => r[0]).filter(r => r !== "");
+    // Columna B contiene los nombres completos de los asesores
+    const data = sheet.getRange("A2:B" + lastRow).getValues();
+    return data.map(r => r[1] || r[0]).filter(r => r !== "");
   } catch (e) {
     console.error("Error en obtenerUsuarios: " + e.message);
     return [];
