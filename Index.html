@@ -147,7 +147,7 @@ textarea {
 
 @media (min-width: 600px) {
   .checks {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -515,6 +515,11 @@ textarea {
       </label>
 
       <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" id="enProceso">
+        <span>SNC en proceso</span>
+      </label>
+
+      <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" id="pqrsf">
         <span>RADICADO</span>
       </label>
@@ -633,6 +638,7 @@ function resetForm() {
   document.getElementById("observacion").value = "";
   document.getElementById("recibidoHoy").checked = false;
   document.getElementById("solucionadoHoy").checked = false;
+  document.getElementById("enProceso").checked = false;
   document.getElementById("pqrsf").checked = false;
 
   // Reset active classes on check labels
@@ -647,6 +653,7 @@ function enviar() {
     observacion: document.getElementById("observacion").value,
     recibidoHoy: document.getElementById("recibidoHoy").checked,
     solucionadoHoy: document.getElementById("solucionadoHoy").checked,
+    enProceso: document.getElementById("enProceso").checked,
     pqrsf: document.getElementById("pqrsf").checked
   };
 

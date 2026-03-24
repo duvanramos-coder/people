@@ -42,6 +42,7 @@ function guardarRadicacion(data) {
     data.observacion || '',
     data.recibidoHoy ? 'SI' : '',
     data.solucionadoHoy ? 'SI' : '',
+    data.enProceso ? 'SI' : '',
     data.pqrsf ? 'SI' : ''
   ];
 
