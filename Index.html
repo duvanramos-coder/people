@@ -1,406 +1,533 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REGISTRA TU PQRSF REALIZADO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #312B50;
+      --secondary: #BEDC16;
+      --text-dark: #333;
+      --text-light: #fff;
+      --bg-gradient: linear-gradient(135deg, #312B50 0%, #4a417a 100%);
+      --glass: rgba(255, 255, 255, 0.95);
+    }
 
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-dark);
+      padding: 20px;
+    }
 
-.card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
-}
+    .container {
+      width: 100%;
+      max-width: 450px;
+      perspective: 1000px;
+    }
 
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-}
+    .card {
+      background: var(--glass);
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      position: relative;
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+    }
 
-.header-info { text-align: center; }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
 
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
-}
+    .header {
+      background: var(--primary);
+      color: var(--text-light);
+      padding: 30px 20px;
+      text-align: center;
+      position: relative;
+    }
 
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-}
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
+      text-transform: uppercase;
+    }
 
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .header .company {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--secondary);
+    }
 
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
+    .header .author {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-top: 5px;
+    }
 
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
+    .accent-bar {
+      height: 5px;
+      background: var(--secondary);
+    }
 
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
+    .content {
+      padding: 30px;
+    }
 
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
+    .welcome-text {
+      text-align: center;
+      margin-bottom: 25px;
+      animation: fadeIn 0.8s ease-in;
+    }
 
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .welcome-text h2 {
+      font-size: 18px;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
 
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-}
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
 
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
 
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e1e1e1;
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: all 0.3s ease;
+      background: white;
+    }
 
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.1);
+    }
 
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
-}
+    button {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+    }
 
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-}
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
+    button:hover {
+      background: #3d3564;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(49, 43, 80, 0.2);
+    }
 
-.drive-icon { width: 14px; height: 14px; }
-</style>
+    button:active {
+      transform: translateY(0);
+    }
+
+    .logout-btn {
+      background: #f8f9fa;
+      color: #dc3545;
+      border: 1px solid #ffccd5;
+      padding: 8px 15px;
+      font-size: 12px;
+      margin-top: 20px;
+      width: auto;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .logout-btn:hover {
+      background: #fff5f5;
+      box-shadow: none;
+    }
+
+    /* SEARCHABLE DROPDOWN */
+    .search-box {
+      position: relative;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      max-height: 200px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+      border: 1px solid #eee;
+      margin-top: 5px;
+    }
+
+    .search-results div {
+      padding: 12px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+
+    .search-results div:hover {
+      background: #f0f4f8;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* LOADER */
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* TOAST */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: var(--primary);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 50px;
+      font-size: 14px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+      transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .toast-icon {
+      font-size: 18px;
+    }
+
+    /* HIDDEN CLASS */
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
+<div class="container">
+  <!-- LOGIN SCREEN -->
+  <div id="login-screen" class="card">
+    <div class="header">
+      <h1>Bienvenido</h1>
+      <p class="company">People BPO</p>
+      <p class="author">By Duvan Ramos</p>
+    </div>
+    <div class="accent-bar"></div>
+    <div class="content">
+      <div class="welcome-text">
+        <h2>Inicia Sesión</h2>
+        <p style="font-size: 13px; color: #666;">Selecciona tu nombre para continuar</p>
+      </div>
+
+      <div class="form-group">
+        <label>Asesor</label>
+        <select id="login-agente">
+          <option value="">Seleccione su nombre</option>
+          <option>Angi Johana Banda Montes</option>
+          <option>Slendy Lizzeth Pico Garcia</option>
+          <option>Heillen Tatiana Rincón Lizarazo</option>
+          <option>Juliana Roa Aragonez</option>
+          <option>Stefania Ortega Rodríguez</option>
+          <option>Hadisha Faride Bitar Lerech</option>
+          <option>Bleidis Farides Cabarcas Charris</option>
+          <option>Katherine Sofia Nieto Guerra</option>
+        </select>
+      </div>
+
+      <button onclick="login()">Ingresar</button>
+    </div>
   </div>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
+  <!-- MAIN FORM SCREEN -->
+  <div id="form-screen" class="card hidden">
+    <div class="header">
+      <h1 id="user-greeting">Hola, Asesor</h1>
+      <p class="company">People BPO</p>
+      <p class="author">By Duvan Ramos</p>
+    </div>
+    <div class="accent-bar"></div>
+    <div class="content">
+      <div class="form-group">
+        <label>Número de radicado (PQRSF)</label>
+        <input id="radicado" type="text" placeholder="Ingrese el radicado">
+      </div>
+
+      <div class="form-group">
+        <label>Caso</label>
+        <input id="caso" type="text" placeholder="Descripción breve del caso">
+      </div>
+
+      <div class="form-group">
+        <label>Clasificación</label>
+        <div class="search-box">
+          <input id="clasificacion" onkeyup="filterList('clasificacion', 'list-clasificacion')" placeholder="Buscar clasificación..." autocomplete="off">
+          <div id="list-clasificacion" class="search-results"></div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Se dirige a</label>
+        <div class="search-box">
+          <input id="dirige" onkeyup="filterList('dirige', 'list-dirige')" placeholder="Buscar área..." autocomplete="off">
+          <div id="list-dirige" class="search-results"></div>
+        </div>
+      </div>
+
+      <button id="submit-btn" onclick="registrar()">
+        <span id="btn-text">Registrar PQRSF</span>
+        <div id="btn-spinner" class="spinner"></div>
       </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
-      </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
-    </div>
 
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
-
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
-      </div>
-    </div>
-
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
-
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
+      <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
     </div>
   </div>
 </div>
 
+<div id="toast">
+  <span id="toast-icon" class="toast-icon"></span>
+  <span id="toast-message"></span>
+</div>
+
 <script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
+  const CLASIFICACIONES = [
+    "(Felicitaciones) - FELICITACIONES",
+    "(Solicitudes, sugerencias y peticiones) - PETICIÓN O SOLICITUD",
+    "(Quejas, reclamos, denuncias) - QUEJA",
+    "(Quejas, reclamos, denuncias) - RECLAMO CUOTA MONETARIA Y/O REACTIVACIÓN",
+    "(Quejas, reclamos, denuncias) - RECLAMO PROTECCIÓN DE DATOS",
+    "(Quejas, reclamos, denuncias) - SOLICITUD DE RESARCIMIENTO",
+    "(Solicitudes, sugerencias y peticiones) - SUGERENCIA"
+  ];
 
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
+  const AREAS = [
+    "COLEGIO SAN MARTIN", "COLEGIO VILLAVICENCIO", "CONSEJO DIRECTIVO", "CONTABILIDAD GENERAL",
+    "COORDINACION DE AFILIACIONES", "COORDINACION DE GESTION DOCUMENTAL", "COORDINACIÓN COMERCIAL",
+    "COORDINACIÓN DE MERCADEO", "DIRECCION ADMINISTRATIVA", "DIVISION COMERCIAL Y DE MERCADEO",
+    "DIVISION DE APORTES", "DIVISION DE CAPACITACIÓN EMPRESARIAL", "DIVISION DE RECREACION, DEPORTE Y TURISMO",
+    "DIVISION DE SUBSIDIOS", "DIVISION DE TECNOLOGIAS DE LA INFORMACIÓN", "DIVISION DE TESORERIA",
+    "DIVISIÓN DE ATENCIÓN A LA NIÑEZ", "DIVISIÓN DE GESTIÓN DE EMPLEO", "AREA DE PUBLICIDAD",
+    "AREA DE CARTERA", "AREA DE CREDITO COFREM", "AREA DE CULTURA Y EVENTOS", "AREA DE MANTENIMIENTO",
+    "AREA INFRAESTRUCTURA", "ASESORIA JURIDICA", "AUDITORIA INTERNA", "BIBLIOTECA",
+    "CENTRO DE SERVICIOS PUERTO GAITAN", "CENTRO VACACIONAL CANEY", "CENTRO VACACIONAL YURIMENA",
+    "CER", "COLEGIO ACACÍAS", "COLEGIO GUAMAL", "COLEGIO PUERTO LOPEZ", "COLEGIO RESTREPO",
+    "DIVISIÓN DE GESTIÓN DE SIST. CORPORATIVO", "DIVISIÓN DE GESTIÓN HUMANA", "DIVISIÓN DE LOGISTICA",
+    "EDUCACION SUPERIOR", "FEDECAJAS", "INSTITUTO TECNICO COFREM", "MESA DE SERVICIOS", "NO DEFINIDA",
+    "OFICINA MOVIL RUBIALES", "PARQUE DE LA VIDA VILLAVICENCIO", "PARQUE VACACIONAL ARIARI",
+    "PLANEACIÓN CORPORATIVA", "PUNTO DE INFORMACIÓN", "SERVICIO AL CLIENTE",
+    "SUBDIRECCION ADMINISTRATIVA Y FINANCIERA", "SUBDIRECCION DE PROGRAMAS SOCIALES",
+    "SUBDIRECCION DE SERVICIOS SOCIALES", "SUBDIRECCIÓN EDUCACIÓN", "TURISMO SOCIAL",
+    "ZONA CENTRO", "ZONA NORTE", "ZONA ORIENTE", "ZONA SUR", "ÁREA DE VIVIENDA"
+  ];
+
+  let currentAgent = "";
+
+  window.onload = function() {
+    const savedAgent = localStorage.getItem('pqrsf_agent');
+    if (savedAgent) {
+      showForm(savedAgent);
+    }
+
+    // Initialize lists
+    populateList('list-clasificacion', CLASIFICACIONES, 'clasificacion');
+    populateList('list-dirige', AREAS, 'dirige');
+
+    // Close lists when clicking outside
+    document.addEventListener('click', function(e) {
+      if (!e.target.closest('.search-box')) {
+        document.querySelectorAll('.search-results').forEach(el => el.style.display = 'none');
+      }
     });
-  }).obtenerUsuarios();
-}
-cargarUsuarios();
-
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
   };
 
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
+  function populateList(listId, data, inputId) {
+    const list = document.getElementById(listId);
+    list.innerHTML = "";
+    data.forEach(item => {
+      const div = document.createElement('div');
+      div.textContent = item;
+      div.onclick = function() {
+        document.getElementById(inputId).value = item;
+        list.style.display = 'none';
+      };
+      list.appendChild(div);
+    });
   }
 
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
-}
+  function filterList(inputId, listId) {
+    const input = document.getElementById(inputId);
+    const filter = input.value.toLowerCase();
+    const list = document.getElementById(listId);
+    const items = list.getElementsByTagName('div');
+    let hasResults = false;
 
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
-}
-
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
-
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
-
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
-
-    let pec=res.pec*100; let penc=res.penc*100;
-
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
-
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
+    if (filter === "") {
+      list.style.display = 'none';
+      return;
     }
 
-    let estado="", color="#B7D400", porcentaje = 0;
+    for (let i = 0; i < items.length; i++) {
+      const txtValue = items[i].textContent || items[i].innerText;
+      if (txtValue.toLowerCase().indexOf(filter) > -1) {
+        items[i].style.display = "";
+        hasResults = true;
+      } else {
+        items[i].style.display = "none";
+      }
+    }
+    list.style.display = hasResults ? 'block' : 'none';
+  }
 
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
+  function login() {
+    const agente = document.getElementById('login-agente').value;
+    if (!agente) {
+      showToast('⚠️ Por favor selecciona tu nombre', 'error');
+      return;
+    }
+    localStorage.setItem('pqrsf_agent', agente);
+    showForm(agente);
+  }
 
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
+  function logout() {
+    localStorage.removeItem('pqrsf_agent');
+    document.getElementById('form-screen').classList.add('hidden');
+    document.getElementById('login-screen').classList.remove('hidden');
+    document.getElementById('login-agente').value = "";
+  }
 
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
+  function showForm(agente) {
+    currentAgent = agente;
+    document.getElementById('user-greeting').textContent = 'Hola, ' + agente.split(' ')[0];
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('form-screen').classList.remove('hidden');
+  }
+
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    const icon = document.getElementById('toast-icon');
+    const msg = document.getElementById('toast-message');
+
+    icon.textContent = type === 'success' ? '✅' : '❌';
+    msg.textContent = message;
+
+    toast.className = 'show';
+    setTimeout(() => {
+      toast.className = '';
+    }, 4000);
+  }
+
+  function registrar() {
+    const radicado = document.getElementById('radicado').value;
+    const caso = document.getElementById('caso').value;
+    const clasificacion = document.getElementById('clasificacion').value;
+    const dirige = document.getElementById('dirige').value;
+
+    if (!radicado || !caso || !clasificacion || !dirige) {
+      showToast('⚠️ Completa todos los campos', 'error');
+      return;
     }
 
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
+    const btn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const spinner = document.getElementById('btn-spinner');
 
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
+    btn.disabled = true;
+    btnText.style.opacity = '0.5';
+    spinner.style.display = 'block';
 
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
+    const data = {
+      agente: currentAgent,
+      radicado: radicado,
+      caso: caso,
+      clasificacion: clasificacion,
+      dirige: dirige
+    };
 
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
+    google.script.run.withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btnText.style.opacity = '1';
+      spinner.style.display = 'none';
 
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
-
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
-          } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
-          }
-        }
-
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-          `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
-
-  }).login(usuario,password);
-}
+      if (res.estado === "ok") {
+        showToast('✨ Registro exitoso');
+        document.getElementById('radicado').value = "";
+        document.getElementById('caso').value = "";
+        document.getElementById('clasificacion').value = "";
+        document.getElementById('dirige').value = "";
+      } else if (res.estado === "duplicado") {
+        showToast('⚠️ Duplicado: ya registrado por ' + res.agente, 'error');
+      } else {
+        showToast('❌ Error al registrar', 'error');
+      }
+    }).withFailureHandler(function() {
+      btn.disabled = false;
+      btnText.style.opacity = '1';
+      spinner.style.display = 'none';
+      showToast('❌ Error de conexión', 'error');
+    }).guardarPQRSF(data);
+  }
 </script>
+
 </body>
 </html>
