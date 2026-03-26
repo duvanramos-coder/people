@@ -1,0 +1,239 @@
+<script>
+    let mainChart, pqrsfChart;
+
+    window.onload = () => {
+        const loader = document.getElementById('loader');
+        loader.style.display = 'flex';
+        google.script.run
+            .withSuccessHandler(list => {
+                const select = document.getElementById('usuario');
+                const fragment = document.createDocumentFragment();
+                list.sort().forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u; opt.text = u; fragment.appendChild(opt);
+                });
+                select.appendChild(fragment);
+                loader.style.display = 'none';
+            })
+            .withFailureHandler(() => { alert("Error al cargar usuarios"); loader.style.display = 'none'; })
+            .obtenerUsuarios();
+    };
+
+    function logout() {
+        document.getElementById('dashboardSection').style.display = 'none';
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('password').value = '';
+    }
+
+    function login() {
+        const user = document.getElementById('usuario').value;
+        const pass = document.getElementById('password').value;
+        const loader = document.getElementById('loader');
+        loader.style.display = 'flex';
+        google.script.run
+            .withSuccessHandler(res => {
+                loader.style.display = 'none';
+                if (res === "ERROR") { alert("Contraseña Incorrecta"); return; }
+                renderDashboard(user, res);
+            })
+            .withFailureHandler(() => { alert("Error de conexión"); loader.style.display = 'none'; })
+            .login(user, pass);
+    }
+
+    function renderDashboard(user, data) {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('dashboardSection').style.display = 'block';
+        document.getElementById('asesorNombre').innerText = data.nombre;
+        document.getElementById('asesorArea').innerText = data.area || "Panel de Rendimiento Individual";
+
+        // Generar tarjetas de métricas dinámicamente
+        const grid = document.getElementById('metricGrid');
+        grid.innerHTML = "";
+        data.metrics.forEach((m, idx) => {
+            const card = document.createElement('div');
+            card.className = "metric-card";
+            card.style.animationDelay = (idx * 0.1) + "s";
+            card.innerHTML = `<div class="metric-title">${m.label}</div><div class="metric-value">${m.value}</div>`;
+            grid.appendChild(card);
+        });
+
+        renderCharts(data);
+        renderTable(data.tablaData, data.area);
+        updateProgressBar(data);
+    }
+
+    function updateProgressBar(d) {
+        const bar = document.getElementById('barraProgreso');
+        const label = document.getElementById('labelEstado');
+        const track = document.querySelector('.progress-track');
+        const tooltip = document.getElementById('tooltipBono');
+        track.onmousemove = null; track.onmouseleave = null;
+
+        if (d.area === "G. Empleo Cofrem") {
+            // Lógica para PENC (Mínimo 95%)
+            const pencMetric = d.metrics.find(m => m.label === "PENC");
+            const pct = pencMetric ? parseFloat(pencMetric.value.replace('%', '')) : 0;
+
+            let color = 'var(--danger)';
+            if (pct >= 95) color = 'var(--success)';
+            else if (pct >= 90) color = 'var(--warning)';
+
+            label.innerHTML = `<div class="progress-header"><div class="progress-label">DESEMPEÑO PENC</div><div class="progress-amount" style="color:${color}">${pct.toFixed(1)}%</div></div>`;
+            bar.style.width = "0%";
+            bar.style.background = color;
+            setTimeout(() => { bar.style.width = pct + "%"; }, 500);
+
+            track.onmousemove = function(e) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY + 15) + 'px';
+                tooltip.innerHTML = `<strong>Meta mínima: 95%</strong><br>Estado: ${pct >= 95 ? 'Excelente' : pct >= 90 ? 'En riesgo' : 'Crítico'}`;
+            };
+            track.onmouseleave = function() { tooltip.style.display = 'none'; };
+
+        } else {
+            // Lógica original de bonos
+            const max = 300000;
+            const ganado = d.bonoGanado || 0;
+            const pct = Math.min((ganado / max) * 100, 100);
+            const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits:0 });
+
+            label.innerHTML = `<div class="progress-header"><div class="progress-label">BONO ACUMULADO</div><div class="progress-amount">${fmt.format(ganado)}</div></div>`;
+            bar.style.width = "0%";
+            bar.style.background = 'linear-gradient(90deg, var(--primary) 0%, #fff 100%)';
+            setTimeout(() => { bar.style.width = pct + "%"; }, 500);
+
+            track.onmousemove = function(e) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.pageX + 15) + 'px';
+                tooltip.style.top = (e.pageY + 15) + 'px';
+                const faltante = Math.max(0, max - ganado);
+                tooltip.innerHTML = `<strong>Máximo posible: ${fmt.format(max)}</strong><br>Faltante: ${fmt.format(faltante)}`;
+            };
+            track.onmouseleave = function() { tooltip.style.display = 'none'; };
+        }
+    }
+
+    function renderCharts(d) {
+        if (mainChart) mainChart.destroy();
+        if (pqrsfChart) pqrsfChart.destroy();
+
+        const numericMetrics = d.metrics.filter(m => {
+            const val = m.value.toString();
+            return !isNaN(parseFloat(val.replace('%','')));
+        });
+
+        const ctx1 = document.getElementById('chartMain').getContext('2d');
+        mainChart = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: numericMetrics.map(m => m.label),
+                datasets: [{
+                    data: numericMetrics.map(m => parseFloat(m.value.toString().replace('%',''))),
+                    backgroundColor: 'rgba(183, 212, 0, 0.4)',
+                    borderColor: '#B7D400',
+                    borderWidth: 2.5,
+                    borderRadius: 14,
+                    hoverBackgroundColor: 'rgba(183, 212, 0, 0.6)'
+                }]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                responsive: true,
+                animation: { duration: 1500, easing: 'easeOutQuart' },
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: '#fff',
+                        font: { weight: '800', size: 12, family: 'Poppins' },
+                        anchor: 'end',
+                        align: 'top',
+                        offset: 4,
+                        formatter: (v, ctx) => {
+                            const orig = numericMetrics[ctx.dataIndex].value;
+                            return orig.toString().includes('%') ? v.toFixed(1) + '%' : v;
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                        ticks: { color: '#94a3b8', font: { weight: '600' } }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', font: { weight: '600' } }
+                    }
+                }
+            }
+        });
+
+        const compareMetrics = ["PQRSF Creados", "PQRSF Devueltos", "SNC Recibidos", "SNC Solucionados", "Error de Respuesta"];
+        const secondaryMetrics = d.metrics.filter(m => compareMetrics.includes(m.label));
+        const pqrsfBox = document.getElementById('chartPqrsfBox');
+
+        if (secondaryMetrics.length > 0) {
+            pqrsfBox.style.display = 'block';
+            const ctx2 = document.getElementById('chartPqrsf').getContext('2d');
+            pqrsfChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: secondaryMetrics.map(m => m.label),
+                    datasets: [{
+                        data: secondaryMetrics.map(m => m.value),
+                        backgroundColor: ['#6366f1', '#ef4444', '#10b981', '#f59e0b', '#ef4444'],
+                        borderRadius: 14,
+                        borderWidth: 0
+                    }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true,
+                    animation: { duration: 1500, easing: 'easeOutBounce' },
+                    plugins: {
+                        legend: { display: false },
+                        datalabels: {
+                            color: '#fff',
+                            font: { weight: '800', size: 12 },
+                            anchor: 'end',
+                            align: 'top',
+                            offset: 4
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                            ticks: { color: '#94a3b8', font: { weight: '600' } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#94a3b8', font: { weight: '600' } }
+                        }
+                    }
+                }
+            });
+        } else {
+            pqrsfBox.style.display = 'none';
+        }
+    }
+
+    function renderTable(data, area) {
+        const box = document.getElementById('tableBox');
+        const body = document.getElementById('tableBody');
+        body.innerHTML = "";
+        if (data && data.length > 0) {
+            box.style.display = "block";
+            const fragment = document.createDocumentFragment();
+            data.forEach((f, idx) => {
+                const tr = document.createElement('tr');
+                const isEsp = area === "Radicacion" || area === "Encuestas";
+                const link = f.link && f.link.toString().startsWith('http') ? `<a href="${f.link}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none; padding: 4px 12px; border: 1px solid var(--primary); border-radius: 8px; font-size: 11px; transition: all 0.3s;">ESCUCHAR</a>` : '<span style="color:var(--text-dim); font-size: 11px;">NO DISPONIBLE</span>';
+                tr.innerHTML = `<td>${f.fecha||'-'}</td><td>${f.positivos||'-'}</td><td>${f.mejora||'-'}</td><td>${isEsp ? '<span style="color:var(--text-dim); font-size: 11px;">N/A</span>' : link}</td>`;
+                fragment.appendChild(tr);
+            });
+            body.appendChild(fragment);
+        } else { box.style.display = "none"; }
+    }
+</script>
