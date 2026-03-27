@@ -378,7 +378,7 @@
       <button class="btn-action" onclick="login()">Acceder al Sistema</button>
 
       <div style="margin-top: 40px; font-size: 11px; color: #bbb;">
-        Seguridad People Academy Pro 2026
+        Seguridad People Academy Pro 2026 — By Duvan Ramos
       </div>
     </div>
 
@@ -456,7 +456,7 @@
       ESPERA: () => `Claro que sí, con mucho gusto le colaboro. Permítame un momento por favor mientras valido la información para direccionar su llamada.`,
       TRANSFERENCIA: (area) => `Listo, muchísimas gracias. Lo voy a comunicar con el área de <span class="highlight-accent">${area}</span>. Deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong>`,
       LINEA_AMIGA: () => `Entiendo su solicitud. No obstante, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es exclusivamente para direccionamiento. Para su requerimiento, lo remitiré a la Línea Amiga, donde un agente le brindará la atención que necesita.`,
-      EMPLEO: () => `Comprendo que busca información de empleo. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es de información general. Lo comunicaré de inmediato con la Agencia de Empleo para que reciba la asesoría correspondiente.`,
+      EMPLEO: () => `Comprendo que busca información de empleo. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es de direccionamiento. Lo comunicaré de inmediato con la Agencia de Empleo para que reciba la asesoría correspondiente.`,
       INSISTENCIA: () => `Comprendo su malestar y le ofrezco una disculpa. Sin embargo, para poder ayudarle adecuadamente, <span class="highlight-accent">debo remitirlo con el área encargada</span>, ya que desde esta línea de conmutador no contamos con acceso a su historial. Permítame un momento por favor.`,
       ERROR: () => `Le pido una sincera disculpa, parece que hubo un error en la conexión anterior. <span class="highlight-accent">Deme un segundo</span> para intentar conectarlo nuevamente con el área correcta. Gracias por su paciencia.`
     };
@@ -489,7 +489,11 @@
     }
 
     function logout() {
-      location.reload();
+      currentAdvisor = "";
+      document.getElementById('login-screen').style.display = 'block';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('search-input').value = "";
+      document.getElementById('results-grid').innerHTML = "";
     }
 
     /**
