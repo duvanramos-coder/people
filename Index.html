@@ -452,7 +452,7 @@
     };
 
     const SCRIPTS = {
-      SALUDO: () => `Hola, muy <span class="highlight-accent">${getGreeting()}</span>, se comunica con COFREM, le habla <span class="highlight-accent">${currentAdvisor}</span>, ¿en qué le puedo colaborar?`,
+      SALUDO: () => `Muy <span class="highlight-accent">${getGreeting()}</span>, se comunica con el conmutador de Cofrem, le habla <span class="highlight-accent">${currentAdvisor}</span>, ¿en qué puedo ayudarle?`,
       ESPERA: () => `Claro que sí, con mucho gusto le colaboro. Permítame un momento por favor mientras valido la información para direccionar su llamada.`,
       TRANSFERENCIA: (area) => `Listo, muchísimas gracias. Lo voy a comunicar con el área de <span class="highlight-accent">${area}</span>. Deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong>`,
       LINEA_AMIGA: () => `Entiendo su solicitud. No obstante, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es exclusivamente para direccionamiento. Para su requerimiento, lo remitiré a la Línea Amiga, donde un agente le brindará la atención que necesita.`,
