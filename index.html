@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pro - People BPO</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+    <?!= include('styles'); ?>
+</head>
+<body>
+
+    <div class="bg-blob" style="top: -10%; right: -10%;"></div>
+    <div class="bg-blob" style="bottom: -10%; left: -10%; background: #00d2ff;"></div>
+
+    <div id="loader" style="display:none">
+        <div class="spinner"></div>
+        <p style="margin-top: 15px; font-size: 14px; color: white;">SINCRONIZANDO DATOS...</p>
+    </div>
+
+    <div id="tooltipBono" class="bono-tooltip"></div>
+
+    <div class="container" id="loginSection">
+        <div class="glass-card login-card">
+            <div class="header">
+                <h1 class="logo-text">Desempeño</h1>
+                <p class="tagline">People BPO</p>
+            </div>
+            <div class="input-group">
+                <label>SELECCIONAR USUARIO</label>
+                <select id="usuario"></select>
+            </div>
+            <div class="input-group">
+                <label>CONTRASEÑA</label>
+                <input type="password" id="password" placeholder="••••••••">
+            </div>
+            <button class="btn-primary" onclick="login()">INGRESAR AL PANEL</button>
+            <p class="footer">BY DUVAN RAMOS 2026 • v3.0 PREMIUM</p>
+        </div>
+    </div>
+
+    <div class="dashboard-container" id="dashboardSection" style="display:none">
+        <div class="glass-card">
+            <button class="logout-btn" onclick="logout()">CERRAR SESIÓN</button>
+            <div class="header" style="text-align: left;">
+                <h1 class="logo-text" id="asesorNombre">Cargando...</h1>
+                <p class="tagline" id="asesorArea">Panel de Rendimiento Individual</p>
+            </div>
+
+            <div class="metric-grid" id="metricGrid"></div>
+
+            <div class="progress-section">
+                <div id="labelEstado"></div>
+                <div class="progress-track"><div class="progress-fill" id="barraProgreso"></div></div>
+            </div>
+
+            <div class="charts-row">
+                <div class="chart-box"><canvas id="chartMain"></canvas></div>
+                <div class="chart-box" id="chartPqrsfBox"><canvas id="chartPqrsf"></canvas></div>
+            </div>
+
+            <div class="table-container" id="tableBox" style="display:none">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Fortalezas</th><th>Mejoras</th><th>Grabación</th></tr></thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
+            </div>
+            <p class="footer" style="margin-top:40px">BY DUVAN RAMOS 2026 • v3.0 PREMIUM</p>
+        </div>
+    </div>
+
+    <?!= include('scripts'); ?>
+</body>
+</html>
