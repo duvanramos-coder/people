@@ -3,426 +3,439 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Script Conmutador People BPO</title>
+  <title>Script Conmutador People BPO | Elite</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --primary: #2E2A4F;
       --accent: #B4D800;
-      --accent-soft: rgba(180, 216, 0, 0.1);
-      --bg: linear-gradient(135deg, #2E2A4F 0%, #1A1735 100%);
-      --card-bg: #ffffff;
-      --text: #1d1d1f;
-      --text-muted: #86868b;
-      --shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-      --radius: 20px;
-      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      --accent-dark: #9cbd00;
+      --accent-soft: rgba(180, 216, 0, 0.15);
+      --bg-gradient: linear-gradient(135deg, #1e1b3a 0%, #2E2A4F 100%);
+      --card-bg: rgba(255, 255, 255, 0.98);
+      --text-main: #1A1A1A;
+      --text-muted: #666666;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-premium: 0 20px 50px rgba(0, 0, 0, 0.15);
+      --transition-smooth: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-font-smoothing: antialiased;
     }
 
     body {
       font-family: 'Poppins', sans-serif;
-      background: var(--bg);
+      background: var(--bg-gradient);
       background-attachment: fixed;
-      color: var(--text);
+      color: var(--text-main);
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      overflow-x: hidden;
-      padding: 20px;
+      padding: 40px 20px;
     }
 
-    .container {
+    .app-container {
       width: 100%;
-      max-width: 850px;
-      transition: var(--transition);
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
     }
 
-    /* LOGIN SCREEN */
-    .card-login {
+    /* LOGIN ANIMATION */
+    #login-screen {
       background: var(--card-bg);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 60px 40px;
+      border-radius: var(--radius-lg);
+      padding: 60px;
       text-align: center;
-      max-width: 450px;
-      margin: 0 auto;
-      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: var(--shadow-premium);
+      max-width: 480px;
+      margin: auto;
+      animation: reveal 1s ease-out;
     }
 
-    .login-header h1 {
-      font-size: 24px;
-      font-weight: 700;
+    @keyframes reveal {
+      from { opacity: 0; transform: scale(0.95) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    .brand-logo {
+      font-size: 28px;
+      font-weight: 800;
       color: var(--primary);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: -1px;
+      margin-bottom: 10px;
     }
 
-    .login-header p {
-      font-size: 13px;
+    .brand-tagline {
+      font-size: 14px;
       color: var(--text-muted);
-      margin-bottom: 35px;
-      font-weight: 500;
+      margin-bottom: 40px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: 600;
     }
 
-    .input-group {
-      margin-bottom: 25px;
+    /* FORM ELEMENTS */
+    .field-label {
+      display: block;
       text-align: left;
-    }
-
-    label {
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 700;
       color: var(--primary);
+      margin-bottom: 10px;
       margin-left: 5px;
-      margin-bottom: 8px;
-      display: block;
       text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
-    select, .search-input {
+    .custom-select, .modern-input {
       width: 100%;
-      height: 55px;
+      height: 60px;
+      background: #f4f4f7;
+      border: 2px solid transparent;
+      border-radius: var(--radius-md);
       padding: 0 20px;
-      border: 2px solid #f2f2f2;
-      border-radius: 14px;
       font-size: 16px;
       font-family: inherit;
-      transition: var(--transition);
-      background: #fafafa;
+      transition: var(--transition-smooth);
       outline: none;
-      color: var(--text);
+      color: var(--primary);
     }
 
-    select:focus, .search-input:focus {
-      border-color: var(--accent);
+    .custom-select:focus, .modern-input:focus {
       background: #fff;
-      box-shadow: 0 0 0 5px var(--accent-soft);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 6px var(--accent-soft);
     }
 
-    .btn-primary {
+    .btn-action {
       width: 100%;
-      height: 55px;
+      height: 60px;
       background: var(--accent);
       color: var(--primary);
       border: none;
-      border-radius: 14px;
-      font-size: 16px;
+      border-radius: var(--radius-md);
+      font-size: 17px;
       font-weight: 700;
       cursor: pointer;
-      transition: var(--transition);
-      box-shadow: 0 8px 25px rgba(180, 216, 0, 0.3);
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      transition: var(--transition-smooth);
+      box-shadow: 0 10px 30px rgba(180, 216, 0, 0.3);
+      margin-top: 20px;
     }
 
-    .btn-primary:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 12px 35px rgba(180, 216, 0, 0.4);
+    .btn-action:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 15px 40px rgba(180, 216, 0, 0.4);
+      background: var(--accent-dark);
     }
 
-    /* DASHBOARD */
+    /* DASHBOARD LAYOUT */
     #dashboard {
       display: none;
       animation: fadeIn 0.8s ease;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
-    .dashboard-nav {
+    .top-nav {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(15px);
       padding: 15px 30px;
-      border-radius: 18px;
+      border-radius: var(--radius-md);
       border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 25px;
       color: white;
     }
 
-    .user-profile {
-      display: flex;
-      align-items: center;
-      gap: 15px;
+    .profile-section { display: flex; align-items: center; gap: 15px; }
+    .profile-avatar {
+      width: 45px; height: 45px;
+      background: var(--accent);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; color: var(--primary); font-size: 20px;
     }
 
-    .avatar {
-      width: 42px;
-      height: 42px;
+    .logout-link {
+      color: #ff8e8e;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      opacity: 0.8;
+      transition: 0.3s;
+    }
+    .logout-link:hover { opacity: 1; text-decoration: underline; }
+
+    /* DYNAMIC SCRIPT CARD */
+    .script-viewer {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 45px;
+      box-shadow: var(--shadow-premium);
+      min-height: 220px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .script-viewer::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 6px; height: 100%;
       background: var(--accent);
-      border-radius: 50%;
+    }
+
+    .script-tag {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--accent-dark);
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .phrase-container {
+      font-size: 24px;
+      line-height: 1.5;
+      font-weight: 500;
+      color: var(--primary);
+      transition: var(--transition-smooth);
+    }
+
+    .highlight-accent {
+      color: var(--accent-dark);
+      font-weight: 700;
+      position: relative;
+      display: inline-block;
+    }
+
+    /* SCENARIO BAR */
+    .scenario-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .btn-scenario {
+      height: 50px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: white;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
       display: flex;
       align-items: center;
       justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-scenario:hover {
+      background: var(--accent);
       color: var(--primary);
-      font-weight: 800;
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* SEARCH BAR */
+    .search-box {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .search-input-elite {
+      width: 100%;
+      height: 75px;
+      border-radius: var(--radius-md);
+      border: none;
+      padding: 0 30px 0 75px;
       font-size: 20px;
-      box-shadow: 0 4px 15px rgba(180, 216, 0, 0.4);
-    }
-
-    .user-info h2 {
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .user-info span {
-      font-size: 11px;
-      opacity: 0.8;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      font-weight: 600;
-    }
-
-    .logout-btn {
-      padding: 8px 16px;
-      background: rgba(255, 77, 77, 0.15);
-      color: #ff8080;
-      border: 1px solid rgba(255, 77, 77, 0.3);
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-
-    .logout-btn:hover { background: rgba(255, 77, 77, 0.25); color: #fff; }
-
-    /* SCRIPT SECTION */
-    .card-script {
       background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 35px;
-      box-shadow: var(--shadow);
-      margin-bottom: 25px;
-    }
-
-    .badge-script {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--accent-soft);
+      box-shadow: var(--shadow-premium);
+      font-family: inherit;
+      outline: none;
       color: var(--primary);
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 800;
-      margin-bottom: 20px;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      border: 1px solid rgba(180, 216, 0, 0.3);
     }
 
-    .script-content {
-      font-size: 17px;
-      line-height: 1.8;
-      color: var(--text);
-      font-weight: 500;
-    }
-
-    .highlight {
-      color: var(--primary);
-      font-weight: 700;
-      border-bottom: 3px solid var(--accent);
-      padding-bottom: 2px;
-    }
-
-    /* SEARCH SECTION */
-    .card-search {
-      background: var(--card-bg);
-      border-radius: var(--radius);
-      padding: 30px;
-      box-shadow: var(--shadow);
-      margin-bottom: 25px;
-    }
-
-    .search-input {
-      font-size: 18px;
-      height: 65px;
-      padding-left: 60px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232E2A4F' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'%3E%3C/circle%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'%3E%3C/line%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: 20px center;
-      background-size: 24px;
-      border: 2px solid #eee;
+    .search-icon {
+      position: absolute;
+      left: 30px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      opacity: 0.5;
     }
 
     /* RESULTS GRID */
     .results-grid {
       display: grid;
-      grid-template-columns: 1fr;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 20px;
     }
 
-    .result-card {
-      background: white;
-      border-radius: 18px;
-      padding: 25px;
-      border: 1px solid #f0f0f0;
-      transition: var(--transition);
-      animation: slideUp 0.4s ease forwards;
-      opacity: 0;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    }
-
-    .result-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 45px rgba(0,0,0,0.1);
-      border-color: var(--accent);
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-header {
+    .mini-card {
+      background: var(--card-bg);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      border: 1px solid transparent;
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 15px;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
 
-    .dept-info h3 {
-      font-size: 18px;
-      font-weight: 700;
+    .mini-card:hover {
+      transform: scale(1.03);
+      border-color: var(--accent);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    .mini-card h4 {
+      font-size: 16px;
       color: var(--primary);
-    }
-
-    .ext-badge {
-      background: var(--primary);
-      color: white;
-      padding: 8px 18px;
-      border-radius: 12px;
-      font-size: 15px;
       font-weight: 700;
-      box-shadow: 0 4px 10px rgba(46, 42, 79, 0.2);
     }
 
-    .transfer-box {
-      background: #f8f9fa;
-      padding: 15px 20px;
-      border-radius: 14px;
-      border-left: 5px solid var(--accent);
-      font-size: 15px;
-      color: var(--text);
-      line-height: 1.6;
-      font-style: italic;
+    .mini-card span {
+      font-size: 13px;
+      color: var(--accent-dark);
+      font-weight: 800;
+      background: var(--accent-soft);
+      padding: 4px 10px;
+      border-radius: 8px;
+      align-self: flex-start;
     }
 
-    /* UTILS */
-    .loader {
+    /* FOOTER */
+    .footer-elite {
+      text-align: center;
+      color: rgba(255,255,255,0.4);
+      font-size: 12px;
+      margin-top: 40px;
+      letter-spacing: 1px;
+      font-weight: 500;
+    }
+
+    /* LOADING ANIMATION */
+    .elite-loader {
       display: none;
-      width: 40px;
-      height: 40px;
-      border: 4px solid rgba(255,255,255,0.1);
-      border-top: 4px solid var(--accent);
+      width: 50px;
+      height: 50px;
+      border: 3px solid rgba(180, 216, 0, 0.1);
+      border-top-color: var(--accent);
       border-radius: 50%;
       animation: spin 1s linear infinite;
-      margin: 20px auto;
+      margin: 30px auto;
     }
 
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .no-results {
-      text-align: center;
-      padding: 40px;
-      color: rgba(255,255,255,0.6);
-      font-style: italic;
-    }
-
-    .footer-note {
-      text-align: center;
-      margin-top: 50px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-
-    /* RESPONSIVE */
     @media (max-width: 600px) {
-      .card-login, .card-script, .card-search { padding: 25px; }
-      .dashboard-nav { padding: 12px 20px; }
-      .script-content { font-size: 15px; }
+      .scenario-bar { grid-template-columns: 1fr; }
+      .script-viewer { padding: 30px; font-size: 18px; }
+      #login-screen { padding: 30px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <div class="app-container">
 
-    <!-- PANTALLA LOGIN -->
-    <div id="login-screen" class="card-login">
-      <div class="login-header">
-        <h1>Script Conmutador</h1>
-        <p>People BPO</p>
-      </div>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen">
+      <div class="brand-logo">SCRIPT CONMUTADOR</div>
+      <div class="brand-tagline">People BPO Elite</div>
 
-      <div class="input-group">
-        <label for="user-select">Asesor</label>
-        <select id="user-select">
-          <option value="" disabled selected>Cargando usuarios...</option>
+      <div style="margin-bottom: 30px;">
+        <label class="field-label">Selecciona tu Perfil</label>
+        <select id="user-select" class="custom-select">
+          <option value="" disabled selected>Cargando asesores...</option>
         </select>
       </div>
 
-      <button class="btn-primary" onclick="login()">Ingresar al Sistema</button>
+      <button class="btn-action" onclick="login()">Acceder al Sistema</button>
 
-      <div class="footer-note" style="color: #aaa; margin-top: 30px;">Script Conmutador People BPO - By Duvan Ramos 2026</div>
+      <div style="margin-top: 40px; font-size: 11px; color: #bbb;">
+        Seguridad People Academy Pro 2026
+      </div>
     </div>
 
     <!-- DASHBOARD -->
     <div id="dashboard">
-      <nav class="dashboard-nav">
-        <div class="user-profile">
-          <div class="avatar" id="user-avatar">?</div>
-          <div class="user-info">
-            <h2 id="advisor-name-display">Asesor</h2>
-            <span id="nav-greeting">Buen día</span>
+      <nav class="top-nav">
+        <div class="profile-section">
+          <div class="profile-avatar" id="user-avatar">?</div>
+          <div>
+            <div id="advisor-name-display" style="font-weight: 700; font-size: 15px;">Nombre Asesor</div>
+            <div id="nav-greeting" style="font-size: 11px; opacity: 0.7; font-weight: 600; text-transform: uppercase;">Estado: Activo</div>
           </div>
         </div>
-        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+        <a class="logout-link" onclick="logout()">Finalizar Turno</a>
       </nav>
 
-      <!-- SCRIPT PREDETERMINADO PRO -->
-      <div class="card-script">
-        <div class="badge-script">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-          Script de Bienvenida
-        </div>
-        <div class="script-content" id="main-script-text">
-          Hola, muy <span class="highlight" id="span-greeting">buenos días</span>, se comunica con COFREM, le habla <span class="highlight" id="span-name">[Nombre]</span>, ¿en qué le puedo colaborar?<br><br>
-          <span style="opacity: 0.8">Claro que sí, con gusto le colaboro. Permítame un momento por favor mientras valido la información para direccionar su llamada con el área correspondiente.</span><br><br>
-          <span style="opacity: 0.9">Listo, muchísimas gracias, deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong></span>
+      <!-- DYNAMIC SCRIPT VIEWER -->
+      <div class="script-viewer" id="script-container">
+        <span class="script-tag" id="script-phase-tag">Paso 1: Bienvenida</span>
+        <div class="phrase-container" id="phrase-text">
+          <!-- El script aparecerá aquí dinámicamente -->
         </div>
       </div>
 
-      <!-- BUSCADOR PRO -->
-      <div class="card-search">
-        <input type="text" id="search-input" class="search-input" placeholder="Buscar dependencia o extensión..." onkeyup="search()">
+      <!-- BOTONES DE ESCENARIO -->
+      <div class="scenario-bar" style="grid-template-columns: repeat(5, 1fr);">
+        <button class="btn-scenario" onclick="setScript('SALUDO')" title="Reiniciar">
+          🔄 Saludo
+        </button>
+        <button class="btn-scenario" onclick="setScript('LINEA_AMIGA')" title="Línea Amiga">
+          🆘 L. Amiga
+        </button>
+        <button class="btn-scenario" onclick="setScript('EMPLEO')" title="Agencia Empleo">
+          💼 Empleo
+        </button>
+        <button class="btn-scenario" onclick="setScript('INSISTENCIA')" title="Insistencia del Usuario">
+          ⚠️ Insistencia
+        </button>
+        <button class="btn-scenario" onclick="setScript('ERROR')" title="Error de Transferencia">
+          🔌 Error
+        </button>
       </div>
 
-      <div id="loader" class="loader"></div>
-
-      <div id="results-container" class="results-grid">
-        <div class="no-results">Escriba una palabra clave para ver la extensión</div>
+      <!-- BUSCADOR -->
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="search-input" class="search-input-elite" placeholder="Busca un área o extensión..." onkeyup="handleSearch()">
       </div>
 
-      <div class="footer-note">
-        Script Conmutador People BPO - By Duvan Ramos 2026
+      <div id="elite-loader" class="elite-loader"></div>
+
+      <div id="results-grid" class="results-grid">
+        <!-- Tarjetas dinámicas -->
+      </div>
+
+      <div class="footer-elite">
+        SCRIPT CONMUTADOR PEOPLE BPO — BY DUVAN RAMOS 2026
       </div>
     </div>
 
@@ -432,122 +445,133 @@
     let currentAdvisor = "";
     let searchTimeout = null;
 
-    /**
-     * Normaliza una cadena eliminando tildes y convirtiendo a minúsculas
-     */
-    function normalizeString(str) {
-      if (!str) return "";
-      return String(str)
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .trim();
-    }
+    // Configuración de Frases
+    const getGreeting = () => {
+      const hr = new Date().getHours();
+      return hr < 12 ? "buenos días" : "buenas tardes";
+    };
 
-    // Cargar usuarios al iniciar
+    const SCRIPTS = {
+      SALUDO: () => `Hola, muy <span class="highlight-accent">${getGreeting()}</span>, se comunica con COFREM, le habla <span class="highlight-accent">${currentAdvisor}</span>, ¿en qué le puedo colaborar?`,
+      ESPERA: () => `Claro que sí, con mucho gusto le colaboro. Permítame un momento por favor mientras valido la información para direccionar su llamada.`,
+      TRANSFERENCIA: (area) => `Listo, muchísimas gracias. Lo voy a comunicar con el área de <span class="highlight-accent">${area}</span>. Deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong>`,
+      LINEA_AMIGA: () => `Entiendo su solicitud. No obstante, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es exclusivamente para direccionamiento. Para su requerimiento, lo remitiré a la Línea Amiga, donde profesionales expertos le brindarán la atención que necesita.`,
+      EMPLEO: () => `Comprendo que busca información de empleo. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es de información general. Lo comunicaré de inmediato con la Agencia de Empleo para que reciba la asesoría correspondiente.`,
+      INSISTENCIA: () => `Comprendo su malestar y le ofrezco una disculpa. Sin embargo, para poder ayudarle adecuadamente, <span class="highlight-accent">debo remitirlo con el área encargada</span>, ya que desde esta línea de conmutador no contamos con acceso a su historial. Permítame un momento por favor.`,
+      ERROR: () => `Le pido una sincera disculpa, parece que hubo un error en la conexión anterior. <span class="highlight-accent">Deme un segundo</span> para intentar conectarlo nuevamente con el área correcta. Gracias por su paciencia.`
+    };
+
+    // Inicialización
     window.onload = function() {
-      google.script.run.withSuccessHandler(function(users) {
+      google.script.run.withSuccessHandler(users => {
         const select = document.getElementById('user-select');
         select.innerHTML = '<option value="" disabled selected>Selecciona tu nombre</option>';
-        if (users && users.length > 0) {
-          users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user; option.text = user;
-            select.appendChild(option);
-          });
-        }
+        users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u; opt.text = u;
+          select.appendChild(opt);
+        });
       }).obtenerUsuarios();
     };
 
     function login() {
       const select = document.getElementById('user-select');
-      if (!select.value) { alert("Por favor, selecciona tu nombre."); return; }
+      if (!select.value) return alert("Selecciona un asesor");
 
       currentAdvisor = select.value;
       document.getElementById('advisor-name-display').innerText = currentAdvisor;
-      document.getElementById('span-name').innerText = currentAdvisor;
       document.getElementById('user-avatar').innerText = currentAdvisor.charAt(0);
 
-      updateGreeting();
+      setScript('SALUDO');
+
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
     }
 
     function logout() {
-      currentAdvisor = "";
-      document.getElementById('login-screen').style.display = 'block';
-      document.getElementById('dashboard').style.display = 'none';
-      document.getElementById('search-input').value = "";
-      document.getElementById('results-container').innerHTML = '<div class="no-results">Escriba una palabra clave para ver la extensión</div>';
+      location.reload();
     }
 
-    function updateGreeting() {
-      const hour = new Date().getHours();
-      let greeting = "Buenos días";
-      if (hour >= 12) greeting = "Buenas tardes";
+    /**
+     * Actualiza el script visualmente con una pequeña animación
+     */
+    function setScript(type, param = "") {
+      const textElement = document.getElementById('phrase-text');
+      const tagElement = document.getElementById('script-phase-tag');
 
-      document.getElementById('nav-greeting').innerText = greeting;
-      document.getElementById('span-greeting').innerText = greeting.toLowerCase();
+      // Animación de salida
+      textElement.style.opacity = "0";
+      textElement.style.transform = "translateY(5px)";
+
+      setTimeout(() => {
+        textElement.innerHTML = SCRIPTS[type](param);
+
+        // Actualizar Tags
+        const tags = {
+          'SALUDO': 'Paso 1: Bienvenida',
+          'ESPERA': 'Paso 2: Validación',
+          'TRANSFERENCIA': 'Paso 3: Transferencia',
+          'LINEA_AMIGA': 'Escenario: Línea Amiga',
+          'EMPLEO': 'Escenario: Agencia Empleo',
+          'INSISTENCIA': 'Escenario: Insistencia',
+          'ERROR': 'Escenario: Error/Reintento'
+        };
+        tagElement.innerText = tags[type] || 'Script Dinámico';
+
+        // Animación de entrada
+        textElement.style.opacity = "1";
+        textElement.style.transform = "translateY(0)";
+      }, 200);
     }
 
-    function search() {
+    function handleSearch() {
       const query = document.getElementById('search-input').value.trim();
-      const resultsContainer = document.getElementById('results-container');
-      const loader = document.getElementById('loader');
+      const grid = document.getElementById('results-grid');
+      const loader = document.getElementById('elite-loader');
 
-      if (query.length < 2) {
-        resultsContainer.innerHTML = '<div class="no-results">Escriba al menos 2 caracteres...</div>';
+      if (query.length === 0) {
+        grid.innerHTML = '';
+        setScript('SALUDO');
         return;
       }
+
+      if (query.length < 2) return;
+
+      // Al empezar a buscar, pasamos al script de ESPERA
+      if (query.length === 2) setScript('ESPERA');
 
       clearTimeout(searchTimeout);
       loader.style.display = 'block';
 
       searchTimeout = setTimeout(() => {
-        google.script.run.withSuccessHandler(function(results) {
+        google.script.run.withSuccessHandler(results => {
           loader.style.display = 'none';
-          resultsContainer.innerHTML = '';
+          grid.innerHTML = '';
 
           if (!results || results.length === 0) {
-            resultsContainer.innerHTML = '<div class="no-results">Sin coincidencias para "' + query + '"</div>';
+            grid.innerHTML = '<div style="color:white; opacity:0.5; grid-column:1/-1; text-align:center;">No hay coincidencias</div>';
             return;
           }
 
-          results.forEach((res, index) => {
+          results.forEach(res => {
             const card = document.createElement('div');
-            card.className = 'result-card';
-            card.style.animationDelay = (index * 0.05) + 's';
-
-            let transferScript = "";
-            if (res.scriptBase) {
-               transferScript = res.scriptBase.replace(/\[Nombre\]/g, currentAdvisor);
-               if (transferScript.toLowerCase().startsWith("hola")) {
-                  const parts = transferScript.split(",");
-                  if (parts.length > 1) {
-                     transferScript = parts.slice(1).join(",").trim();
-                     transferScript = transferScript.charAt(0).toUpperCase() + transferScript.slice(1);
-                  }
-               }
-            } else {
-               transferScript = "Lo voy a comunicar con el área de " + res.dependencia + ", quienes le brindarán la información correspondiente. Muchísimas gracias por esperar.";
-            }
-
+            card.className = 'mini-card';
             card.innerHTML = `
-              <div class="result-header">
-                <div class="dept-info">
-                  <span style="font-size: 10px; color: #888; font-weight: 700; text-transform: uppercase;">Dependencia</span>
-                  <h3>${res.dependencia}</h3>
-                </div>
-                <div class="ext-badge">📞 ${res.extension}</div>
-              </div>
-              <div class="transfer-box">
-                "${transferScript}"
-              </div>
+              <h4>${res.dependencia}</h4>
+              <span>📞 ${res.extension}</span>
             `;
-            resultsContainer.appendChild(card);
+            card.onclick = () => selectArea(res.dependencia);
+            grid.appendChild(card);
           });
         }).buscarDependencias(query);
-      }, 350);
+      }, 300);
+    }
+
+    function selectArea(areaName) {
+      setScript('TRANSFERENCIA', areaName);
+      // Limpiar búsqueda para foco en el script
+      document.getElementById('search-input').value = '';
+      document.getElementById('results-grid').innerHTML = '';
     }
   </script>
 </body>
