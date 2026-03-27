@@ -1,406 +1,135 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
-}
-
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
-
-.card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
-}
-
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.header-info { text-align: center; }
-
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
-
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
-}
-
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-}
-
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
-
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
-
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
-
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
-
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
-
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-}
-
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
-
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
-
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
-}
-
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-}
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
-
-.drive-icon { width: 14px; height: 14px; }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PQRSF AI - NEXT GEN</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <?!= include('CSS'); ?>
 </head>
-
 <body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
+  <div class="container">
+
+    <!-- PANTALLA DE LOGIN -->
+    <div id="login-screen" class="fade-up">
+      <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center;">
+        <div class="header" style="margin-bottom: 40px;">
+          <h1 style="font-size: 38px;">PEOPLE ACADEMY <span style="color: var(--lima);">PRO</span></h1>
+          <p>FORMACIÓN INTELIGENTE. CALIDAD SIN IMPROVISACIÓN.</p>
+        </div>
+
+        <div style="text-align: left; margin-bottom: 25px;">
+          <label class="label-neon">Seleccionar Asesor</label>
+          <select id="username-select">
+            <option value="" disabled selected>Escoge tu usuario...</option>
+          </select>
+
+          <label class="label-neon">Contraseña de Acceso</label>
+          <input type="password" id="password" placeholder="••••••••" onkeypress="handleEnter(event, login)">
+        </div>
+
+        <button class="btn-primary" onclick="login()">Iniciar Sistema</button>
+
+        <div id="login-error" style="color: #ff4d4d; font-size: 13px; margin-top: 15px;"></div>
+
+        <div id="login-loader" style="display: none; margin-top: 20px;">
+          <div class="loader-ring"></div>
+          <p style="font-size: 12px; color: var(--lima); margin-top: 10px; letter-spacing: 2px;">AUTENTICANDO...</p>
+        </div>
+
+        <p style="font-size: 11px; margin-top: 40px; opacity: 0.4;">By Duvan Ramos • 2026 Edition</p>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard-screen" style="display: none;" class="fade-up">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding: 0 10px;">
+        <div class="header">
+          <h1>PEOPLE ACADEMY <span style="color: var(--lima);">PRO</span></h1>
+          <div class="logout-area" style="margin-top: 5px;">
+            <div class="user-chip">ID: <span id="display-user"></span></div>
+          </div>
+        </div>
+        <button class="btn-outline" onclick="logout()">Desconectar</button>
+      </div>
+
+      <!-- BUSCADOR ELEGANTE -->
+      <div class="card" style="padding: 25px;">
+        <div class="search-tabs">
+          <button id="tab-pqrsf" class="tab-btn active" onclick="setMode('PQRSF')">PQRSF</button>
+          <button id="tab-general" class="tab-btn" onclick="setMode('GENERAL')">Búsqueda General</button>
+        </div>
+
+        <label class="label-neon" id="search-label">Ingresar consulta del usuario</label>
+        <div class="search-wrapper">
+          <input type="text" id="search-input" class="search-input" placeholder="Ej: No me llegó el pago de la cuota monetaria..." onkeypress="handleEnter(event, search)">
+          <button class="btn-primary search-btn" onclick="search()">Analizar</button>
+        </div>
+
+        <div id="search-loader" style="display: none; text-align: center; margin-top: 25px;">
+          <div class="loader-ring"></div>
+          <p style="font-size: 12px; color: var(--lima); margin-top: 10px; letter-spacing: 2px;">PROCESANDO CON INTELIGENCIA ARTIFICIAL...</p>
+        </div>
+      </div>
+
+      <!-- CONTENEDOR DE RESULTADOS DINÁMICOS -->
+      <div id="search-results"></div>
+
+      <!-- SMART BANNER -->
+      <div class="banner-smart">
+        <span class="material-icons" style="color: var(--lima);">tips_and_updates</span>
+        <span>Recomendación: Para certificados de aportes o afiliaciones, remitir al asesor de aportes de la oficina más cercana. En casos complejos, usar <strong>sercliente@cofrem.co</strong></span>
+      </div>
+
+      <!-- ACORDEÓN DE REGLAS -->
+      <div class="accordion-ng">
+        <div class="accordion-ng-header" onclick="toggleAccordion()">
+          <span style="display: flex; align-items: center; gap: 10px;">
+            <span class="material-icons" style="font-size: 18px; color: var(--lima);">gavel</span>
+            REGLAS DE ORO DEL RADICADOR
+          </span>
+          <span id="accordion-icon" class="material-icons">expand_more</span>
+        </div>
+        <div id="accordion-content" class="accordion-ng-content">
+          <ul>
+            <li>Garantizar claridad absoluta antes de radicar.</li>
+            <li>Validar el área de destino según la naturaleza del trámite.</li>
+            <li>Evitar duplicidad en el sistema PQRSF.</li>
+            <li>Verificar exhaustivamente la veracidad de los datos.</li>
+            <li>El registro debe realizarse estrictamente a nombre del trabajador.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 50px; opacity: 0.3; font-size: 11px;">
+        DESIGNED FOR EXCELLENCE BY DUVAN RAMOS
+      </div>
+    </div>
+
   </div>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
-      </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
-      </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
-    </div>
+  <!-- MODAL REGLAS DE ORO -->
+  <div id="rules-modal" class="modal-overlay">
+    <div class="modal-content fade-up">
+      <span class="material-icons modal-close" onclick="closeModal()">close</span>
+      <h2 style="color: var(--lima); margin-bottom: 5px;">¡HOLA, <span id="modal-user-name"></span>!</h2>
+      <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 25px;">Antes de continuar, recuerda nuestras directrices:</p>
 
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
+      <div class="accordion-ng-content" style="display: block; border: none; padding: 0;">
+        <ul>
+          <li>Garantizar claridad absoluta antes de radicar.</li>
+          <li>Validar el área de destino según la naturaleza del trámite.</li>
+          <li>Evitar duplicidad en el sistema PQRSF.</li>
+          <li>Verificar exhaustivamente la veracidad de los datos.</li>
+          <li>El registro debe realizarse estrictamente a nombre del trabajador.</li>
+        </ul>
       </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
 
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
-      </div>
-    </div>
-
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
-
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
+      <button class="btn-primary" style="margin-top: 30px;" onclick="closeModal()">Entendido, continuar</button>
     </div>
   </div>
-</div>
 
-<script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
-
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
-    });
-  }).obtenerUsuarios();
-}
-cargarUsuarios();
-
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
-  };
-
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
-  }
-
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
-}
-
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
-}
-
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
-
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
-
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
-
-    let pec=res.pec*100; let penc=res.penc*100;
-
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
-
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
-    }
-
-    let estado="", color="#B7D400", porcentaje = 0;
-
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
-
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
-    }
-
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
-
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
-
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
-
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
-          } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
-          }
-        }
-
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-          `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
-
-  }).login(usuario,password);
-}
-</script>
+  <?!= include('JS'); ?>
 </body>
 </html>

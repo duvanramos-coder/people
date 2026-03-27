@@ -1,0 +1,238 @@
+<script>
+  let currentUser = null;
+  let currentOptions = [];
+  let currentIdx = 0;
+  let rulesShown = false;
+  let currentMode = 'PQRSF';
+
+  window.onload = function() {
+    google.script.run
+      .withSuccessHandler(users => {
+        const select = document.getElementById('username-select');
+        users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u;
+          opt.text = u;
+          select.appendChild(opt);
+        });
+      })
+      .obtenerUsuarios();
+  };
+
+  function handleEnter(event, callback) {
+    if (event.key === 'Enter') {
+      callback();
+    }
+  }
+
+  function login() {
+    const user = document.getElementById('username-select').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('login-error');
+    const loader = document.getElementById('login-loader');
+
+    if(!user) {
+      errorDiv.innerText = 'Selecciona un usuario';
+      return;
+    }
+
+    errorDiv.innerText = '';
+    loader.style.display = 'block';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        loader.style.display = 'none';
+        if (res.success) {
+          currentUser = res.usuario;
+          document.getElementById('login-screen').style.display = 'none';
+          document.getElementById('dashboard-screen').style.display = 'block';
+          document.getElementById('display-user').innerText = currentUser;
+          rulesShown = false; // Reset rules for new session
+        } else {
+          errorDiv.innerText = 'Contraseña incorrecta';
+        }
+      })
+      .loginUser(user, pass);
+  }
+
+  function logout() {
+    currentUser = null;
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('dashboard-screen').style.display = 'none';
+    document.getElementById('password').value = '';
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('search-input').value = '';
+    currentOptions = [];
+    currentIdx = 0;
+  }
+
+  function setMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    if (mode === 'PQRSF') {
+      document.getElementById('tab-pqrsf').classList.add('active');
+      document.getElementById('search-label').innerText = 'Ingresar consulta del usuario';
+      document.getElementById('search-input').placeholder = 'Ej: No me llegó el pago de la cuota monetaria...';
+    } else {
+      document.getElementById('tab-general').classList.add('active');
+      document.getElementById('search-label').innerText = 'Consultar base de conocimiento general';
+      document.getElementById('search-input').placeholder = 'Ej: Requisitos para afiliación independiente...';
+    }
+  }
+
+  function search() {
+    const query = document.getElementById('search-input').value;
+    if (!query) return;
+
+    const loader = document.getElementById('search-loader');
+    const resultsDiv = document.getElementById('search-results');
+
+    loader.style.display = 'block';
+    resultsDiv.innerHTML = '';
+
+    google.script.run.guardarRegistro(currentUser, `${currentMode}: ${query}`);
+
+    google.script.run
+      .withSuccessHandler(res => {
+        loader.style.display = 'none';
+        if (res.error) {
+          resultsDiv.innerHTML = `<p style="color: #ff4d4d; text-align: center;">${res.error}</p>`;
+        } else if (res.options && res.options.length > 0) {
+          currentOptions = res.options;
+          currentIdx = 0;
+          renderCurrentOption();
+
+          if (!rulesShown && currentMode === 'PQRSF') {
+            showRules();
+          }
+        } else {
+          resultsDiv.innerHTML = `<p style="text-align: center;">No se encontraron resultados relacionados en la base de datos de ${currentMode}.</p>`;
+        }
+      })
+      .clasificarConIA(query, currentMode);
+  }
+
+  function showRules() {
+    document.getElementById('modal-user-name').innerText = currentUser.toUpperCase();
+    document.getElementById('rules-modal').style.display = 'flex';
+    rulesShown = true;
+  }
+
+  function closeModal() {
+    document.getElementById('rules-modal').style.display = 'none';
+  }
+
+  function renderCurrentOption() {
+    const res = currentOptions[currentIdx];
+    const resultsDiv = document.getElementById('search-results');
+
+    if (currentMode === 'GENERAL') {
+      resultsDiv.innerHTML = `
+        <div class="card result-container fade-up" style="border-left-color: #00e5ff;">
+          <div style="margin-bottom: 25px;">
+            <span class="label-neon" style="color: #00e5ff;">Respuesta / Qué decir</span>
+            <div style="font-size: 22px; font-weight: 600; color: white; line-height: 1.4;">${res.accion}</div>
+          </div>
+
+          <div class="result-grid">
+            <div>
+              <span class="label-neon">Tema de Consulta</span>
+              <div class="value-text" style="opacity: 0.7;">${res.resumen_caso}</div>
+            </div>
+            <div>
+              <span class="label-neon">Referencia / Área</span>
+              <div class="value-text">${res.dirigido}</div>
+            </div>
+          </div>
+
+          <div class="nav-controls">
+            <div class="source-badge" style="background: rgba(0, 229, 255, 0.1); color: #00e5ff; border-color: rgba(0, 229, 255, 0.3);">
+               ${res.fuente}
+            </div>
+            ${renderNavButtons()}
+          </div>
+        </div>
+      `;
+    } else {
+      resultsDiv.innerHTML = `
+        <div class="card result-container fade-up">
+          <div class="resumen-box">
+            <span class="label-neon">Resumen del Caso</span>
+            ${res.resumen_caso}
+          </div>
+
+          <div style="margin-bottom: 30px;">
+            <h2 style="margin: 0; color: white; font-size: 26px; font-weight: 700;">${res.tipo}</h2>
+            <p style="color: rgba(255,255,255,0.5); margin-top: 8px; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">${res.clasificacion}</p>
+          </div>
+
+          <div class="result-grid">
+            <div>
+              <span class="label-neon">Dirigido a</span>
+              <div class="value-text" style="font-size: 18px; font-weight: 600;">${res.dirigido}</div>
+            </div>
+            <div>
+              <span class="label-neon">Acción Recomendada</span>
+              <div class="value-text">${res.accion}</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 30px;">
+             <span class="label-neon">Recordatorio</span>
+             <div class="value-text" style="font-size: 14px; color: rgba(255,255,255,0.9);">${res.recordatorio}</div>
+          </div>
+
+          <div class="nav-controls">
+            <div class="source-badge">
+               ${res.fuente}
+            </div>
+            ${renderNavButtons()}
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  function renderNavButtons() {
+    if (currentOptions.length <= 1) return '';
+    return `
+      <div style="display: flex; gap: 15px; align-items: center;">
+        <span style="font-size: 13px; color: rgba(255,255,255,0.4); font-weight: 500;">${currentIdx + 1} de ${currentOptions.length}</span>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-outline" onclick="prevOption()" ${currentIdx === 0 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+            <span class="material-icons" style="font-size: 18px;">chevron_left</span>
+          </button>
+          <button class="btn-outline" onclick="nextOption()" ${currentIdx === currentOptions.length - 1 ? 'style="opacity: 0.3; cursor: default;" disabled' : ''}>
+            <span class="material-icons" style="font-size: 18px;">chevron_right</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function nextOption() {
+    if (currentIdx < currentOptions.length - 1) {
+      currentIdx++;
+      renderCurrentOption();
+    }
+  }
+
+  function prevOption() {
+    if (currentIdx > 0) {
+      currentIdx--;
+      renderCurrentOption();
+    }
+  }
+
+  function toggleAccordion() {
+    const content = document.getElementById('accordion-content');
+    const icon = document.getElementById('accordion-icon');
+    if (content.style.display === 'block') {
+      content.style.display = 'none';
+      icon.innerText = 'expand_more';
+    } else {
+      content.style.display = 'block';
+      icon.innerText = 'expand_less';
+    }
+  }
+</script>
