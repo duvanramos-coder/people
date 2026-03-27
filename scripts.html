@@ -98,7 +98,7 @@
             const pct = Math.min((ganado / max) * 100, 100);
             const fmt = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits:0 });
 
-            label.innerHTML = `<div class="progress-header"><div class="progress-label">BONO ACUMULADO</div><div class="progress-amount">${fmt.format(ganado)}</div></div>`;
+            label.innerHTML = `<div class="progress-header"><div class="progress-label">BONO ACUMULADO</div><div class="progress-amount">${fmt.format(ganado)} / ${fmt.format(max)}</div></div>`;
             bar.style.width = "0%";
             bar.style.background = 'linear-gradient(90deg, var(--primary) 0%, #fff 100%)';
             setTimeout(() => { bar.style.width = pct + "%"; }, 500);

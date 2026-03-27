@@ -82,9 +82,9 @@ function obtenerMetricasConSS(ss, asesor) {
     if ((dataTO[i][0] || "").toString().trim().toUpperCase() === asesorBuscado) {
       rowUser = dataTO[i];
       // Determinar el área basado en la estructura de la fila
-      // Si la columna 5 (index 5) tiene texto, es el área para el nuevo grupo "G. Empleo Cofrem"
-      if (typeof rowUser[5] === 'string' && rowUser[5].trim() !== "" && isNaN(parseFloat(rowUser[5]))) {
-        area = rowUser[5].trim();
+      // Si la columna 5 (index 5) es el área "G. Empleo Cofrem"
+      if (String(rowUser[5]).trim() === "G. Empleo Cofrem") {
+        area = "G. Empleo Cofrem";
       } else {
         area = (rowUser[2] || "").toString().trim();
       }
@@ -125,6 +125,10 @@ function obtenerMetricasConSS(ss, asesor) {
       metrics.push({ label: "Adherencia", value: fmtPct(getVal(8)) });
       bonoGanado = parseBono(getVal(9));
     } else if (area === "Encuestas") {
+      metrics.push({ label: "Calidad de la llamada", value: fmtPct(getVal(4)) });
+      metrics.push({ label: "PEC", value: fmtPct(getVal(5)) });
+      metrics.push({ label: "PENC", value: fmtPct(getVal(6)) });
+      metrics.push({ label: "Productividad", value: fmtPct(getVal(7)) });
       metrics.push({ label: "Adherencia", value: fmtPct(getVal(8)) });
       metrics.push({ label: "Precisión Ortográfica", value: fmtPct(getVal(9)) });
       metrics.push({ label: "Error de Respuesta", value: getVal(10) });
