@@ -1,0 +1,199 @@
+<script>
+  /**
+   * FRONTEND LOGIC - PEOPLE BPO
+   * By Duvan Ramos
+   */
+
+  window.onload = () => {
+    checkSession();
+    setTimeout(() => {
+      document.getElementById('loader').style.opacity = '0';
+      setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
+    }, 1000);
+  };
+
+  /**
+   * Manejo de Inicio de Sesión
+   */
+  function handleLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value.trim();
+
+    if (!email || !password) {
+      showToast('Por favor completa todos los campos', 'error');
+      return;
+    }
+
+    showLoader(true);
+
+    google.script.run
+      .withSuccessHandler((response) => {
+        showLoader(false);
+        if (response && response.success) {
+          showToast(`¡Bienvenido, ${response.nombre}!`, 'success');
+          saveSession(response);
+          renderDashboard(response);
+        } else {
+          showToast(response.message || 'Error al iniciar sesión', 'error');
+        }
+      })
+      .withFailureHandler((error) => {
+        showLoader(false);
+        showToast('Error de conexión con el servidor', 'error');
+        console.error('Login error:', error);
+      })
+      .verifyLogin(email, password);
+  }
+
+  /**
+   * Cierre de Sesión
+   */
+  function handleLogout() {
+    localStorage.removeItem('people_bpo_user');
+    document.getElementById('dashboardSection').style.display = 'none';
+    document.getElementById('loginSection').style.display = 'flex';
+    showToast('Sesión cerrada correctamente', 'success');
+  }
+
+  /**
+   * Gestión de Sesión (localStorage para persistencia simple)
+   */
+  function saveSession(user) {
+    localStorage.setItem('people_bpo_user', JSON.stringify(user));
+  }
+
+  function checkSession() {
+    const user = JSON.parse(localStorage.getItem('people_bpo_user'));
+    if (user) {
+      renderDashboard(user);
+    }
+  }
+
+  /**
+   * Renderizado del Dashboard
+   */
+  function renderDashboard(user) {
+    document.getElementById('loginSection').style.display = 'none';
+    document.getElementById('dashboardSection').style.display = 'block';
+
+    document.getElementById('userName').innerText = user.nombre;
+    document.getElementById('userCampaign').innerText = user.canal || 'Sin Campaña';
+    document.getElementById('userAvatar').innerText = user.nombre.substring(0, 2).toUpperCase();
+
+    fetchShifts(user.email);
+  }
+
+  /**
+   * Obtención de Turnos
+   */
+  function fetchShifts(email) {
+    const shiftsGrid = document.getElementById('shiftsGrid');
+    shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">Cargando turnos...</div>';
+
+    google.script.run
+      .withSuccessHandler((shifts) => {
+        shiftsGrid.innerHTML = '';
+        if (shifts && shifts.length > 0) {
+          shifts.forEach(shift => {
+            shiftsGrid.innerHTML += createShiftCard(shift);
+          });
+        } else {
+          shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">No se encontraron turnos para esta semana.</div>';
+        }
+      })
+      .withFailureHandler((error) => {
+        shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #dc3545;">Error al cargar turnos. Reintente más tarde.</div>';
+        console.error('Fetch shifts error:', error);
+      })
+      .getShiftsForUser(email);
+  }
+
+  /**
+   * Plantilla para las tarjetas de turno
+   */
+  function createShiftCard(shift) {
+    // Clases especiales para destacar estados
+    const isRestDay = shift.horario.toLowerCase().includes('descanso');
+
+    return `
+      <div class="shift-card fade-in">
+        <div class="shift-header">
+          <div class="shift-date">${shift.fecha}</div>
+          <div class="shift-week">Semana ${shift.semana}</div>
+        </div>
+
+        <div class="shift-body">
+          <div class="info-item">
+            <span class="info-label">Campaña</span>
+            <span class="info-value">${shift.campaña}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Subcampaña</span>
+            <span class="info-value">${shift.subcampaña}</span>
+          </div>
+
+          <div class="highlight-box">
+            <div class="highlight-item">
+              <span class="highlight-label">Horario</span>
+              <span class="highlight-time">${shift.horario}</span>
+            </div>
+            ${!isRestDay ? `
+              <div class="highlight-item">
+                <span class="highlight-label">Almuerzo</span>
+                <span class="highlight-time">${shift.almuerzo}</span>
+              </div>
+            ` : ''}
+          </div>
+
+          ${!isRestDay ? `
+            <div class="info-item" style="margin-top: 10px;">
+              <span class="info-label">Breaks</span>
+              <span class="info-value">${shift.breaks}</span>
+            </div>
+          ` : ''}
+
+          ${shift.observación ? `
+            <div class="observation">
+              <strong>Nota:</strong> ${shift.observación}
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * UI Helpers
+   */
+  function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+
+    const icon = type === 'success' ? 'check_circle' : 'error';
+
+    toast.innerHTML = `
+      <span class="material-icons toast-icon">${icon}</span>
+      <span style="font-size: 14px; font-weight: 500;">${message}</span>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 100);
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  function showLoader(visible) {
+    const loader = document.getElementById('loader');
+    if (visible) {
+      loader.style.display = 'flex';
+      loader.style.opacity = '1';
+    } else {
+      loader.style.opacity = '0';
+      setTimeout(() => loader.style.display = 'none', 500);
+    }
+  }
+</script>
