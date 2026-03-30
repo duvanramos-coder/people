@@ -8,8 +8,12 @@
     checkSession();
     setTimeout(() => {
       document.getElementById('loader').style.opacity = '0';
-      setTimeout(() => document.getElementById('loader').style.display = 'none', 500);
-    }, 1000);
+      setTimeout(() => {
+        document.getElementById('loader').style.display = 'none';
+        // Add a class to indicate loader is gone (for testing)
+        document.body.classList.add('loader-finished');
+      }, 500);
+    }, 100); // Reduced delay for faster UI
   };
 
   /**
@@ -147,14 +151,20 @@
 
           ${!isRestDay ? `
             <div class="info-item" style="margin-top: 10px;">
-              <span class="info-label">Breaks</span>
-              <span class="info-value">${shift.breaks}</span>
+              <div class="info-sub-item">
+                <span class="info-label">Break Mañana</span>
+                <span class="info-value">${shift.break_mañana}</span>
+              </div>
+              <div class="info-sub-item" style="margin-top: 5px;">
+                <span class="info-label">Break Tarde</span>
+                <span class="info-value">${shift.break_tarde}</span>
+              </div>
             </div>
           ` : ''}
 
-          ${shift.observación ? `
+          ${shift.observacion && shift.observacion !== '-' ? `
             <div class="observation">
-              <strong>Nota:</strong> ${shift.observación}
+              <strong>Nota:</strong> ${shift.observacion}
             </div>
           ` : ''}
         </div>

@@ -33,17 +33,18 @@ function include(filename) {
 function verifyLogin(email, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName('Usuarios');
+    const sheet = ss.getSheetByName('Agentes');
     const data = sheet.getDataRange().getValues();
 
-    // Headers: Asesor, Correo, Canal, Contraseña
-    // Índices: 0: Asesor, 1: Correo, 2: Canal, 3: Contraseña
+    // Basado en la imagen proporcionada:
+    // Index 0: Asesor (ID), 1: Nombre, 2: Contraseña, 3: Correo corporativo, 4: Canal
     for (let i = 1; i < data.length; i++) {
-      if (data[i][1] === email && String(data[i][3]) === String(password)) {
+      if (data[i][3] === email && String(data[i][2]) === String(password)) {
         return {
-          nombre: data[i][0],
-          email: data[i][1],
-          canal: data[i][2],
+          asesorId: data[i][0],
+          nombre: data[i][1],
+          email: data[i][3],
+          canal: data[i][4],
           success: true
         };
       }
@@ -63,35 +64,38 @@ function verifyLogin(email, password) {
 function getShiftsForUser(email) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const usersSheet = ss.getSheetByName('Usuarios');
-    const userData = usersSheet.getDataRange().getValues();
+    const agentsSheet = ss.getSheetByName('Agentes');
+    const agentsData = agentsSheet.getDataRange().getValues();
 
-    let nombreAsesor = '';
-    for (let i = 1; i < userData.length; i++) {
-      if (userData[i][1] === email) {
-        nombreAsesor = userData[i][0];
+    let nombreUsuario = '';
+    for (let i = 1; i < agentsData.length; i++) {
+      if (agentsData[i][3] === email) {
+        nombreUsuario = agentsData[i][1]; // Col B: Nombre (ej. Angi Johana Banda Montes)
         break;
       }
     }
 
-    if (!nombreAsesor) return [];
+    if (!nombreUsuario) return [];
 
     const shiftsSheet = ss.getSheetByName('Turnos');
     const shiftsData = shiftsSheet.getDataRange().getValues();
-    const headers = shiftsData[0];
+    const headers = [
+      'nombre', 'campaña', 'subcampaña', 'semana', 'fecha',
+      'horario', 'almuerzo', 'break_mañana', 'break_tarde', 'observacion'
+    ];
     const filteredShifts = [];
 
-    // Headers esperados: Nombre, Campaña, Subcampaña, Semana, Fecha, Horario, Almuerzo, Breaks, Observación
+    // En la hoja 'Turnos' la columna A (Nombre) contiene el nombre completo del asesor
     for (let i = 1; i < shiftsData.length; i++) {
-      if (shiftsData[i][0] === nombreAsesor) {
+      if (shiftsData[i][0] === nombreUsuario) {
         const shift = {};
         headers.forEach((header, index) => {
           let value = shiftsData[i][index];
           // Formatear fecha si es objeto Date
-          if (value instanceof Date) {
+          if (value instanceof Date && header === 'fecha') {
             value = Utilities.formatDate(value, Session.getScriptTimeZone(), 'dd/MM/yyyy');
           }
-          shift[header.toLowerCase().replace(/ /g, '_')] = value;
+          shift[header] = value || '-';
         });
         filteredShifts.push(shift);
       }
