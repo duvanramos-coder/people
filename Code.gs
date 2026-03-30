@@ -33,10 +33,14 @@ function include(filename) {
 function verifyLogin(email, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName('Agentes');
+    let sheet = ss.getSheetByName('Agentes') || ss.getSheetByName('Usuarios');
+
+    if (!sheet) {
+      return { success: false, message: 'Error: No se encontró la hoja "Agentes" o "Usuarios".' };
+    }
+
     const data = sheet.getDataRange().getValues();
 
-    // Basado en la imagen proporcionada:
     // Index 0: Asesor (ID), 1: Nombre, 2: Contraseña, 3: Correo corporativo, 4: Canal
     for (let i = 1; i < data.length; i++) {
       if (data[i][3] === email && String(data[i][2]) === String(password)) {
@@ -49,10 +53,10 @@ function verifyLogin(email, password) {
         };
       }
     }
-    return { success: false, message: 'Credenciales inválidas' };
+    return { success: false, message: 'Credenciales inválidas. Por favor verifica tu correo y contraseña.' };
   } catch (error) {
     console.error('Error en verifyLogin:', error);
-    return { success: false, message: 'Error de conexión con la base de datos' };
+    return { success: false, message: 'Error de conexión: ' + error.toString() + '. Asegúrate de que el ID del Spreadsheet sea correcto y el script tenga permisos.' };
   }
 }
 
@@ -64,7 +68,13 @@ function verifyLogin(email, password) {
 function getShiftsForUser(email) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const agentsSheet = ss.getSheetByName('Agentes');
+    let agentsSheet = ss.getSheetByName('Agentes') || ss.getSheetByName('Usuarios');
+
+    if (!agentsSheet) {
+      console.error('No se encontró la hoja de Agentes/Usuarios');
+      return [];
+    }
+
     const agentsData = agentsSheet.getDataRange().getValues();
 
     let nombreUsuario = '';
@@ -78,6 +88,10 @@ function getShiftsForUser(email) {
     if (!nombreUsuario) return [];
 
     const shiftsSheet = ss.getSheetByName('Turnos');
+    if (!shiftsSheet) {
+      console.error('No se encontró la hoja de Turnos');
+      return [];
+    }
     const shiftsData = shiftsSheet.getDataRange().getValues();
     const headers = [
       'nombre', 'campaña', 'subcampaña', 'semana', 'fecha',
