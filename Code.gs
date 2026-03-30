@@ -1,10 +1,10 @@
 /**
  * SISTEMA DE GESTIÓN DE TURNOS - PEOPLE BPO
- * Desarrollado por: Duvan Ramos
+ * Desarrollado por: Duvan Ramos 2026
  * Nivel: Senior Software Engineer
  */
 
-const SPREADSHEET_ID = '1WJpdXTfiwdtof5l7Twb8LqbNWZ9sfAzD-IJeWCmU5zw'; // ID de la hoja de cálculo principal
+const SPREADSHEET_ID = '1WJpdXTfiwdtof5l7Twb8LqbNWZ9sfAzD-IJeWCmU5zw';
 
 /**
  * Función principal para servir la aplicación web
@@ -25,93 +25,80 @@ function include(filename) {
 }
 
 /**
- * Verifica las credenciales del usuario
- * @param {string} email
- * @param {string} password
- * @return {object|null} Datos del usuario o null si falla
+ * Obtiene la lista de nombres de asesores para el login
  */
-function verifyLogin(email, password) {
+function getUsersList() {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let sheet = ss.getSheetByName('Agentes') || ss.getSheetByName('Usuarios');
-
-    if (!sheet) {
-      return { success: false, message: 'Error: No se encontró la hoja "Agentes" o "Usuarios".' };
-    }
+    const sheet = ss.getSheetByName('Agentes');
+    if (!sheet) return [];
 
     const data = sheet.getDataRange().getValues();
-
-    // Index 0: Asesor (ID), 1: Nombre, 2: Contraseña, 3: Correo corporativo, 4: Canal
+    // Col A: Nombre
+    const users = [];
     for (let i = 1; i < data.length; i++) {
-      if (data[i][3] === email && String(data[i][2]) === String(password)) {
-        return {
-          asesorId: data[i][0],
-          nombre: data[i][1],
-          email: data[i][3],
-          canal: data[i][4],
-          success: true
-        };
-      }
+      if (data[i][0]) users.push(data[i][0]);
     }
-    return { success: false, message: 'Credenciales inválidas. Por favor verifica tu correo y contraseña.' };
-  } catch (error) {
-    console.error('Error en verifyLogin:', error);
-    return { success: false, message: 'Error de conexión: ' + error.toString() + '. Asegúrate de que el ID del Spreadsheet sea correcto y el script tenga permisos.' };
+    return users.sort();
+  } catch (e) {
+    console.error('Error en getUsersList:', e);
+    return [];
   }
 }
 
 /**
- * Obtiene los turnos filtrados por el correo del usuario
- * @param {string} email
- * @return {array} Lista de turnos
+ * Verifica las credenciales del usuario
  */
-function getShiftsForUser(email) {
+function verifyLogin(name, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let agentsSheet = ss.getSheetByName('Agentes') || ss.getSheetByName('Usuarios');
+    const sheet = ss.getSheetByName('Agentes');
+    if (!sheet) return { success: false, message: 'No se encontró la hoja de Agentes.' };
 
-    if (!agentsSheet) {
-      console.error('No se encontró la hoja de Agentes/Usuarios');
-      return [];
-    }
+    const data = sheet.getDataRange().getValues();
 
-    const agentsData = agentsSheet.getDataRange().getValues();
-
-    let nombreUsuario = '';
-    for (let i = 1; i < agentsData.length; i++) {
-      if (String(agentsData[i][3]).trim().toLowerCase() === email.trim().toLowerCase()) {
-        nombreUsuario = String(agentsData[i][1]).trim(); // Col B: Nombre (ej. Angi Johana Banda Montes)
-        break;
+    // Col A: Nombre, Col B: Contraseña, Col C: Canal
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === name.trim() && String(data[i][1]).trim() === password.trim()) {
+        return {
+          success: true,
+          nombre: data[i][0],
+          canal: data[i][2] || 'Sin Canal'
+        };
       }
     }
+    return { success: false, message: 'Contraseña incorrecta.' };
+  } catch (error) {
+    console.error('Error en verifyLogin:', error);
+    return { success: false, message: 'Error de conexión: ' + error.toString() };
+  }
+}
 
-    if (!nombreUsuario) {
-      console.error('Nombre de usuario no encontrado para:', email);
-      return [];
-    }
+/**
+ * Obtiene los turnos filtrados por el nombre del usuario
+ */
+function getShiftsForUser(name) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('Turnos');
+    if (!sheet) return [];
 
-    const shiftsSheet = ss.getSheetByName('Turnos');
-    if (!shiftsSheet) {
-      console.error('No se encontró la hoja de Turnos');
-      return [];
-    }
-    const shiftsData = shiftsSheet.getDataRange().getValues();
+    const data = sheet.getDataRange().getValues();
     const headers = [
       'nombre', 'campaña', 'subcampaña', 'semana', 'fecha',
       'horario', 'almuerzo', 'break_mañana', 'break_tarde', 'observacion'
     ];
+
     const filteredShifts = [];
+    const nameLower = name.trim().toLowerCase();
 
-    // En la hoja 'Turnos' la columna A (Nombre) contiene el nombre completo del asesor
-    const nombreUsuarioLower = nombreUsuario.toLowerCase();
-
-    for (let i = 1; i < shiftsData.length; i++) {
-      const nombreEnTurno = String(shiftsData[i][0]).trim().toLowerCase();
-      if (nombreEnTurno === nombreUsuarioLower) {
+    for (let i = 1; i < data.length; i++) {
+      const rowName = String(data[i][0]).trim().toLowerCase();
+      if (rowName === nameLower) {
         const shift = {};
+        // Map columns A to J (index 0 to 9)
         headers.forEach((header, index) => {
-          let value = shiftsData[i][index];
-          // Formatear fecha si es objeto Date
+          let value = data[i][index];
           if (value instanceof Date && header === 'fecha') {
             value = Utilities.formatDate(value, Session.getScriptTimeZone(), 'dd/MM/yyyy');
           }
@@ -121,6 +108,8 @@ function getShiftsForUser(email) {
       }
     }
 
+    // Ordenar por fecha (asumiendo formato dd/MM/yyyy para la visualización,
+    // pero idealmente se filtraría/ordenaría por el objeto Date original si fuera necesario)
     return filteredShifts;
   } catch (error) {
     console.error('Error en getShiftsForUser:', error);

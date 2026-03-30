@@ -1,30 +1,58 @@
 <script>
   /**
    * FRONTEND LOGIC - PEOPLE BPO
-   * By Duvan Ramos
+   * By Duvan Ramos 2026
    */
 
   window.onload = () => {
+    initApp();
+  };
+
+  function initApp() {
+    loadUserList();
     checkSession();
     setTimeout(() => {
       document.getElementById('loader').style.opacity = '0';
       setTimeout(() => {
         document.getElementById('loader').style.display = 'none';
-        // Add a class to indicate loader is gone (for testing)
-        document.body.classList.add('loader-finished');
       }, 500);
-    }, 100); // Reduced delay for faster UI
-  };
+    }, 100);
+  }
+
+  /**
+   * Carga la lista de usuarios para el dropdown
+   */
+  function loadUserList() {
+    google.script.run
+      .withSuccessHandler((users) => {
+        const select = document.getElementById('userSelect');
+        select.innerHTML = '<option value="" disabled selected>Selecciona tu Nombre</option>';
+        if (users && users.length > 0) {
+          users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user;
+            option.innerText = user;
+            select.appendChild(option);
+          });
+        } else {
+          select.innerHTML = '<option value="" disabled>No se encontraron asesores</option>';
+        }
+      })
+      .withFailureHandler(() => {
+        showToast('Error al cargar lista de asesores', 'error');
+      })
+      .getUsersList();
+  }
 
   /**
    * Manejo de Inicio de Sesión
    */
   function handleLogin() {
-    const email = document.getElementById('email').value.trim();
+    const name = document.getElementById('userSelect').value;
     const password = document.getElementById('password').value.trim();
 
-    if (!email || !password) {
-      showToast('Por favor completa todos los campos', 'error');
+    if (!name || !password) {
+      showToast('Por favor selecciona tu nombre e ingresa la contraseña', 'error');
       return;
     }
 
@@ -44,32 +72,31 @@
       .withFailureHandler((error) => {
         showLoader(false);
         showToast('Error de conexión con el servidor', 'error');
-        console.error('Login error:', error);
       })
-      .verifyLogin(email, password);
+      .verifyLogin(name, password);
   }
 
   /**
    * Cierre de Sesión
    */
   function handleLogout() {
-    localStorage.removeItem('people_bpo_user');
+    localStorage.removeItem('people_bpo_session');
     document.getElementById('dashboardSection').style.display = 'none';
     document.getElementById('loginSection').style.display = 'flex';
     showToast('Sesión cerrada correctamente', 'success');
   }
 
   /**
-   * Gestión de Sesión (localStorage para persistencia simple)
+   * Gestión de Sesión
    */
   function saveSession(user) {
-    localStorage.setItem('people_bpo_user', JSON.stringify(user));
+    localStorage.setItem('people_bpo_session', JSON.stringify(user));
   }
 
   function checkSession() {
-    const user = JSON.parse(localStorage.getItem('people_bpo_user'));
-    if (user) {
-      renderDashboard(user);
+    const session = JSON.parse(localStorage.getItem('people_bpo_session'));
+    if (session) {
+      renderDashboard(session);
     }
   }
 
@@ -80,45 +107,43 @@
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('dashboardSection').style.display = 'block';
 
-    // Split name to show first name only in greeting
     const firstName = user.nombre.split(' ')[0];
     document.getElementById('userName').innerText = firstName;
-    document.getElementById('userCampaign').innerText = user.canal || 'Sin Campaña';
+    document.getElementById('userCampaign').innerText = user.canal || 'Sin Canal';
     document.getElementById('userAvatar').innerText = user.nombre.substring(0, 2).toUpperCase();
 
-    fetchShifts(user.email);
+    fetchShifts(user.nombre);
   }
 
   /**
    * Obtención de Turnos
    */
-  function fetchShifts(email) {
+  function fetchShifts(name) {
     const shiftsGrid = document.getElementById('shiftsGrid');
-    shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">Cargando turnos...</div>';
+    shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">Cargando tus turnos de la semana...</div>';
 
     google.script.run
       .withSuccessHandler((shifts) => {
         shiftsGrid.innerHTML = '';
         if (shifts && shifts.length > 0) {
+          // Sort by date if possible
           shifts.forEach(shift => {
             shiftsGrid.innerHTML += createShiftCard(shift);
           });
         } else {
-          shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">No se encontraron turnos para esta semana.</div>';
+          shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #999;">No tienes turnos registrados para esta semana.</div>';
         }
       })
-      .withFailureHandler((error) => {
-        shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #dc3545;">Error al cargar turnos. Reintente más tarde.</div>';
-        console.error('Fetch shifts error:', error);
+      .withFailureHandler(() => {
+        shiftsGrid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 50px; color: #dc3545;">Error al cargar turnos.</div>';
       })
-      .getShiftsForUser(email);
+      .getShiftsForUser(name);
   }
 
   /**
    * Plantilla para las tarjetas de turno
    */
   function createShiftCard(shift) {
-    // Clases especiales para destacar estados
     const isRestDay = shift.horario.toLowerCase().includes('descanso');
 
     return `
