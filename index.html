@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Turnos - Virtual Ramos</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #b4d800;
+      --success: #22c55e;
+      --neutral: #64748b;
+      --error: #ef4444;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Utilitarios */
+    .hidden { display: none !important; }
+
+    /* Loader */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(8px);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 5px solid rgba(99, 102, 241, 0.2);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Card Login */
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: fadeIn 0.5s ease-out;
+      text-align: center;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .login-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .login-header p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 32px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    select, input {
+      width: 100%;
+      background: #334155;
+      border: 1px solid #475569;
+      padding: 12px 16px;
+      border-radius: 8px;
+      color: white;
+      font-size: 0.95rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s;
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-hover);
+    }
+
+    .login-footer {
+      margin-top: 32px;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .login-footer strong {
+      color: var(--text-main);
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      padding: 16px 24px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      border-left: 4px solid var(--primary);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      transform: translateX(120%);
+      transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #toast.show {
+      transform: translateX(0);
+    }
+
+    #toast.error {
+      border-left-color: var(--error);
+    }
+
+    /* Dashboard Styles (Main Layout) */
+    .app-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: none;
+      animation: fadeIn 0.6s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="loader">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- SECCIÓN LOGIN -->
+  <div id="login-section" class="login-container">
+    <div class="login-header">
+      <h1>Bienvenido</h1>
+      <p>Ingresa tus credenciales para continuar</p>
+    </div>
+
+    <div class="form-group">
+      <label for="user-select">Usuario</label>
+      <select id="user-select">
+        <option value="" disabled selected>Selecciona tu usuario</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="password-input">Contraseña</label>
+      <input type="password" id="password-input" placeholder="••••••••">
+    </div>
+
+    <button id="login-btn" class="btn-primary" onclick="login()">Iniciar Sesión</button>
+
+    <div class="login-footer">
+      Virtual Ramos <br>
+      <strong>By Duvan Ramos</strong>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DASHBOARD -->
+  <div id="dashboard-section" class="app-container">
+    <?!= include('dashboard'); ?>
+  </div>
+
+  <script>
+    const loginSection = document.getElementById('login-section');
+    const dashboardSection = document.getElementById('dashboard-section');
+    const userSelect = document.getElementById('user-select');
+    const passwordInput = document.getElementById('password-input');
+    const loader = document.getElementById('loader');
+    const toast = document.getElementById('toast');
+
+    function showLoader(show) {
+      loader.style.display = show ? 'flex' : 'none';
+    }
+
+    function showToast(message, isError = false) {
+      toast.innerText = message;
+      toast.classList.remove('error');
+      if (isError) toast.classList.add('error');
+
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 4000);
+    }
+
+    // Cargar usuarios al iniciar
+    window.onload = () => {
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(users => {
+          users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user;
+            option.textContent = user;
+            userSelect.appendChild(option);
+          });
+          showLoader(false);
+        })
+        .withFailureHandler(err => {
+          showLoader(false);
+          showToast('Error al cargar usuarios', true);
+        })
+        .obtenerUsuarios();
+    };
+
+    function login() {
+      const user = userSelect.value;
+      const pass = passwordInput.value;
+
+      if (!user || !pass) {
+        showToast('Por favor completa todos los campos', true);
+        return;
+      }
+
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            sessionStorage.setItem('userName', res.nombre);
+            sessionStorage.setItem('userCanal', res.canal);
+            sessionStorage.setItem('userId', user);
+
+            initDashboard();
+          } else {
+            showLoader(false);
+            showToast('Contraseña incorrecta', true);
+          }
+        })
+        .withFailureHandler(err => {
+          showLoader(false);
+          showToast('Error de conexión', true);
+        })
+        .validarLogin(user, pass);
+    }
+
+    function initDashboard() {
+      loginSection.classList.add('hidden');
+      dashboardSection.style.display = 'block';
+
+      // Llamamos a la función del dashboard que carga los datos
+      if (typeof loadDashboardData === 'function') {
+        loadDashboardData();
+      }
+    }
+
+    function logout() {
+      sessionStorage.clear();
+      dashboardSection.style.display = 'none';
+      loginSection.classList.remove('hidden');
+      passwordInput.value = '';
+    }
+  </script>
+</body>
+</html>
