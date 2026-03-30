@@ -1,3 +1,14 @@
+/**
+ * SISTEMA DE TURNOS - People Bpo
+ * By Duvan Ramos
+ *
+ * INSTRUCCIONES DE DESPLIEGUE:
+ * 1. Cree un nuevo proyecto en script.google.com
+ * 2. Copie el contenido de Code.gs, index.html y dashboard.html
+ * 3. Asegúrese de que el ID de la hoja sea: 1WJpdXTfiwdtof5l7Twb8LqbNWZ9sfAzD-IJeWCmU5zw
+ * 4. Implemente como Aplicación Web (Acceso: Cualquier persona)
+ */
+
 const SPREADSHEET_ID = '1WJpdXTfiwdtof5l7Twb8LqbNWZ9sfAzD-IJeWCmU5zw';
 
 function doGet() {
@@ -56,9 +67,18 @@ function obtenerTurnos(usuario) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName('Turnos');
-    const data = sheet.getDataRange().getValues();
+    if (!sheet) throw new Error("Hoja 'Turnos' no encontrada");
 
-    const userTurnos = data.slice(1).filter(row => row[11] === usuario);
+    const data = sheet.getDataRange().getValues();
+    if (data.length < 2) return [];
+
+    const userTurnos = data.slice(1).filter(row => {
+      // Column L is index 11. Ensure row has enough columns and match is case-insensitive/trimmed
+      if (row.length < 12) return false;
+      const rowUser = String(row[11]).trim().toUpperCase();
+      const searchUser = String(usuario).trim().toUpperCase();
+      return rowUser === searchUser;
+    });
 
     const formattedTurnos = userTurnos.map(row => {
       const fechaOriginal = row[4]; // Columna E

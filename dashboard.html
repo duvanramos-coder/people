@@ -234,7 +234,7 @@
       })
       .withFailureHandler(err => {
         showLoader(false);
-        showToast('Error al cargar turnos', true);
+        showToast('Error al cargar turnos: ' + (err.message || err), true);
       })
       .obtenerTurnos(userId);
   }
