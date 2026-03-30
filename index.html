@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Turnos | People BPO</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <?!= include('styles'); ?>
+</head>
+<body>
+
+  <!-- LOADER -->
+  <div id="loader">
+    <div class="spinner"></div>
+    <div style="color: white; font-weight: 500;">Cargando sistema...</div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- LOGIN SECTION -->
+  <section class="login-container" id="loginSection">
+    <div class="login-card">
+      <div class="login-logo">People BPO</div>
+      <div class="login-subtitle">Sistema de Gestión de Turnos</div>
+
+      <div class="form-group">
+        <label for="userSelect">Selecciona tu Nombre</label>
+        <select id="userSelect" class="form-select">
+          <option value="" disabled selected>Cargando asesores...</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <input type="password" id="password" placeholder="••••••••">
+      </div>
+
+      <button class="login-btn" onclick="handleLogin()">Ingresar</button>
+
+      <div class="login-footer">
+        By Duvan Ramos 2026
+      </div>
+    </div>
+  </section>
+
+  <!-- DASHBOARD SECTION -->
+  <section class="dashboard-container" id="dashboardSection">
+    <div style="max-width: 1200px; margin: 0 auto;">
+      <div class="welcome-banner" style="margin-bottom: 30px; animation: slideUp 0.8s ease;">
+        <h1 style="font-size: 28px; font-weight: 800; color: var(--primary); margin: 0;">¡Hola, <span id="userName">Asesor</span>! 👋</h1>
+        <p style="color: var(--text-muted); margin-top: 5px;">Bienvenido a tu panel de turnos personalizado.</p>
+      </div>
+
+      <nav class="navbar" style="animation: slideUp 1s ease;">
+        <div class="user-info">
+          <div class="user-avatar" id="userAvatar">??</div>
+          <div class="user-details">
+            <h3 style="margin: 0;">Perfil de Asesor</h3>
+            <p id="userCampaign" style="margin: 0; font-size: 13px; color: var(--text-muted);">Campaña / Subcampaña</p>
+          </div>
+        </div>
+
+        <button class="logout-btn" onclick="handleLogout()">
+          <span class="material-icons" style="font-size: 18px;">logout</span>
+          Finalizar Sesión
+        </button>
+      </nav>
+
+      <main class="dashboard-content">
+        <div class="section-title" style="animation: slideUp 1.2s ease;">
+          <div style="background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-right: 15px;">
+            <span class="material-icons">schedule</span>
+          </div>
+          <div>
+            <span style="font-size: 22px; font-weight: 800; color: var(--primary); display: block;">Mi Programación</span>
+            <span style="font-size: 13px; color: var(--text-muted);">Consulta tus horarios y descansos de la semana</span>
+          </div>
+        </div>
+
+        <div class="shifts-grid" id="shiftsGrid">
+          <!-- Dynamic Shift Cards go here -->
+        </div>
+
+        <footer class="footer-sig" style="margin-top: 80px; padding: 40px 0; border-top: 1px solid rgba(0,0,0,0.05); text-align: center;">
+          <div style="font-weight: 700; color: var(--primary); font-size: 14px; margin-bottom: 5px;">People BPO — Corporate System</div>
+          <div style="font-size: 12px; color: var(--text-muted); letter-spacing: 1px;">BY DUVAN RAMOS 2026</div>
+        </footer>
+      </main>
+    </div>
+  </section>
+
+  <?!= include('scripts'); ?>
+</body>
+</html>
