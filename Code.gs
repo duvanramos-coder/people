@@ -4,7 +4,7 @@
  * Nivel: Senior Software Engineer
  */
 
-const SPREADSHEET_ID = '1-q8bNXPWWRRe19vfcJgIFOQGzZSW1a8WbNFgjasECMU'; // ID de la hoja de cálculo principal
+const SPREADSHEET_ID = '1WJpdXTfiwdtof5l7Twb8LqbNWZ9sfAzD-IJeWCmU5zw'; // ID de la hoja de cálculo principal
 
 /**
  * Función principal para servir la aplicación web
@@ -79,13 +79,16 @@ function getShiftsForUser(email) {
 
     let nombreUsuario = '';
     for (let i = 1; i < agentsData.length; i++) {
-      if (agentsData[i][3] === email) {
-        nombreUsuario = agentsData[i][1]; // Col B: Nombre (ej. Angi Johana Banda Montes)
+      if (String(agentsData[i][3]).trim().toLowerCase() === email.trim().toLowerCase()) {
+        nombreUsuario = String(agentsData[i][1]).trim(); // Col B: Nombre (ej. Angi Johana Banda Montes)
         break;
       }
     }
 
-    if (!nombreUsuario) return [];
+    if (!nombreUsuario) {
+      console.error('Nombre de usuario no encontrado para:', email);
+      return [];
+    }
 
     const shiftsSheet = ss.getSheetByName('Turnos');
     if (!shiftsSheet) {
@@ -100,8 +103,11 @@ function getShiftsForUser(email) {
     const filteredShifts = [];
 
     // En la hoja 'Turnos' la columna A (Nombre) contiene el nombre completo del asesor
+    const nombreUsuarioLower = nombreUsuario.toLowerCase();
+
     for (let i = 1; i < shiftsData.length; i++) {
-      if (shiftsData[i][0] === nombreUsuario) {
+      const nombreEnTurno = String(shiftsData[i][0]).trim().toLowerCase();
+      if (nombreEnTurno === nombreUsuarioLower) {
         const shift = {};
         headers.forEach((header, index) => {
           let value = shiftsData[i][index];

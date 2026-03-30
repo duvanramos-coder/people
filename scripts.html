@@ -80,7 +80,9 @@
     document.getElementById('loginSection').style.display = 'none';
     document.getElementById('dashboardSection').style.display = 'block';
 
-    document.getElementById('userName').innerText = user.nombre;
+    // Split name to show first name only in greeting
+    const firstName = user.nombre.split(' ')[0];
+    document.getElementById('userName').innerText = firstName;
     document.getElementById('userCampaign').innerText = user.canal || 'Sin Campaña';
     document.getElementById('userAvatar').innerText = user.nombre.substring(0, 2).toUpperCase();
 
