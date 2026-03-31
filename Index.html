@@ -228,9 +228,15 @@
     /* SCENARIO BAR */
     .scenario-bar {
       display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 15px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
       margin-bottom: 20px;
+    }
+
+    @media (min-width: 600px) {
+      .scenario-bar {
+        grid-template-columns: repeat(6, 1fr);
+      }
     }
 
     .btn-scenario {
@@ -318,6 +324,13 @@
       font-weight: 700;
     }
 
+    .mini-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 5px;
+    }
+
     .mini-card span {
       font-size: 13px;
       color: var(--accent-dark);
@@ -325,7 +338,26 @@
       background: var(--accent-soft);
       padding: 4px 10px;
       border-radius: 8px;
-      align-self: flex-start;
+    }
+
+    .btn-copy-ext {
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-copy-ext:hover {
+      background: var(--accent);
+      color: var(--primary);
     }
 
     /* FOOTER */
@@ -404,9 +436,12 @@
       </div>
 
       <!-- BOTONES DE ESCENARIO -->
-      <div class="scenario-bar" style="grid-template-columns: repeat(5, 1fr);">
+      <div class="scenario-bar">
         <button class="btn-scenario" onclick="setScript('SALUDO')" title="Reiniciar">
           🔄 Saludo
+        </button>
+        <button class="btn-scenario" onclick="setScript('GENERAL')" title="Información General">
+          🌎 General
         </button>
         <button class="btn-scenario" onclick="setScript('LINEA_AMIGA')" title="Línea Amiga">
           🆘 L. Amiga
@@ -451,14 +486,17 @@
       return hr < 12 ? "buenos días" : "buenas tardes";
     };
 
+    const DP_TEXT = "Para la correcta gestión de su solicitud, requerimos su nombre y número de teléfono, los cuales serán tratados conforme a la normativa de protección de datos personales.";
+
     const SCRIPTS = {
       SALUDO: () => `Muy <span class="highlight-accent">${getGreeting()}</span>, se comunica con el conmutador de Cofrem, le habla <span class="highlight-accent">${currentAdvisor}</span>, ¿en qué puedo ayudarle?`,
       ESPERA: () => `Claro que sí, con mucho gusto le colaboro. Permítame un momento por favor mientras valido la información para direccionar su llamada.`,
-      TRANSFERENCIA: (area) => `Listo, muchísimas gracias. Lo voy a comunicar con el área de <span class="highlight-accent">${area}</span>. Deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong>`,
-      LINEA_AMIGA: () => `Entiendo su solicitud. No obstante, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es exclusivamente para direccionamiento. Para su requerimiento, lo remitiré a la Línea Amiga, donde un agente le brindará la atención que necesita.`,
-      EMPLEO: () => `Comprendo que busca información de empleo. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es de direccionamiento. Lo comunicaré de inmediato con la Agencia de Empleo para que reciba la asesoría correspondiente.`,
-      INSISTENCIA: () => `Comprendo su malestar y le ofrezco una disculpa. Sin embargo, para poder ayudarle adecuadamente, <span class="highlight-accent">debo remitirlo con el área encargada</span>, ya que desde esta línea de conmutador no contamos con acceso a su historial. Permítame un momento por favor.`,
-      ERROR: () => `Le pido una sincera disculpa, parece que hubo un error en la conexión anterior. <span class="highlight-accent">Deme un segundo</span> para intentar conectarlo nuevamente con el área correcta. Gracias por su paciencia.`
+      TRANSFERENCIA: (area) => `Listo, muchísimas gracias. Lo voy a comunicar con el área de <span class="highlight-accent">${area}</span>. Deme un momento mientras realizo la transferencia. <strong>Por favor no cuelgue.</strong><br><br><small style="opacity:0.8">${DP_TEXT}</small>`,
+      LINEA_AMIGA: () => `Entiendo su solicitud. No obstante, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es exclusivamente para direccionamiento. Para su requerimiento, lo remitiré a la Línea Amiga, donde un agente le brindará la atención que necesita.<br><br><small style="opacity:0.8">${DP_TEXT}</small>`,
+      EMPLEO: () => `Comprendo que busca información de empleo. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de Cofrem</span> y esta línea es de direccionamiento. Lo comunicaré de inmediato con la Agencia de Empleo para que reciba la asesoría correspondiente.<br><br><small style="opacity:0.8">${DP_TEXT}</small>`,
+      GENERAL: () => `Comprendo que requiere información sobre su solicitud. Sin embargo, <span class="highlight-accent">le recuerdo que se comunica con el conmutador de COFREM</span>, y esta línea es exclusivamente para direccionamiento. Procederé a remitir su caso al área correspondiente, donde un agente le brindará la atención adecuada.<br><br><small style="opacity:0.8">${DP_TEXT}</small>`,
+      INSISTENCIA: () => `Comprendo su malestar y le ofrezco una disculpa. Sin embargo, para poder ayudarle adecuadamente, <span class="highlight-accent">debo remitirlo con el área encargada</span>, ya que desde esta línea de conmutador no contamos con acceso a su historial. Permítame un momento por favor.<br><br><small style="opacity:0.8">${DP_TEXT}</small>`,
+      ERROR: () => `Le pido una sincera disculpa, parece que hubo un error en la conexión anterior. <span class="highlight-accent">Deme un segundo</span> para intentar conectarlo nuevamente con el área correcta. Gracias por su paciencia.<br><br><small style="opacity:0.8">${DP_TEXT}</small>`
     };
 
     // Inicialización
@@ -496,6 +534,23 @@
       document.getElementById('results-grid').innerHTML = "";
     }
 
+    function copyExtension(event, text) {
+      event.stopPropagation();
+      const num = text.replace(/\D/g, '');
+      navigator.clipboard.writeText(num).then(() => {
+        const btn = event.currentTarget;
+        const original = btn.innerHTML;
+        btn.innerHTML = '✅ Copiado';
+        btn.style.background = 'var(--accent)';
+        btn.style.color = 'var(--primary)';
+        setTimeout(() => {
+          btn.innerHTML = original;
+          btn.style.background = 'var(--primary)';
+          btn.style.color = 'white';
+        }, 1500);
+      });
+    }
+
     /**
      * Actualiza el script visualmente con una pequeña animación
      */
@@ -515,6 +570,7 @@
           'SALUDO': 'Paso 1: Bienvenida',
           'ESPERA': 'Paso 2: Validación',
           'TRANSFERENCIA': 'Paso 3: Transferencia',
+          'GENERAL': 'Escenario: General',
           'LINEA_AMIGA': 'Escenario: Línea Amiga',
           'EMPLEO': 'Escenario: Agencia Empleo',
           'INSISTENCIA': 'Escenario: Insistencia',
@@ -562,7 +618,12 @@
             card.className = 'mini-card';
             card.innerHTML = `
               <h4>${res.dependencia}</h4>
-              <span>📞 ${res.extension}</span>
+              <div class="mini-card-footer">
+                <span>📞 ${res.extension}</span>
+                <button class="btn-copy-ext" onclick="copyExtension(event, '${res.extension}')">
+                  📋 Copiar
+                </button>
+              </div>
             `;
             card.onclick = () => selectArea(res.dependencia);
             grid.appendChild(card);
