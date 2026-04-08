@@ -105,7 +105,10 @@
     const total = filteredData.length;
     const managed = filteredData.filter(d => d.isManaged).length;
     const pending = total - managed;
-    const effective = filteredData.filter(d => d.efectividad === 'Sí').length;
+    const effective = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
 
     document.getElementById('kpiTotal').textContent = total;
     document.getElementById('kpiManaged').textContent = managed;
@@ -255,13 +258,16 @@
 
     displayData.forEach(row => {
       const tr = document.createElement('tr');
+      const effVal = (row.efectividad || "").toLowerCase().trim();
+      const isEffective = effVal === 'sí' || effVal === 'si';
+
       tr.innerHTML = `
         <td><strong>${row.radicado}</strong></td>
         <td>${row.nombre}</td>
         <td>${row.empresa}</td>
         <td><span class="badge ${getStatusBadge(row.estado)}">${row.estado || '---'}</span></td>
         <td>${row.canal || '---'}</td>
-        <td><span class="badge ${row.efectividad === 'Sí' ? 'badge-success' : 'badge-danger'}">${row.efectividad || 'No'}</span></td>
+        <td><span class="badge ${isEffective ? 'badge-success' : 'badge-danger'}">${row.efectividad || 'No'}</span></td>
       `;
       tbody.appendChild(tr);
     });
@@ -395,7 +401,10 @@
     const total = filteredData.length;
     const managed = filteredData.filter(d => d.isManaged).length;
     const pending = total - managed;
-    const effective = filteredData.filter(d => d.efectividad === 'Sí').length;
+    const effective = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
 
     const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
     const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
