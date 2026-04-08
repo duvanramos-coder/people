@@ -1,0 +1,132 @@
+<script>
+  let chatGlobal = [];
+
+  // 📤 Leer JSON
+  function procesar() {
+    const file = document.getElementById('fileInput').files[0];
+    if (!file) return showToast("Por favor, sube un archivo JSON");
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      google.script.run
+        .withSuccessHandler(renderChat)
+        .withFailureHandler(() => showToast("Error al procesar el JSON"))
+        .procesarJSON(e.target.result);
+    };
+    reader.readAsText(file);
+  }
+
+  // 💬 Render chat
+  function renderChat(data) {
+    if (!data || data.length === 0) {
+      showToast("No se encontraron mensajes válidos");
+      return;
+    }
+
+    chatGlobal = data;
+    const chat = document.getElementById("chat");
+    chat.innerHTML = "";
+
+    data.forEach(msg => {
+      const div = document.createElement("div");
+      div.className = "msg " + msg.tipo;
+      div.innerHTML = `
+        <div class="nombre">${msg.nombre}</div>
+        <div>${msg.mensaje}</div>
+      `;
+      chat.appendChild(div);
+    });
+
+    chat.scrollTop = chat.scrollHeight;
+    document.getElementById("link-container").style.display = "none";
+  }
+
+  // 📄 PDF
+  function descargarPDF() {
+    if (chatGlobal.length === 0) return showToast("Primero genera el chat");
+    window.print();
+  }
+
+  // 🖼️ Imagen
+  function descargarImagen() {
+    if (chatGlobal.length === 0) return showToast("Primero genera el chat");
+
+    const chatElement = document.getElementById("chat");
+    const originalHeight = chatElement.style.height;
+    const originalOverflow = chatElement.style.overflow;
+
+    // Expandir para captura completa
+    chatElement.style.height = "auto";
+    chatElement.style.overflow = "visible";
+
+    html2canvas(chatElement, {
+      backgroundColor: "#efe7dd",
+      scale: 2,
+      useCORS: true
+    }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "conversacion_chat.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+
+      // Restaurar
+      chatElement.style.height = originalHeight;
+      chatElement.style.overflow = originalOverflow;
+    });
+  }
+
+  // 🔗 Compartir
+  function compartir() {
+    if (chatGlobal.length === 0) {
+      showToast("Primero genera el chat");
+      return;
+    }
+
+    const shareBtn = document.querySelector('.btn-share');
+    const originalText = shareBtn.innerHTML;
+    shareBtn.innerHTML = 'Generando...';
+    shareBtn.disabled = true;
+
+    google.script.run.withSuccessHandler(function(id) {
+      google.script.run.withSuccessHandler(function(baseUrl) {
+        const url = baseUrl + "?id=" + id;
+        const container = document.getElementById("link-container");
+        const linkDisplay = document.getElementById("link-display");
+
+        linkDisplay.href = url;
+        linkDisplay.innerText = url;
+        container.style.display = "block";
+
+        shareBtn.innerHTML = originalText;
+        shareBtn.disabled = false;
+
+        setTimeout(() => {
+          container.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      }).getAppUrl();
+    }).guardarChat(chatGlobal);
+  }
+
+  function copiarLink() {
+    const url = document.getElementById("link-display").innerText;
+    navigator.clipboard.writeText(url).then(() => {
+      showToast("¡Link copiado al portapapeles!");
+    });
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById("toast");
+    toast.innerText = message;
+    toast.style.display = "block";
+    setTimeout(() => {
+      toast.style.display = "none";
+    }, 3000);
+  }
+
+  // Initialize if shared
+  window.onload = function() {
+    if (window.sharedData && window.sharedData.length > 0) {
+      renderChat(window.sharedData);
+    }
+  };
+</script>
