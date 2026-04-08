@@ -68,32 +68,26 @@
     const company = document.getElementById('filterCompany').value;
     const channel = document.getElementById('filterChannel').value;
     const status = document.getElementById('filterStatus').value;
-    const startDate = document.getElementById('filterDateStart').value;
-    const endDate = document.getElementById('filterDateEnd').value;
-    const datePeople = document.getElementById('filterDatePeople').value;
+
+    const peopleStart = document.getElementById('filterDatePeopleStart').value;
+    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
 
     filteredData = allData.filter(d => {
       const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
 
-      let dateMatch = true;
-      if (d.fechaCofrem) {
-        if (startDate && d.fechaCofrem < startDate) dateMatch = false;
-        if (endDate && d.fechaCofrem > endDate) dateMatch = false;
-      } else if (startDate || endDate) {
-        dateMatch = false;
-      }
-
       let peopleMatch = true;
-      if (datePeople) {
-        peopleMatch = d.recibidoPeople === datePeople;
+      if (d.recibidoPeople) {
+        if (peopleStart && d.recibidoPeople < peopleStart) peopleMatch = false;
+        if (peopleEnd && d.recibidoPeople > peopleEnd) peopleMatch = false;
+      } else if (peopleStart || peopleEnd) {
+        peopleMatch = false;
       }
 
       return (!month || dMonth === month) &&
              peopleMatch &&
              (!company || d.empresa === company) &&
              (!channel || d.canal === channel) &&
-             (!status || d.estado === status) &&
-             dateMatch;
+             (!status || d.estado === status);
     });
 
     currentPage = 1;
@@ -419,7 +413,15 @@
     };
 
     const today = new Date().toLocaleDateString('es-ES');
-    const reportDate = document.getElementById('filterDatePeople').value || today;
+    const peopleStart = document.getElementById('filterDatePeopleStart').value;
+    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
+
+    let reportDate = today;
+    if (peopleStart && peopleEnd) {
+      reportDate = `${peopleStart} a ${peopleEnd}`;
+    } else if (peopleStart || peopleEnd) {
+      reportDate = peopleStart || peopleEnd;
+    }
 
     toggleLoader(true);
     google.script.run

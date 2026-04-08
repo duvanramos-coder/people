@@ -76,34 +76,14 @@
             </select>
           </div>
           <div class="filter-group">
-            <label>Desde (Cofrem)</label>
-            <input type="date" id="filterDateStart" onchange="applyFilters()">
+            <label>Recibido People (Desde)</label>
+            <input type="date" id="filterDatePeopleStart" onchange="applyFilters()">
           </div>
           <div class="filter-group">
-            <label>Hasta (Cofrem)</label>
-            <input type="date" id="filterDateEnd" onchange="applyFilters()">
-          </div>
-          <div class="filter-group">
-            <label>Recibido People (Fecha)</label>
-            <input type="date" id="filterDatePeople" onchange="applyFilters()">
+            <label>Recibido People (Hasta)</label>
+            <input type="date" id="filterDatePeopleEnd" onchange="applyFilters()">
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- Report Section -->
-    <section class="report-row">
-      <div class="card report-card">
-        <div class="card-header">
-          <h3><i data-lucide="mail"></i> Enviar Reporte PDF</h3>
-        </div>
-        <div class="report-controls">
-          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com">
-          <button class="btn btn-primary" onclick="handleSendReport()">
-            <i data-lucide="send"></i> Enviar Reporte
-          </button>
-        </div>
-        <p class="report-hint">Se enviará un consolidado basado en los filtros actuales.</p>
       </div>
     </section>
 
@@ -227,6 +207,22 @@
           <button class="btn btn-outline btn-sm" id="btnPrev" onclick="changePage(-1)">Anterior</button>
           <button class="btn btn-outline btn-sm" id="btnNext" onclick="changePage(1)">Siguiente</button>
         </div>
+      </div>
+    </section>
+
+    <!-- Report Section (Moved to bottom) -->
+    <section class="report-row">
+      <div class="card report-card compact-report">
+        <div class="card-header">
+          <h3><i data-lucide="mail"></i> Enviar Reporte PDF</h3>
+        </div>
+        <div class="report-controls">
+          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com">
+          <button class="btn btn-primary" onclick="handleSendReport()">
+            <i data-lucide="send"></i> Enviar Reporte
+          </button>
+        </div>
+        <p class="report-hint">Se enviará un consolidado basado en los filtros actuales.</p>
       </div>
     </section>
 
