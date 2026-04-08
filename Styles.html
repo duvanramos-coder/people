@@ -1,0 +1,225 @@
+<style>
+  :root {
+    --primary-color: #075E54;
+    --primary-light: #128C7E;
+    --accent-color: #25D366;
+    --bg-color: #e5ddd5;
+    --chat-bg: #efe7dd;
+    --msg-client: #dcf8c6;
+    --msg-agent: #ffffff;
+    --text-dark: #303030;
+    --text-light: #555;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 500px;
+    height: 90vh;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    margin: 20px;
+  }
+
+  .header {
+    background: var(--primary-color);
+    color: white;
+    padding: 16px 20px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 10;
+  }
+
+  .controls {
+    padding: 15px;
+    background: #f0f2f5;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .file-input-wrapper {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    width: 100%;
+  }
+
+  input[type=file] {
+    font-size: 100px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .btn-file {
+    background: white;
+    border: 2px dashed var(--primary-light);
+    color: var(--primary-light);
+    padding: 8px 20px;
+    border-radius: 8px;
+    text-align: center;
+    display: block;
+    font-weight: 500;
+    transition: all 0.3s;
+  }
+
+  .btn-file:hover {
+    background: #f8f9fa;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  button {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.1s, background 0.2s;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  button:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary { background: var(--primary-color); color: white; }
+  .btn-primary:hover { background: var(--primary-light); }
+
+  .btn-secondary { background: #6c757d; color: white; }
+  .btn-secondary:hover { background: #5a6268; }
+
+  .btn-share { background: var(--accent-color); color: #075e54; }
+  .btn-share:hover { background: #20bd5a; }
+
+  #chat {
+    flex-grow: 1;
+    background: var(--chat-bg);
+    background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth;
+  }
+
+  .msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    margin: 6px 0;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.4;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    word-wrap: break-word;
+  }
+
+  .cliente {
+    background: var(--msg-client);
+    align-self: flex-start;
+    border-top-left-radius: 2px;
+  }
+
+  .asesora {
+    background: var(--msg-agent);
+    align-self: flex-end;
+    border-top-right-radius: 2px;
+  }
+
+  .nombre {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: var(--primary-color);
+  }
+
+  .asesora .nombre {
+    color: #9c27b0;
+    text-align: right;
+  }
+
+  #link-container {
+    padding: 10px 15px;
+    background: #e1f5fe;
+    border-top: 1px solid #b3e5fc;
+    display: none;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  #link-display {
+    font-size: 0.8rem;
+    color: #0277bd;
+    word-break: break-all;
+    margin-bottom: 5px;
+    display: block;
+    text-decoration: none;
+  }
+
+  .copy-btn {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    background: #0277bd;
+    color: white;
+    width: fit-content;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: none;
+    z-index: 100;
+  }
+
+  /* Scrollbar custom */
+  #chat::-webkit-scrollbar { width: 6px; }
+  #chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+
+  @media print {
+    .controls, .header, #link-container { display: none; }
+    body { background: white; }
+    .app-container { box-shadow: none; max-width: 100%; height: auto; }
+    #chat { background: white; overflow: visible; }
+  }
+</style>
