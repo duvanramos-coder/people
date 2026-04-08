@@ -70,6 +70,7 @@
     const status = document.getElementById('filterStatus').value;
     const startDate = document.getElementById('filterDateStart').value;
     const endDate = document.getElementById('filterDateEnd').value;
+    const datePeople = document.getElementById('filterDatePeople').value;
 
     filteredData = allData.filter(d => {
       const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
@@ -82,7 +83,13 @@
         dateMatch = false;
       }
 
+      let peopleMatch = true;
+      if (datePeople) {
+        peopleMatch = d.recibidoPeople === datePeople;
+      }
+
       return (!month || dMonth === month) &&
+             peopleMatch &&
              (!company || d.empresa === company) &&
              (!channel || d.canal === channel) &&
              (!status || d.estado === status) &&
@@ -131,29 +138,29 @@
   function renderCharts() {
     // 1. Status Chart
     const statusCounts = countBy(filteredData, 'estado');
-    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b']);
+    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estados');
 
     // 2. Channel Chart
     const channelCounts = countBy(filteredData, 'canal');
-    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400']);
+    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canales');
 
     // 3. Managed vs Pending
     const managedCounts = {
       'Gestionados': filteredData.filter(d => d.isManaged).length,
       'Por Comunicar': filteredData.filter(d => !d.isManaged).length
     };
-    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444']);
+    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
 
     // 4. Effectiveness
     const effCounts = countBy(filteredData, 'efectividad');
-    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f1f5f9']);
+    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f1f5f9'], 'Casos');
 
     // 5. Trend (By month)
     const trendData = getTrendData(filteredData);
-    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#3b3561']);
+    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#3b3561'], 'PQRSF Recibidos');
   }
 
-  function updateChart(id, type, labels, data, colors) {
+  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
     if (charts[id]) charts[id].destroy();
 
     const ctx = document.getElementById(id).getContext('2d');
@@ -162,6 +169,7 @@
       data: {
         labels: labels,
         datasets: [{
+          label: datasetLabel,
           data: data,
           backgroundColor: colors,
           borderColor: type === 'line' ? colors[0] : '#ffffff',
@@ -303,6 +311,7 @@
           <h4>${found.nombre}</h4>
           <div class="search-card-grid">
             <div><span>Radicado:</span> ${found.radicado}</div>
+            <div><span>Asesor:</span> ${found.asesor || 'Sin asignar'}</div>
             <div><span>Empresa:</span> ${found.empresa}</div>
             <div><span>Estado:</span> ${found.estado}</div>
             <div><span>Canal:</span> ${found.canal}</div>
@@ -380,6 +389,49 @@
 
   function exportToPDF() {
     window.print();
+  }
+
+  function handleSendReport() {
+    const email = document.getElementById('reportEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      alert("Por favor ingrese un correo válido.");
+      return;
+    }
+
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => d.efectividad === 'Sí').length;
+
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivenessPerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+
+    const reportData = {
+      total,
+      managed,
+      managedPerc,
+      pending,
+      pendingPerc,
+      effectivenessPerc,
+      channels: countBy(filteredData, 'canal'),
+      status: countBy(filteredData, 'estado')
+    };
+
+    const today = new Date().toLocaleDateString('es-ES');
+    const reportDate = document.getElementById('filterDatePeople').value || today;
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(() => {
+        toggleLoader(false);
+        alert("Reporte enviado con éxito.");
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        alert("Error al enviar reporte: " + err.message);
+      })
+      .sendEmailReport(email, reportData, reportDate);
   }
 
   function sortTable(n) {

@@ -53,6 +53,7 @@ function getPQRSFData() {
 
       return {
         id: index + 2, // Row number in sheet
+        asesor: row[0] ? row[0].toString().trim() : "Sin asignar",
         recibidoPeople: formatDate(row[1]),
         radicado: row[2] ? row[2].toString().trim() : "",
         fechaCofrem: formatDate(row[3]),
@@ -72,5 +73,88 @@ function getPQRSFData() {
   } catch (error) {
     Logger.log('Error fetching data: ' + error.message);
     throw new Error('Error al cargar datos: ' + error.message);
+  }
+}
+
+/**
+ * Sends an email report with a PDF attachment
+ */
+function sendEmailReport(toEmail, reportData, reportDate) {
+  try {
+    const htmlBody = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+        <div style="background-color: #3b3561; padding: 20px; color: white;">
+          <h2 style="margin: 0; font-size: 18px;">Reporte diario de radicaciones y PQRSF – People BPO</h2>
+        </div>
+        <div style="padding: 30px; color: #1e293b; line-height: 1.6;">
+          <p>Hola,</p>
+          <p>Te comparto el <b>reporte diario de radicaciones y PQRSF del equipo</b> correspondiente al día <b>${reportDate}</b>.</p>
+          <p>En el archivo adjunto encontrarás el <b>consolidado</b> con el detalle de las gestiones realizadas durante la jornada.</p>
+          <p>Cualquier observación o ajuste que requieras, quedo atento.</p>
+          <p style="margin-top: 30px;">Cordialmente,<br>
+          <b>Duván Ramos</b><br>
+          Coordinador de Formación y Calidad<br>
+          People BPO</p>
+        </div>
+        <div style="background-color: #f8fafc; padding: 15px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #e2e8f0;">
+          Envío automático desde el sistema de seguimiento operativo.
+        </div>
+      </div>
+    `;
+
+    // Generate PDF content
+    const pdfHtml = `
+      <html>
+        <head>
+          <style>
+            body { font-family: sans-serif; color: #333; }
+            h1 { color: #3b3561; border-bottom: 2px solid #b7d400; padding-bottom: 10px; }
+            .kpi-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .kpi-table th, .kpi-table td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            .kpi-table th { background-color: #f4f4f4; }
+            .summary-box { background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>Consolidado PQRSF - ${reportDate}</h1>
+          <div class="summary-box">
+            <p><b>Total PQRSF:</b> ${reportData.total}</p>
+            <p><b>Gestionados:</b> ${reportData.managed} (${reportData.managedPerc}%)</p>
+            <p><b>Pendientes:</b> ${reportData.pending} (${reportData.pendingPerc}%)</p>
+            <p><b>Efectividad:</b> ${reportData.effectivenessPerc}%</p>
+          </div>
+          <h3>Métricas por Canal</h3>
+          <table class="kpi-table">
+            <thead><tr><th>Canal</th><th>Casos</th></tr></thead>
+            <tbody>
+              ${Object.entries(reportData.channels).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+            </tbody>
+          </table>
+          <h3>Métricas por Estado</h3>
+          <table class="kpi-table">
+            <thead><tr><th>Estado</th><th>Casos</th></tr></thead>
+            <tbody>
+              ${Object.entries(reportData.status).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+            </tbody>
+          </table>
+          <p style="font-size: 10px; color: #777; margin-top: 30px;">Generado automáticamente por GESTIONES PQRSF (People BPO)</p>
+        </body>
+      </html>
+    `;
+
+    const blob = Utilities.newBlob(pdfHtml, 'text/html', 'reporte.html');
+    const pdf = blob.getAs('application/pdf').setName(`Reporte_PQRSF_${reportDate.replace(/\//g, '-')}.pdf`);
+
+    MailApp.sendEmail({
+      to: toEmail,
+      subject: `Reporte diario de radicaciones y PQRSF – ${reportDate}`,
+      htmlBody: htmlBody,
+      attachments: [pdf]
+    });
+
+    return "OK";
+  } catch (error) {
+    Logger.log('Error sending email: ' + error.message);
+    throw new Error('Error al enviar el reporte: ' + error.message);
   }
 }
