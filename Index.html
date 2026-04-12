@@ -1,682 +1,834 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<base target="_top">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>People BPO - Gestión Operativa</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      /* Palette inspired by Linear / Meta / Stripe */
+      --primary: #312B50;
+      --secondary: #BEDC16;
+      --bg: #0C0B12;
+      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #FFFFFF;
+      --text-muted: #8A898E;
+      --accent: #BEDC16;
+      --error: #FF4D4D;
+      --success: #10B981;
+      --sidebar-w: 260px;
+      --radius: 12px;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root {
-  --primary: #312B50;
-  --secondary: #BEDC16;
-  --bg: #F8F9FD;
-  --white: #FFFFFF;
-  --text-main: #312B50;
-  --text-muted: #6B7280;
-  --border: #E5E7EB;
-  --success: #10B981;
-  --error: #EF4444;
-  --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+    }
 
-body {
-  font-family: 'Poppins', sans-serif;
-  background: radial-gradient(circle at top left, #312B50 0%, #1A162D 100%);
-  color: var(--text-main);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
+    /* --- LOGIN VIEW --- */
+    .login-container {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      background: radial-gradient(circle at top left, #312B50 0%, #0C0B12 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
 
-header {
-  text-align: center;
-  margin-bottom: 30px;
-  color: var(--white);
-  animation: fadeInDown 0.8s ease-out;
-}
+    .login-card {
+      width: 100%;
+      max-width: 400px;
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(20px);
+      padding: 48px;
+      border-radius: 32px;
+      border: 1px solid var(--card-border);
+      text-align: center;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+      animation: fadeIn 0.8s ease;
+    }
 
-header h2 {
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  font-size: 28px;
-  margin-bottom: 5px;
-}
+    .login-card h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
 
-header small {
-  opacity: 0.7;
-  font-weight: 300;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
+    .login-card p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
 
-.container {
-  width: 100%;
-  max-width: 700px;
-  perspective: 1000px;
-}
+    .login-field {
+      margin-bottom: 20px;
+      text-align: left;
+    }
 
-.card {
-  background: var(--white);
-  padding: 40px;
-  border-radius: 24px;
-  box-shadow: var(--shadow);
-  position: relative;
-  overflow: hidden;
-  animation: cardEntrance 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+    .login-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
 
-.card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  background: var(--secondary);
-}
+    .input-login {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      color: white;
+      font-family: inherit;
+      transition: var(--transition);
+    }
 
-h3 {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 25px;
-  color: var(--primary);
-}
+    .input-login:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.08);
+    }
 
-.form-group {
-  margin-bottom: 20px;
-  animation: fadeInUp 0.5s ease-out forwards;
-  opacity: 0;
-}
+    .btn-login {
+      width: 100%;
+      background: var(--accent);
+      color: var(--primary);
+      padding: 14px;
+      border: none;
+      border-radius: var(--radius);
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: var(--transition);
+    }
 
-.form-group:nth-child(1) { animation-delay: 0.1s; }
-.form-group:nth-child(2) { animation-delay: 0.2s; }
-.form-group:nth-child(3) { animation-delay: 0.3s; }
+    .btn-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(190, 220, 22, 0.2);
+    }
 
-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  display: block;
-}
+    /* --- MAIN APP LAYOUT --- */
+    #app {
+      display: none;
+      height: 100vh;
+    }
 
-input, select, textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  font-family: 'Poppins', sans-serif;
-  font-size: 14px;
-  transition: all 0.3s ease;
-  background: #F9FAFB;
-}
+    .sidebar {
+      width: var(--sidebar-w);
+      background: #000;
+      border-right: 1px solid var(--card-border);
+      display: flex;
+      flex-direction: column;
+      padding: 30px 20px;
+    }
 
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.1);
-}
+    .sidebar-header {
+      padding-bottom: 40px;
+    }
 
-textarea {
-  min-height: 100px;
-  resize: vertical;
-}
+    .brand {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: var(--accent);
+    }
 
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
+    .sidebar-nav {
+      flex: 1;
+    }
 
-.checks {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 12px;
-  margin: 25px 0;
-}
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      color: var(--text-muted);
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: var(--transition);
+      font-weight: 500;
+      font-size: 14px;
+    }
 
-@media (min-width: 600px) {
-  .checks {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+    .nav-item.active {
+      background: rgba(190, 220, 22, 0.1);
+      color: var(--accent);
+    }
 
-.check-item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1.5px solid var(--border);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-size: 12px;
-  font-weight: 500;
-}
+    .nav-item:hover:not(.active) {
+      background: rgba(255,255,255,0.05);
+      color: white;
+    }
 
-.check-item:hover {
-  background: #F3F4F6;
-}
+    .sidebar-footer {
+      border-top: 1px solid var(--card-border);
+      padding-top: 20px;
+    }
 
-.check-item input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--primary);
-}
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 13px;
+    }
 
-.check-item.active {
-  border-color: var(--primary);
-  background: rgba(49, 43, 80, 0.05);
-}
+    .avatar {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--accent);
+    }
 
-.btn {
-  width: 100%;
-  padding: 16px;
-  border: none;
-  border-radius: 14px;
-  font-weight: 700;
-  font-size: 16px;
-  background: var(--secondary);
-  color: var(--primary);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--bg);
+      padding: 40px;
+    }
 
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  filter: brightness(1.05);
-}
+    .view {
+      display: none;
+      animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
 
-.btn:active {
-  transform: translateY(0);
-}
+    .view.active {
+      display: block;
+    }
 
-.btn:disabled {
-  background: #E5E7EB;
-  color: #9CA3AF;
-  cursor: not-allowed;
-  transform: none;
-}
+    /* --- DASHBOARD / CARDS --- */
+    .view-title {
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 40px;
+      letter-spacing: -1px;
+    }
 
-.brand {
-  text-align: center;
-  margin-top: 25px;
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-weight: 500;
-}
+    .grid-dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
 
-/* POPUP / MODAL */
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(26, 22, 45, 0.8);
-  backdrop-filter: blur(8px);
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 24px;
+    }
 
-.modal {
-  background: white;
-  padding: 40px;
-  border-radius: 24px;
-  text-align: center;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  transform: scale(0.9);
-  opacity: 0;
-  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
 
-.modal.active {
-  transform: scale(1);
-  opacity: 1;
-}
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
 
-.modal-icon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto 20px;
-  font-size: 40px;
-}
+    .stat-val {
+      font-size: 48px;
+      font-weight: 700;
+    }
 
-.modal-icon.success {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--success);
-}
+    .stat-diff {
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 8px;
+    }
 
-.modal-icon.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--error);
-}
+    /* --- FORM STYLES --- */
+    .form-section {
+      max-width: 600px;
+    }
 
-.modal h3 {
-  margin-bottom: 10px;
-}
+    .form-group {
+      margin-bottom: 24px;
+    }
 
-.modal p {
-  color: var(--text-muted);
-  font-size: 14px;
-  margin-bottom: 25px;
-  line-height: 1.6;
-}
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
 
-.modal-btn {
-  padding: 12px 30px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
+    .input-main {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--card-border);
+      padding: 14px 18px;
+      border-radius: var(--radius);
+      color: white;
+      font-family: inherit;
+      transition: var(--transition);
+    }
 
-.modal-btn.primary {
-  background: var(--primary);
-  color: white;
-}
+    .input-main:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.06);
+    }
 
-/* LOADER */
-.loader-spinner {
-  width: 20px;
-  height: 20px;
-  border: 3px solid rgba(49, 43, 80, 0.3);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  display: none;
-}
+    textarea.input-main {
+      min-height: 120px;
+      resize: vertical;
+    }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
 
-/* KEYFRAMES */
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    .checkbox-group input {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--accent);
+    }
 
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    /* --- CHAT SYSTEM --- */
+    #chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-right: 10px;
+      margin-bottom: 20px;
+    }
 
-@keyframes cardEntrance {
-  from { opacity: 0; transform: translateY(40px) rotateX(-5deg); }
-  to { opacity: 1; transform: translateY(0) rotateX(0); }
-}
+    .message {
+      padding: 12px 16px;
+      border-radius: 16px;
+      max-width: 80%;
+      font-size: 14px;
+      position: relative;
+    }
 
-/* LOGIN STYLES */
-.login-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at top left, #312B50 0%, #1A162D 100%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
-}
+    .message.own {
+      align-self: flex-end;
+      background: var(--accent);
+      color: var(--primary);
+      font-weight: 500;
+    }
 
-.login-card {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(15px);
-  padding: 50px 40px;
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  width: 100%;
-  max-width: 450px;
-  text-align: center;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.5);
-  animation: cardEntrance 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
+    .message.other {
+      align-self: flex-start;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+    }
 
-.login-card h1 {
-  color: var(--white);
-  font-size: 32px;
-  font-weight: 700;
-  margin-bottom: 5px;
-}
+    .msg-info {
+      font-size: 10px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
 
-.login-card h2 {
-  color: var(--secondary);
-  font-size: 18px;
-  font-weight: 500;
-  margin-bottom: 30px;
-  letter-spacing: 1px;
-}
+    /* --- NOTIFICATIONS --- */
+    .notif-item {
+      padding: 16px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-.login-card .brand-name {
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  margin-bottom: 40px;
-}
+    .btn-small {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      background: var(--accent);
+      color: var(--primary);
+    }
 
-.login-card select {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  margin-bottom: 25px;
-  height: 55px;
-  font-size: 16px;
-}
+    /* --- TOAST --- */
+    #toast {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      padding: 16px 24px;
+      border-radius: 12px;
+      background: white;
+      color: var(--primary);
+      font-weight: 600;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 3000;
+    }
 
-.login-card select option {
-  background: #312B50;
-  color: white;
-}
+    #toast.active {
+      transform: translateY(0);
+      opacity: 1;
+    }
 
-.logout-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-}
+    /* --- ANIMATIONS --- */
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.btn-logout {
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 8px 15px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  cursor: pointer;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.btn-logout:hover {
-  background: var(--error);
-  border-color: var(--error);
-}
-
-</style>
+    /* --- SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  </style>
 </head>
-
 <body>
 
-<!-- LOGIN VIEW -->
-<div class="login-overlay" id="loginOverlay" style="display: none;">
-  <div class="login-card">
-    <div class="brand-name">People BPO</div>
-    <h1>¡Bienvenido!</h1>
-    <h2>Registro de Radicados</h2>
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast">Operación exitosa</div>
 
-    <select id="loginUser">
-      <option value="">Selecciona tu nombre...</option>
-      <option>Maria Aragones</option>
-      <option>Laura Buitrago</option>
-      <option>Joselyn Mendoza</option>
-    </select>
+  <!-- LOGIN VIEW -->
+  <div id="login-view" class="login-container">
+    <div class="login-card">
+      <div class="brand" style="font-size: 14px; margin-bottom: 20px; color: var(--text-muted)">PEOPLE BPO</div>
+      <h1>Bienvenido</h1>
+      <p>Ingresa tus credenciales para continuar</p>
 
-    <button class="btn" onclick="login()">Ingresar</button>
-    <p class="brand" style="margin-top: 40px; color: rgba(255,255,255,0.4);">By Duvan Ramos · 2026</p>
-  </div>
-</div>
-
-<div class="logout-container" id="logoutContainer" style="display: none;">
-  <button class="btn-logout" onclick="logout()">
-    <span>Cerrar Sesión</span>
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-  </button>
-</div>
-
-<header>
-  <h2>RADICACIÓN - GESTIONES</h2>
-  <small>SISTEMA DE GESTIÓN INTERNA</small>
-</header>
-
-<div class="container" id="mainContainer" style="display: none;">
-  <div class="card">
-    <h3 style="text-align: center;">Registrar nueva gestión</h3>
-    <p id="welcomeMessage" style="text-align: center; margin-bottom: 20px; font-weight: 500; color: var(--text-muted);"></p>
-
-    <div class="form-group" style="display: none;">
-      <label for="funcionaria">Funcionaria responsable</label>
-      <select id="funcionaria">
-        <option value="">Seleccione una funcionaria...</option>
-        <option>Maria Aragones</option>
-        <option>Laura Buitrago</option>
-        <option>Joselyn Mendoza</option>
-      </select>
-    </div>
-
-    <div class="grid">
-      <div class="form-group">
-        <label for="devuelto">¿Devuelto por errores?</label>
-        <select id="devuelto">
-          <option value="N/A">N/A</option>
-          <option>No</option>
-          <option>Sí</option>
-          <option>Gestionado por otro funcionario</option>
-        </select>
+      <div class="login-field">
+        <label>Usuario</label>
+        <input type="text" id="login-user" class="input-login" placeholder="ej: dramos">
       </div>
 
-      <div class="form-group">
-        <label for="radicado">Número de radicado</label>
-        <input type="text" id="radicado" placeholder="Ingrese el número">
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" class="input-login" placeholder="••••••••">
+      </div>
+
+      <button class="btn-login" onclick="handleLogin()">Ingresar</button>
+
+      <div style="margin-top: 40px; font-size: 11px; color: var(--text-muted); opacity: 0.5">
+        By Duvan Ramos · 2026
       </div>
     </div>
-
-    <div class="form-group">
-      <label for="observacion">Observaciones detalladas</label>
-      <textarea id="observacion" placeholder="Escriba aquí las observaciones pertinentes..."></textarea>
-    </div>
-
-    <div class="checks">
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" id="recibidoHoy">
-        <span>SNC Recibido hoy</span>
-      </label>
-
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" id="solucionadoHoy">
-        <span>SNC Solucionado hoy</span>
-      </label>
-
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" id="enProceso">
-        <span>SNC en proceso</span>
-      </label>
-
-      <label class="check-item" onclick="toggleCheck(this)">
-        <input type="checkbox" id="pqrsf">
-        <span>RADICADO</span>
-      </label>
-    </div>
-
-    <button class="btn" id="submitBtn" onclick="enviar()">
-      <span id="btnText">📥 Registrar gestión</span>
-      <div class="loader-spinner" id="btnLoader"></div>
-    </button>
-
-    <p class="brand">By Duvan Ramos · 2026</p>
   </div>
-</div>
 
-<!-- MODAL SYSTEM -->
-<div class="modal-overlay" id="modalOverlay">
-  <div class="modal" id="modal">
-    <div class="modal-icon" id="modalIcon"></div>
-    <h3 id="modalTitle"></h3>
-    <p id="modalMessage"></p>
-    <button class="modal-btn primary" onclick="closeModal()">Entendido</button>
+  <!-- MAIN APP -->
+  <div id="app" style="display: flex;">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">People BPO</div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" onclick="switchView('dashboard', this)">
+          <span>Panel Principal</span>
+        </div>
+        <div class="nav-item" onclick="switchView('registry', this)">
+          <span>Registro Radicación</span>
+        </div>
+        <div class="nav-item" onclick="switchView('snc', this)">
+          <span>Gestión SNC</span>
+        </div>
+        <div class="nav-item" onclick="switchView('notifications', this)">
+          <span>Notificaciones</span>
+        </div>
+        <div class="nav-item" onclick="switchView('chat', this)">
+          <span>Canal de Chat</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="avatar" id="user-avatar">DR</div>
+          <div>
+            <div id="user-name" style="font-weight: 600">Duvan Ramos</div>
+            <div id="user-role" style="color: var(--text-muted); font-size: 11px">Asesor</div>
+          </div>
+        </div>
+        <button class="btn-small" style="margin-top: 15px; width: 100%; background: rgba(255,255,255,0.05); color: white;" onclick="logout()">Cerrar Sesión</button>
+      </div>
+    </aside>
+
+    <main class="main-content">
+
+      <!-- VIEW: DASHBOARD -->
+      <section id="view-dashboard" class="view active">
+        <h1 class="view-title">Dashboard</h1>
+
+        <div class="grid-dashboard">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Radicados Efectivos</span></div>
+            <div class="stat-val" id="stat-efectivos">0</div>
+            <div class="stat-diff" style="color: var(--success)">Hoy</div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Devueltos por Error</span></div>
+            <div class="stat-val" id="stat-devueltos" style="color: var(--error)">0</div>
+            <div class="stat-diff" style="color: var(--error)">Hoy</div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Eficiencia Operativa</span></div>
+            <div class="stat-val" id="stat-total">0%</div>
+            <div class="stat-diff" style="color: var(--accent)">Total gestiones</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 32px;">
+          <div class="card-header"><span class="card-title">Historial Reciente</span></div>
+          <div id="history-list" style="max-height: 300px; overflow-y: auto;">
+            <!-- History here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW: REGISTRY -->
+      <section id="view-registry" class="view">
+        <h1 class="view-title">Nueva Radicación</h1>
+        <div class="card form-section">
+          <div class="form-group">
+            <label>Número de Radicado</label>
+            <input type="text" id="reg-radicado" class="input-main" placeholder="Ingrese el código">
+          </div>
+          <div class="form-group">
+            <label>Fecha del Caso (Opcional)</label>
+            <input type="date" id="reg-fecha" class="input-main">
+          </div>
+          <div class="form-group">
+            <label>¿Devuelto por errores?</label>
+            <div class="checkbox-group" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-devuelto">
+              <span>Marcar como devuelto</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>SNC en Proceso</label>
+            <div class="checkbox-group" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-snc">
+              <span>Requiere seguimiento de calidad</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Observaciones</label>
+            <textarea id="reg-obs" class="input-main" placeholder="Detalles adicionales..."></textarea>
+          </div>
+          <button class="btn-login" id="btn-save-reg" onclick="submitRegistration()">Registrar en Sistema</button>
+        </div>
+      </section>
+
+      <!-- VIEW: SNC -->
+      <section id="view-snc" class="view">
+        <h1 class="view-title">Gestión de Calidad (SNC)</h1>
+        <div class="card" style="max-width: 600px; margin-bottom: 24px;">
+          <div class="form-group">
+            <label>Buscar Radicado</label>
+            <div style="display: flex; gap: 12px;">
+              <input type="text" id="snc-search" class="input-main" placeholder="CÓDIGO DE RADICADO">
+              <button class="btn-small" onclick="handleSncSearch()">Buscar</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="snc-result" class="card" style="display: none; max-width: 600px;">
+          <!-- Ticket results -->
+        </div>
+      </section>
+
+      <!-- VIEW: NOTIFICATIONS -->
+      <section id="view-notifications" class="view">
+        <h1 class="view-title">Notificaciones Pendientes</h1>
+        <div id="notifications-list">
+          <!-- Notif List -->
+        </div>
+      </section>
+
+      <!-- VIEW: CHAT -->
+      <section id="view-chat" class="view">
+        <h1 class="view-title">Comunicación Interna</h1>
+        <div class="card">
+          <div id="chat-messages"></div>
+          <div style="display: flex; gap: 12px;">
+            <select id="chat-dest" class="input-main" style="width: 150px; font-size: 12px;">
+              <option value="TODOS">Canal Grupal</option>
+            </select>
+            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje...">
+            <button class="btn-small" onclick="handleChatSend()">Enviar</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
   </div>
-</div>
 
+  <script>
+    let SESSION = null;
+    let POLLING_CHAT = null;
+    let POLLING_NOTIF = null;
 
-<script>
-// SESSION LOGIC
-window.onload = function() {
-  const savedUser = localStorage.getItem('radicacion_user');
-  if (savedUser) {
-    initSession(savedUser);
-  } else {
-    document.getElementById('loginOverlay').style.display = 'flex';
-  }
-};
+    // --- INIT ---
+    window.onload = () => {
+      const saved = localStorage.getItem('pbpo_session');
+      if (saved) {
+        SESSION = JSON.parse(saved);
+        startApp();
+      }
+    };
 
-function login() {
-  const user = document.getElementById('loginUser').value;
-  if (!user) {
-    showModal("Error", "Por favor selecciona tu nombre.", "error");
-    return;
-  }
-  localStorage.setItem('radicacion_user', user);
-  initSession(user);
-}
+    function startApp() {
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
 
-function logout() {
-  localStorage.removeItem('radicacion_user');
-  document.getElementById('mainContainer').style.display = 'none';
-  document.getElementById('logoutContainer').style.display = 'none';
-  document.getElementById('loginOverlay').style.display = 'flex';
-  document.getElementById('loginUser').value = "";
-}
+      document.getElementById('user-name').innerText = SESSION.nombre;
+      document.getElementById('user-avatar').innerText = SESSION.nombre.split(' ').map(n => n[0]).join('');
 
-function initSession(user) {
-  document.getElementById('loginOverlay').style.display = 'none';
-  document.getElementById('mainContainer').style.display = 'block';
-  document.getElementById('logoutContainer').style.display = 'block';
-  document.getElementById('funcionaria').value = user;
-  document.getElementById('welcomeMessage').innerText = "Hola, " + user + ". ¿Qué gestionaremos hoy?";
-}
+      refreshDashboard();
+      initPolls();
+    }
 
-function toggleCheck(el) {
-  el.classList.toggle('active');
-}
+    function initPolls() {
+      if (POLLING_CHAT) clearInterval(POLLING_CHAT);
+      if (POLLING_NOTIF) clearInterval(POLLING_NOTIF);
 
-function showModal(title, message, type) {
-  const overlay = document.getElementById('modalOverlay');
-  const modal = document.getElementById('modal');
-  const icon = document.getElementById('modalIcon');
-  const titleEl = document.getElementById('modalTitle');
-  const messageEl = document.getElementById('modalMessage');
+      POLLING_CHAT = setInterval(refreshChat, 3000);
+      POLLING_NOTIF = setInterval(refreshNotifs, 10000);
 
-  titleEl.innerText = title;
-  messageEl.innerText = message;
+      refreshChat();
+      refreshNotifs();
+    }
 
-  if (type === 'error') {
-    icon.innerHTML = '✕';
-    icon.className = 'modal-icon error';
-  } else {
-    icon.innerHTML = '✓';
-    icon.className = 'modal-icon success';
-  }
+    // --- NAVIGATION ---
+    function switchView(viewId, el) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
 
-  overlay.style.display = 'flex';
-  setTimeout(() => modal.classList.add('active'), 10);
-}
+      document.getElementById(`view-${viewId}`).classList.add('active');
+      el.classList.add('active');
 
-function closeModal() {
-  const modal = document.getElementById('modal');
-  const overlay = document.getElementById('modalOverlay');
-  modal.classList.remove('active');
-  setTimeout(() => overlay.style.display = 'none', 300);
-}
+      if (viewId === 'dashboard') refreshDashboard();
+    }
 
-function setLoader(loading) {
-  const btn = document.getElementById('submitBtn');
-  const btnText = document.getElementById('btnText');
-  const loader = document.getElementById('btnLoader');
+    // --- CORE LOGIC ---
+    function handleLogin() {
+      const u = document.getElementById('login-user').value;
+      const p = document.getElementById('login-pass').value;
 
-  if (loading) {
-    btn.disabled = true;
-    btnText.style.opacity = '0';
-    loader.style.display = 'block';
-  } else {
-    btn.disabled = false;
-    btnText.style.opacity = '1';
-    loader.style.display = 'none';
-  }
-}
+      if (!u || !p) return showToast('Completa los campos', 'error');
 
-function resetForm() {
-  // No vaciamos la funcionaria porque es el usuario logueado
-  document.getElementById("devuelto").value = "N/A";
-  document.getElementById("radicado").value = "";
-  document.getElementById("observacion").value = "";
-  document.getElementById("recibidoHoy").checked = false;
-  document.getElementById("solucionadoHoy").checked = false;
-  document.getElementById("enProceso").checked = false;
-  document.getElementById("pqrsf").checked = false;
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            SESSION = res.user;
+            localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
+            startApp();
+          } else {
+            showToast(res.message, 'error');
+          }
+        })
+        .login(u, p);
+    }
 
-  // Reset active classes on check labels
-  document.querySelectorAll('.check-item').forEach(el => el.classList.remove('active'));
-}
+    function logout() {
+      localStorage.removeItem('pbpo_session');
+      location.reload();
+    }
 
-function enviar() {
-  const data = {
-    funcionaria: document.getElementById("funcionaria").value,
-    devuelto: document.getElementById("devuelto").value,
-    radicado: document.getElementById("radicado").value,
-    observacion: document.getElementById("observacion").value,
-    recibidoHoy: document.getElementById("recibidoHoy").checked,
-    solucionadoHoy: document.getElementById("solucionadoHoy").checked,
-    enProceso: document.getElementById("enProceso").checked,
-    pqrsf: document.getElementById("pqrsf").checked
-  };
+    function submitRegistration() {
+      const data = {
+        radicado: document.getElementById('reg-radicado').value,
+        fecha: document.getElementById('reg-fecha').value,
+        devuelto: document.getElementById('reg-devuelto').checked,
+        sncProceso: document.getElementById('reg-snc').checked,
+        observacion: document.getElementById('reg-obs').value,
+        funcionaria: SESSION.nombre
+      };
 
-  if (!data.funcionaria) {
-    showModal("Dato requerido", "Por favor, seleccione una funcionaria antes de continuar.", "error");
-    return;
-  }
+      if (!data.radicado) return showToast('El radicado es obligatorio', 'error');
 
-  setLoader(true);
+      const btn = document.getElementById('btn-save-reg');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
 
-  google.script.run
-    .withSuccessHandler(function() {
-      setLoader(false);
-      showModal("¡Excelente!", "La gestión ha sido registrada correctamente en el sistema.", "success");
-      resetForm();
-    })
-    .withFailureHandler(function(e) {
-      setLoader(false);
-      showModal("Error en el registro", e.message, "error");
-    })
-    .guardarRadicacion(data);
-}
-</script>
+      google.script.run
+        .withSuccessHandler(() => {
+          showToast('Radicado guardado correctamente');
+          resetRegForm();
+          refreshDashboard();
+          btn.disabled = false;
+          btn.innerText = 'Registrar en Sistema';
+        })
+        .withFailureHandler(err => {
+          showToast(err.message, 'error');
+          btn.disabled = false;
+          btn.innerText = 'Registrar en Sistema';
+        })
+        .guardarRadicacion(data);
+    }
 
+    function resetRegForm() {
+      document.getElementById('reg-radicado').value = '';
+      document.getElementById('reg-fecha').value = '';
+      document.getElementById('reg-devuelto').checked = false;
+      document.getElementById('reg-snc').checked = false;
+      document.getElementById('reg-obs').value = '';
+    }
+
+    function refreshDashboard() {
+      google.script.run.withSuccessHandler(res => {
+        document.getElementById('stat-efectivos').innerText = res.efectivos;
+        document.getElementById('stat-devueltos').innerText = res.devueltos;
+        document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
+      }).obtenerResumenHoy(SESSION.nombre);
+
+      google.script.run.withSuccessHandler(data => {
+        const list = document.getElementById('history-list');
+        list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros hoy</p>';
+        data.forEach(item => {
+          list.innerHTML += `
+            <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
+              <div>
+                <span style="font-weight: 600;">${item.radicado}</span>
+                <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
+              </div>
+              <div style="color: ${item.devuelto === 'Sí' ? 'var(--error)' : 'var(--success)'}">${item.devuelto === 'Sí' ? 'Devuelto' : 'Efectivo'}</div>
+            </div>
+          `;
+        });
+      }).obtenerHistorial(SESSION.nombre);
+    }
+
+    function handleSncSearch() {
+      const rad = document.getElementById('snc-search').value;
+      if (!rad) return;
+
+      google.script.run.withSuccessHandler(res => {
+        const view = document.getElementById('snc-result');
+        if (!res) {
+          view.style.display = 'block';
+          view.innerHTML = '<p style="color:var(--error)">Radicado no encontrado</p>';
+          return;
+        }
+
+        view.style.display = 'block';
+        view.innerHTML = `
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="display:flex; justify-content: space-between; align-items: center">
+              <h2 style="font-size: 20px;">Radicado: ${res.radicado}</h2>
+              <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; background: rgba(255,255,255,0.05); color: ${res.estado === 'Solucionado' ? 'var(--success)' : (res.estado === 'En proceso' ? 'var(--accent)' : 'white')}">${res.estado}</span>
+            </div>
+            <div style="font-size: 14px; color: var(--text-muted)">Funcionaria: <b style="color:white">${res.funcionaria}</b></div>
+            <div style="font-size: 14px; color: var(--text-muted)">Observación original: <p style="font-style: italic; margin-top: 5px;">"${res.observacion}"</p></div>
+            ${res.canClose ? `<button class="btn-small" style="width: 100%;" onclick="closeSnc(${res.row})">Marcar como Solucionado</button>` : ''}
+          </div>
+        `;
+      }).buscarSNC(rad);
+    }
+
+    function closeSnc(id) {
+      google.script.run.withSuccessHandler(() => {
+        showToast('SNC Cerrado correctamente');
+        handleSncSearch();
+      }).marcarSolucionado(id);
+    }
+
+    function refreshNotifs() {
+      google.script.run.withSuccessHandler(data => {
+        const list = document.getElementById('notifications-list');
+        list.innerHTML = data.length ? '' : '<div class="card" style="color:var(--text-muted)">No tienes notificaciones pendientes.</div>';
+        data.forEach(notif => {
+          list.innerHTML += `
+            <div class="notif-item">
+              <div>
+                <div style="font-weight: 600; font-size: 14px;">${notif.radicado}</div>
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${notif.mensaje}</div>
+                <div style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">${notif.fecha}</div>
+              </div>
+              <button class="btn-small" onclick="markRead(${notif.id})">Recibido</button>
+            </div>
+          `;
+        });
+      }).obtenerNotificaciones(SESSION.nombre);
+    }
+
+    function markRead(id) {
+      google.script.run.withSuccessHandler(() => {
+        refreshNotifs();
+      }).marcarRecibido(id);
+    }
+
+    function refreshChat() {
+      google.script.run.withSuccessHandler(data => {
+        const box = document.getElementById('chat-messages');
+        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
+
+        box.innerHTML = '';
+        data.forEach(msg => {
+          const isOwn = msg.usuario === SESSION.nombre;
+          box.innerHTML += `
+            <div class="message ${isOwn ? 'own' : 'other'}">
+              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha} ${msg.esPrivado ? '(Privado)' : ''}</div>
+              <div>${msg.mensaje}</div>
+            </div>
+          `;
+        });
+
+        if (isAtBottom) box.scrollTop = box.scrollHeight;
+      }).obtenerChat(SESSION.nombre);
+    }
+
+    function handleChatSend() {
+      const msg = document.getElementById('chat-msg').value;
+      const dest = document.getElementById('chat-dest').value;
+      if (!msg) return;
+
+      google.script.run.withSuccessHandler(() => {
+        document.getElementById('chat-msg').value = '';
+        refreshChat();
+      }).enviarMensajeChat({
+        usuario: SESSION.nombre,
+        mensaje: msg,
+        destinatario: dest
+      });
+    }
+
+    function showToast(text, type = 'success') {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.style.background = type === 'error' ? 'var(--error)' : 'white';
+      t.style.color = type === 'error' ? 'white' : 'var(--primary)';
+      t.classList.add('active');
+      setTimeout(() => t.classList.remove('active'), 3000);
+    }
+  </script>
 </body>
 </html>
