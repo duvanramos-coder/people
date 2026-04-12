@@ -660,7 +660,10 @@
         <div class="card">
           <div id="chat-messages"></div>
           <div style="display: flex; gap: 12px;">
-            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') handleChatSend()">
+            <select id="chat-dest" class="input-main" style="width: 150px; font-size: 12px;">
+              <option value="TODOS">Canal Grupal</option>
+            </select>
+            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje...">
             <button class="btn-small" onclick="handleChatSend()">Enviar</button>
           </div>
         </div>
@@ -725,8 +728,18 @@
     }
 
     function setupChatDestinations(usersList) {
-      // General chat only, no destinations needed
-      return;
+      if (!usersList) {
+        google.script.run.withSuccessHandler(list => setupChatDestinations(list)).obtenerUsuarios();
+        return;
+      }
+      const dest = document.getElementById('chat-dest');
+      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
+      usersList.forEach(u => {
+        if (u.id !== SESSION.id) {
+          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
+        }
+
+      });
     }
 
     function initPolls() {
@@ -851,38 +864,29 @@ function submitRegistration() {
     }
 
     function refreshDashboard() {
-      const list = document.getElementById('history-list');
-      if (list.innerHTML === "") list.innerHTML = '<p style="color:var(--text-muted); font-size:13px">Cargando historial...</p>';
+      google.script.run.withSuccessHandler(res => {
+        document.getElementById('stat-efectivos').innerText = res.efectivos;
+        document.getElementById('stat-devueltos').innerText = res.devueltos;
+        document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
+      }).obtenerResumenHoy(SESSION.nombre);
 
-      google.script.run
-        .withSuccessHandler(res => {
-          if (!res) return;
-          document.getElementById('stat-efectivos').innerText = res.efectivos || 0;
-          document.getElementById('stat-devueltos').innerText = res.devueltos || 0;
-          document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
-
-          const data = res.historial || [];
-          list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
-
-          data.forEach(item => {
-            const statusStr = (item.devuelto || "").toString().trim().toLowerCase();
-            const isDevuelto = statusStr === 'si' || statusStr === 'sí';
-            list.innerHTML += `
-              <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
-                <div>
-                  <span style="font-weight: 600;">${item.radicado}</span>
-                  <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
-                </div>
-                <div style="color: ${isDevuelto ? 'var(--error)' : 'var(--success)'}">${isDevuelto ? 'Devuelto' : 'Exitoso'}</div>
+      google.script.run.withSuccessHandler(data => {
+        const list = document.getElementById('history-list');
+        list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
+        data.forEach(item => {
+          const status = (item.devuelto || "").toString().trim().toLowerCase();
+          const isDevuelto = status === 'si' || status === 'sí' || status === 'devuelto';
+          list.innerHTML += `
+            <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
+              <div>
+                <span style="font-weight: 600;">${item.radicado}</span>
+                <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
               </div>
-            `;
-          });
-        })
-        .withFailureHandler(err => {
-          showToast('Error al cargar dashboard: ' + err.message, 'error');
-          list.innerHTML = '<p style="color:var(--error); font-size:13px">Error al cargar historial</p>';
-        })
-        .obtenerDatosDashboard(SESSION.nombre);
+              <div style="color: ${isDevuelto ? 'var(--error)' : 'var(--success)'}">${isDevuelto ? 'Devuelto' : 'Exitoso'}</div>
+            </div>
+          `;
+        });
+      }).obtenerHistorial(SESSION.nombre);
     }
 
     function handleSncSearch() {
@@ -997,69 +1001,58 @@ function submitRegistration() {
       }).marcarRecibido(id);
     }
 
-    let LAST_MSG_ID = 0;
-
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
         const badge = document.getElementById('badge-chat');
         const activeView = document.querySelector('.view.active').id;
 
-        const lastInServer = data.length > 0 ? data[data.length - 1].id : 0;
+        if (data.length > LAST_CHAT_COUNT) {
+          playAlert();
+        }
 
-        if (LAST_MSG_ID === 0) {
-          // First load
-          LAST_MSG_ID = lastInServer;
-        } else if (lastInServer > LAST_MSG_ID) {
-          // New messages detected
-          const newMessages = data.filter(m => m.id > LAST_MSG_ID);
-          const fromOther = newMessages.some(m => m.usuario !== SESSION.nombre);
-
-          if (fromOther) {
-             playAlert();
-             if (activeView !== 'view-chat') {
-               badge.innerText = newMessages.length;
-               badge.classList.add('active');
-             }
-          }
-          LAST_MSG_ID = lastInServer;
+        const unread = data.length - LAST_CHAT_COUNT;
+        if (unread > 0) {
+          badge.innerText = unread;
+          badge.classList.add('active');
+        } else {
+          badge.classList.remove('active');
         }
 
         if (activeView === 'view-chat') {
+           LAST_CHAT_COUNT = data.length;
            badge.classList.remove('active');
         }
 
         const box = document.getElementById('chat-messages');
-        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
+        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
 
         box.innerHTML = '';
         data.forEach(msg => {
           const isOwn = msg.usuario === SESSION.nombre;
           box.innerHTML += `
             <div class="message ${isOwn ? 'own' : 'other'}">
-              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha}</div>
+              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha} ${msg.esPrivado ? '(Privado)' : ''}</div>
               <div>${msg.mensaje}</div>
             </div>
           `;
         });
 
-        if (isAtBottom || activeView === 'view-chat') {
-           box.scrollTop = box.scrollHeight;
-        }
-      }).obtenerChat();
+        if (isAtBottom) box.scrollTop = box.scrollHeight;
+      }).obtenerChat(SESSION.nombre);
     }
 
     function handleChatSend() {
-      const msgInput = document.getElementById('chat-msg');
-      const msg = msgInput.value.trim();
+      const msg = document.getElementById('chat-msg').value;
+      const dest = document.getElementById('chat-dest').value;
       if (!msg) return;
 
-      msgInput.value = '';
       google.script.run.withSuccessHandler(() => {
+        document.getElementById('chat-msg').value = '';
         refreshChat();
       }).enviarMensajeChat({
         usuario: SESSION.nombre,
         mensaje: msg,
-        destinatario: 'TODOS'
+        destinatario: dest
       });
     }
 
