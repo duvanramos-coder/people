@@ -863,29 +863,38 @@ function submitRegistration() {
     }
 
     function refreshDashboard() {
-      google.script.run.withSuccessHandler(res => {
-        document.getElementById('stat-efectivos').innerText = res.efectivos;
-        document.getElementById('stat-devueltos').innerText = res.devueltos;
-        document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
-      }).obtenerResumenHoy(SESSION.nombre);
+      const list = document.getElementById('history-list');
+      if (list.innerHTML === "") list.innerHTML = '<p style="color:var(--text-muted); font-size:13px">Cargando historial...</p>';
 
-      google.script.run.withSuccessHandler(data => {
-        const list = document.getElementById('history-list');
-        list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
-        data.forEach(item => {
-          const isDevuelto = item.devuelto === 'Si' || item.devuelto === 'Sí';
-          const fechaStr = item.fecha ? new Date(item.fecha).toLocaleDateString() : '-';
-          list.innerHTML += `
-            <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
-              <div>
-                <span style="font-weight: 600;">${item.radicado}</span>
-                <div style="font-size: 11px; color: var(--text-muted)">${fechaStr}</div>
+      google.script.run
+        .withSuccessHandler(res => {
+          if (!res) return;
+          document.getElementById('stat-efectivos').innerText = res.efectivos || 0;
+          document.getElementById('stat-devueltos').innerText = res.devueltos || 0;
+          document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
+
+          const data = res.historial || [];
+          list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
+
+          data.forEach(item => {
+            const statusStr = (item.devuelto || "").toString().trim().toLowerCase();
+            const isDevuelto = statusStr === 'si' || statusStr === 'sí';
+            list.innerHTML += `
+              <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
+                <div>
+                  <span style="font-weight: 600;">${item.radicado}</span>
+                  <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
+                </div>
+                <div style="color: ${isDevuelto ? 'var(--error)' : 'var(--success)'}">${isDevuelto ? 'Devuelto' : 'Exitoso'}</div>
               </div>
-              <div style="color: ${isDevuelto ? 'var(--error)' : 'var(--success)'}">${isDevuelto ? 'Devuelto' : 'Exitoso'}</div>
-            </div>
-          `;
-        });
-      }).obtenerHistorial(SESSION.nombre);
+            `;
+          });
+        })
+        .withFailureHandler(err => {
+          showToast('Error al cargar dashboard: ' + err.message, 'error');
+          list.innerHTML = '<p style="color:var(--error); font-size:13px">Error al cargar historial</p>';
+        })
+        .obtenerDatosDashboard(SESSION.nombre);
     }
 
     function handleSncSearch() {
@@ -935,7 +944,6 @@ function submitRegistration() {
           return;
         }
 
-        const fechaStr = res.fecha ? new Date(res.fecha).toLocaleDateString() : '-';
         view.innerHTML = `
           <div style="display: flex; flex-direction: column; gap: 15px;">
             <h2 style="font-size: 20px; color: var(--accent);">Radicado Encontrado</h2>
@@ -946,7 +954,7 @@ function submitRegistration() {
               </div>
               <div>
                 <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Fecha de Registro</label>
-                <div style="font-size: 16px; font-weight: 600;">${fechaStr}</div>
+                <div style="font-size: 16px; font-weight: 600;">${res.fecha}</div>
               </div>
               ${res.observacion ? `
               <div style="margin-top: 12px;">
