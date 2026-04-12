@@ -187,17 +187,19 @@ function marcarSolucionado(rowId) {
 // ================= NOTIFICACIONES =================
 function obtenerNotificaciones(usuario) {
   try {
-    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Notificaciones');
     if (!sh) return [];
     const data = sh.getDataRange().getValues();
     const res = [];
     const uNorm = normalize(usuario);
 
     for (let i = 1; i < data.length; i++) {
-      if (normalize(data[i][0]) === uNorm && data[i][4] === 'Pendiente') {
+      if (normalize(data[i][0]) === uNorm && data[i][4] !== 'Recibido') {
+        let fStr = data[i][1];
+        try { if(fStr instanceof Date) fStr = Utilities.formatDate(fStr, "GMT-5", "dd/MM HH:mm"); } catch(e){}
         res.push({
           id: i + 1,
-          fecha: Utilities.formatDate(new Date(data[i][1]), "GMT-5", "dd/MM HH:mm"),
+          fecha: fStr,
           radicado: data[i][2],
           mensaje: data[i][3]
         });
@@ -208,7 +210,7 @@ function obtenerNotificaciones(usuario) {
 }
 
 function marcarRecibido(id) {
-  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Notificaciones');
   sh.getRange(id, 5).setValue('Recibido');
   sh.getRange(id, 6).setValue(new Date());
   return true;

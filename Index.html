@@ -176,8 +176,10 @@
 
   <script>
     let SESSION = null;
-    let LAST_CHAT_COUNT = 0;
-    let LAST_NOTIF_COUNT = 0;
+    let LAST_CHAT_TOTAL = 0;
+    let LAST_CHAT_SEEN = 0;
+    let LAST_NOTIF_TOTAL = 0;
+    let LAST_NOTIF_SEEN = 0;
 
     window.onload = () => {
       loadUsers();
@@ -218,8 +220,14 @@
       document.getElementById(`view-${viewId}`).classList.add('active');
       el.classList.add('active');
       if (viewId === 'dashboard') refreshDashboard();
-      if (viewId === 'notifications') document.getElementById('badge-notif').classList.remove('active');
-      if (viewId === 'chat') document.getElementById('badge-chat').classList.remove('active');
+      if (viewId === 'notifications') {
+        document.getElementById('badge-notif').classList.remove('active');
+        refreshNotifs();
+      }
+      if (viewId === 'chat') {
+        document.getElementById('badge-chat').classList.remove('active');
+        refreshChat();
+      }
     }
 
     function handleLogin() {
@@ -279,11 +287,28 @@
     function refreshNotifs() {
       google.script.run.withSuccessHandler(data => {
         const b = document.getElementById('badge-notif');
-        if (data.length > LAST_NOTIF_COUNT) { playAlert(); b.innerText = data.length; b.classList.add('active'); }
-        LAST_NOTIF_COUNT = data.length;
+        const activeView = document.querySelector('.view.active').id;
+
+        if (data.length > LAST_NOTIF_TOTAL) {
+          playAlert();
+        }
+
+        LAST_NOTIF_TOTAL = data.length;
+
+        if (activeView === 'view-notifications') {
+          LAST_NOTIF_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_NOTIF_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
+          }
+        }
+
         const l = document.getElementById('notifications-list');
-        l.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">Sin pendientes</p>';
-        data.forEach(n => { l.innerHTML += `<div class="notif-item"><div><b>${n.radicado}</b><p>${n.mensaje}</p><small>${n.fecha}</small></div><button class="btn-small" onclick="markRead(${n.id})">OK</button></div>`; });
+        l.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); text-align:center; padding: 20px;">No tienes notificaciones pendientes</p>';
+        data.forEach(n => { l.innerHTML += `<div class="notif-item"><div><b>${n.radicado}</b><p style="font-size:13px; margin: 5px 0;">${n.mensaje}</p><small style="color:var(--text-muted)">${n.fecha}</small></div><button class="btn-small" onclick="markRead(${n.id})">Recibido</button></div>`; });
       }).obtenerNotificaciones(SESSION.nombre);
     }
     function markRead(id) { google.script.run.withSuccessHandler(() => refreshNotifs()).marcarRecibido(id); }
@@ -291,11 +316,31 @@
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
         const b = document.getElementById('badge-chat');
-        if (data.length > LAST_CHAT_COUNT) { playAlert(); b.innerText = (data.length - LAST_CHAT_COUNT); b.classList.add('active'); }
+        const activeView = document.querySelector('.view.active').id;
+
+        if (data.length > LAST_CHAT_TOTAL) {
+          const lastMsg = data[data.length-1];
+          if (lastMsg.usuario !== SESSION.nombre) playAlert();
+        }
+
+        LAST_CHAT_TOTAL = data.length;
+
+        if (activeView === 'view-chat') {
+          LAST_CHAT_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_CHAT_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
+          }
+        }
+
         const box = document.getElementById('chat-messages');
+        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
         box.innerHTML = '';
         data.forEach(m => { const isOwn = m.usuario === SESSION.nombre; box.innerHTML += `<div class="message ${isOwn ? 'own' : 'other'}"><div class="msg-info">${isOwn ? 'Tú' : m.usuario} • ${m.fecha}</div><div>${m.mensaje}</div></div>`; });
-        box.scrollTop = box.scrollHeight;
+        if (isAtBottom) box.scrollTop = box.scrollHeight;
       }).obtenerChat(SESSION.nombre);
     }
     function handleChatSend() {
@@ -304,7 +349,13 @@
     }
 
     function showToast(txt, type='success') { const t = document.getElementById('toast'); t.innerText = txt; t.style.background = type==='error'?'var(--error)':'white'; t.style.color = type==='error'?'white':'var(--primary)'; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
-    function playAlert() { document.getElementById('alert-sound').play().catch(()=>{}); }
+    function playAlert() {
+      const audio = document.getElementById('alert-sound');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(()=>{});
+      }
+    }
   </script>
 </body>
 </html>
