@@ -873,7 +873,7 @@ function submitRegistration() {
         const list = document.getElementById('history-list');
         list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
         data.forEach(item => {
-          const isDevuelto = item.devuelto === 'Si' || item.devuelto === 'Sí';
+          const isDevuelto = item.devuelto && (item.devuelto.toString().toLowerCase() === 'si' || item.devuelto.toString().toLowerCase() === 'sí');
           list.innerHTML += `
             <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
               <div>
