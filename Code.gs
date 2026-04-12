@@ -20,7 +20,7 @@ function login(usuario, password) {
   const data = sh.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][4]).trim().toLowerCase() === String(usuario).trim().toLowerCase() && data[i][3] == password) {
+    if (data[i][4].toLowerCase() === usuario.toLowerCase() && data[i][3] == password) {
       return { success: true, user: { id: data[i][4], nombre: data[i][4] } };
     }
   }
@@ -41,9 +41,8 @@ function guardarRadicacion(data) {
   }
 
   let filaEncontrada = -1;
-
   for (let i = 1; i < datos.length; i++) {
-    if (String(datos[i][3]).trim() == String(data.radicado).trim()) {
+    if (String(datos[i][3]).trim() === String(data.radicado).trim()) {
       filaEncontrada = i + 1;
       break;
     }
@@ -56,7 +55,6 @@ function guardarRadicacion(data) {
       sh.getRange(filaEncontrada, 7).setValue('SI');
       return { success: true, updated: true };
     }
-
     throw new Error('El radicado ya existe en el sistema.');
   }
 
@@ -83,48 +81,53 @@ function normalize(str) {
 
 // ================= RESUMEN =================
 function obtenerResumenHoy(usuario) {
-  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('GESTIONES');
-  const data = sh.getDataRange().getValues();
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const uNorm = normalize(usuario);
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('GESTIONES');
+    const data = sh.getDataRange().getValues();
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const uNorm = normalize(usuario);
 
-  let efectivos = 0, devueltos = 0;
+    let efectivos = 0, devueltos = 0;
 
-  for (let i = 1; i < data.length; i++) {
-    if (!(data[i][0] instanceof Date)) continue;
-    const f = new Date(data[i][0]); f.setHours(0,0,0,0);
-    if (f.getTime() === hoy.getTime() && normalize(data[i][2]) === uNorm) {
-      const est = normalize(data[i][4]);
-      if (est === 'no') efectivos++;
-      else if (est === 'si' || est === 'sí') devueltos++;
+    for (let i = 1; i < data.length; i++) {
+      const fVal = data[i][0];
+      if (!(fVal instanceof Date)) continue;
+      const f = new Date(fVal); f.setHours(0,0,0,0);
+
+      if (f.getTime() === hoy.getTime() && normalize(data[i][2]) === uNorm) {
+        const est = normalize(data[i][4]);
+        if (est === 'no') efectivos++;
+        else if (est === 'si' || est === 'sí') devueltos++;
+      }
     }
-  }
-
-  return { efectivos, devueltos, total: efectivos + devueltos };
+    return { efectivos, devueltos, total: efectivos + devueltos };
+  } catch(e) { return { efectivos: 0, devueltos: 0, total: 0 }; }
 }
 
 // ================= HISTORIAL =================
 function obtenerHistorial(usuario) {
-  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('GESTIONES');
-  const data = sh.getDataRange().getValues();
-  const res = [];
-  const uNorm = normalize(usuario);
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('GESTIONES');
+    const data = sh.getDataRange().getValues();
+    const res = [];
+    const uNorm = normalize(usuario);
 
-  for (let i = data.length - 1; i > 0; i--) {
-    if (normalize(data[i][2]) === uNorm) {
-      let fStr = data[i][0];
-      if (fStr instanceof Date) {
-        fStr = Utilities.formatDate(fStr, "GMT-5", "dd/MM/yyyy");
+    for (let i = data.length - 1; i > 0; i--) {
+      if (normalize(data[i][2]) === uNorm) {
+        let fDisplay = data[i][0];
+        if (fDisplay instanceof Date) {
+          fDisplay = Utilities.formatDate(fDisplay, "GMT-5", "dd/MM/yyyy");
+        }
+        res.push({
+          fecha: fDisplay,
+          radicado: data[i][3],
+          devuelto: data[i][4]
+        });
+        if (res.length >= 10) break;
       }
-      res.push({
-        fecha: fStr,
-        radicado: data[i][3],
-        devuelto: data[i][4]
-      });
-      if (res.length >= 10) break;
     }
-  }
-  return res;
+    return res;
+  } catch(e) { return []; }
 }
 
 // ================= SNC =================
@@ -134,7 +137,7 @@ function buscarSNC(radicado) {
   const rBusq = String(radicado).trim();
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][3]).trim() == rBusq) {
+    if (String(data[i][3]).trim() === rBusq) {
       return {
         row: i + 1,
         radicado: data[i][3],
@@ -155,14 +158,14 @@ function buscarGeneral(radicado) {
   const rBusq = String(radicado).trim();
 
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][3]).trim() == rBusq) {
-      let fStr = data[i][0];
-      if (fStr instanceof Date) {
-        fStr = Utilities.formatDate(fStr, "GMT-5", "dd/MM/yyyy");
+    if (String(data[i][3]).trim() === rBusq) {
+      let fDisplay = data[i][0];
+      if (fDisplay instanceof Date) {
+        fDisplay = Utilities.formatDate(fDisplay, "GMT-5", "dd/MM/yyyy");
       }
       return {
         funcionaria: data[i][2],
-        fecha: fStr,
+        fecha: fDisplay,
         observacion: data[i][5] || ''
       };
     }
@@ -181,8 +184,67 @@ function marcarSolucionado(rowId) {
   return true;
 }
 
-// Fallbacks para evitar errores en el frontend si estas funciones son llamadas
-function obtenerNotificaciones(u) { return []; }
-function marcarRecibido(id) { return true; }
-function obtenerChat(u) { return []; }
-function enviarMensajeChat(d) { return true; }
+// ================= NOTIFICACIONES =================
+function obtenerNotificaciones(usuario) {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+    if (!sh) return [];
+    const data = sh.getDataRange().getValues();
+    const res = [];
+    const uNorm = normalize(usuario);
+
+    for (let i = 1; i < data.length; i++) {
+      if (normalize(data[i][0]) === uNorm && data[i][4] === 'Pendiente') {
+        res.push({
+          id: i + 1,
+          fecha: Utilities.formatDate(new Date(data[i][1]), "GMT-5", "dd/MM HH:mm"),
+          radicado: data[i][2],
+          mensaje: data[i][3]
+        });
+      }
+    }
+    return res;
+  } catch(e) { return []; }
+}
+
+function marcarRecibido(id) {
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+  sh.getRange(id, 5).setValue('Recibido');
+  sh.getRange(id, 6).setValue(new Date());
+  return true;
+}
+
+// ================= CHAT =================
+function obtenerChat(usuario) {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('CHAT');
+    if (!sh) return [];
+    const data = sh.getDataRange().getValues();
+    const res = [];
+    const uNorm = normalize(usuario);
+
+    for (let i = 1; i < data.length; i++) {
+      const dest = String(data[i][2]);
+      if (dest === 'TODOS' || normalize(dest) === uNorm || normalize(data[i][0]) === uNorm) {
+        res.push({
+          usuario: data[i][0],
+          mensaje: data[i][3],
+          fecha: Utilities.formatDate(new Date(data[i][1]), "GMT-5", "HH:mm"),
+          esPrivado: dest !== 'TODOS'
+        });
+      }
+    }
+    return res.slice(-50);
+  } catch(e) { return []; }
+}
+
+function enviarMensajeChat(data) {
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('CHAT');
+  sh.appendRow([
+    data.usuario,
+    new Date(),
+    data.destinatario || 'TODOS',
+    data.mensaje
+  ]);
+  return true;
+}

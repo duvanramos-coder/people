@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Refined Corporate Palette */
+      /* SaaS Palette */
       --primary: #2E294E;
       --secondary: #C6E20E;
       --bg: #0C0B12;
@@ -23,452 +23,75 @@
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text-main); overflow: hidden; height: 100vh; }
 
-    body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg);
-      color: var(--text-main);
-      overflow: hidden;
-      height: 100vh;
-    }
+    /* --- LOGIN --- */
+    .login-container { position: fixed; inset: 0; z-index: 2000; background: radial-gradient(circle at top left, #312B50 0%, #0C0B12 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .login-card { width: 100%; max-width: 400px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); padding: 48px; border-radius: 32px; border: 1px solid var(--card-border); text-align: center; box-shadow: 0 40px 100px rgba(0,0,0,0.5); animation: fadeIn 0.8s ease; }
+    .login-card h1 { font-size: 32px; font-weight: 700; margin-bottom: 4px; }
+    .login-card .subtitle { color: var(--accent); font-size: 18px; font-weight: 600; margin-bottom: 30px; }
+    .login-field { margin-bottom: 20px; text-align: left; }
+    .login-field label { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+    .input-login { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--card-border); padding: 14px 18px; border-radius: var(--radius); color: white; transition: var(--transition); }
+    .input-login:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.08); }
+    .btn-login { width: 100%; background: var(--accent); color: var(--primary); padding: 14px; border: none; border-radius: var(--radius); font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 10px; transition: var(--transition); }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(190, 220, 22, 0.2); }
 
-    /* --- LOGIN VIEW --- */
-    .login-container {
-      position: fixed;
-      inset: 0;
-      z-index: 2000;
-      background: radial-gradient(circle at top left, #312B50 0%, #0C0B12 100%);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
+    /* --- LAYOUT --- */
+    #app { display: none; height: 100vh; }
+    .sidebar { width: var(--sidebar-w); background: #000; border-right: 1px solid var(--card-border); display: flex; flex-direction: column; padding: 30px 20px; }
+    .brand { font-size: 20px; font-weight: 700; color: var(--accent); margin-bottom: 40px; }
+    .sidebar-nav { flex: 1; }
+    .nav-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-radius: var(--radius); color: var(--text-muted); cursor: pointer; margin-bottom: 8px; transition: var(--transition); font-weight: 500; font-size: 14px; }
+    .nav-item.active { background: rgba(190, 220, 22, 0.1); color: var(--accent); }
+    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
+    .avatar { width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--accent); }
+    .badge { background: var(--secondary); color: var(--primary); font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 10px; display: none; }
+    .badge.active { display: inline-block; }
 
-    .login-card {
-      width: 100%;
-      max-width: 400px;
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(20px);
-      padding: 48px;
-      border-radius: 32px;
-      border: 1px solid var(--card-border);
-      text-align: center;
-      box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-      animation: fadeIn 0.8s ease;
-    }
+    .main-content { flex: 1; overflow-y: auto; background: var(--bg); padding: 60px 40px; display: flex; flex-direction: column; align-items: center; }
+    .view { display: none; animation: slideUp 0.4s ease; width: 100%; max-width: 1000px; }
+    .view.active { display: block; }
+    .view-title { font-size: 32px; font-weight: 700; margin-bottom: 40px; text-align: center; }
 
-    .login-card h1 {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 4px;
-      color: var(--text-main);
-    }
+    /* --- DASHBOARD --- */
+    .grid-dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; width: 100%; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 24px; }
+    .card-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px; display: block; }
+    .stat-val { font-size: 48px; font-weight: 700; }
+    .stat-diff { font-size: 13px; font-weight: 500; margin-top: 8px; }
 
-    .login-card .subtitle {
-      color: var(--accent);
-      font-size: 18px;
-      font-weight: 600;
-      margin-bottom: 30px;
-    }
+    /* --- FORMS --- */
+    .form-section { max-width: 600px; margin: 0 auto; }
+    .form-group { margin-bottom: 24px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 10px; }
+    .input-main { width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--card-border); padding: 14px 18px; border-radius: var(--radius); color: white; transition: var(--transition); font-family: inherit; }
+    .input-main:focus { outline: none; border-color: var(--accent); background: rgba(255,255,255,0.06); }
+    select option { background-color: #1A1A1D; color: white; }
+    .checkbox-group { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .checkbox-group input { width: 20px; height: 20px; accent-color: var(--accent); }
 
-    .login-card p {
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
+    /* --- CHAT/NOTIF --- */
+    #chat-messages { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 10px; margin-bottom: 20px; }
+    .message { padding: 12px 16px; border-radius: 16px; max-width: 80%; font-size: 14px; }
+    .message.own { align-self: flex-end; background: var(--accent); color: var(--primary); font-weight: 500; }
+    .message.other { align-self: flex-start; background: var(--card-bg); border: 1px solid var(--card-border); }
+    .msg-info { font-size: 10px; opacity: 0.7; margin-bottom: 4px; }
+    .notif-item { padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid var(--card-border); border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+    .btn-small { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; border: none; background: var(--accent); color: var(--primary); }
 
-    .login-field {
-      margin-bottom: 20px;
-      text-align: left;
-    }
+    #toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; background: white; color: var(--primary); font-weight: 600; transform: translateY(100px); opacity: 0; transition: all 0.4s; z-index: 3000; }
+    #toast.active { transform: translateY(0); opacity: 1; }
 
-    .login-field label {
-      display: block;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 8px;
-      color: var(--text-muted);
-    }
-
-    .input-login {
-      width: 100%;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid var(--card-border);
-      padding: 14px 18px;
-      border-radius: var(--radius);
-      color: white;
-      font-family: inherit;
-      transition: var(--transition);
-    }
-
-    .input-login:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: rgba(255,255,255,0.08);
-    }
-
-    .btn-login {
-      width: 100%;
-      background: var(--accent);
-      color: var(--primary);
-      padding: 14px;
-      border: none;
-      border-radius: var(--radius);
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: var(--transition);
-    }
-
-    .btn-login:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px rgba(190, 220, 22, 0.2);
-    }
-
-    /* --- MAIN APP LAYOUT --- */
-    #app {
-      display: none;
-      height: 100vh;
-    }
-
-    .sidebar {
-      width: var(--sidebar-w);
-      background: #000;
-      border-right: 1px solid var(--card-border);
-      display: flex;
-      flex-direction: column;
-      padding: 30px 20px;
-    }
-
-    .sidebar-header {
-      padding-bottom: 40px;
-    }
-
-    .brand {
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-      color: var(--accent);
-    }
-
-    .sidebar-nav {
-      flex: 1;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 16px;
-      border-radius: var(--radius);
-      color: var(--text-muted);
-      cursor: pointer;
-      margin-bottom: 8px;
-      transition: var(--transition);
-      font-weight: 500;
-      font-size: 14px;
-      position: relative;
-    }
-
-    .nav-item.active {
-      background: rgba(190, 220, 22, 0.1);
-      color: var(--accent);
-    }
-
-    .nav-item:hover:not(.active) {
-      background: rgba(255,255,255,0.05);
-      color: white;
-    }
-
-    .sidebar-footer {
-      border-top: 1px solid var(--card-border);
-      padding-top: 20px;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 13px;
-    }
-
-    .avatar {
-      width: 32px;
-      height: 32px;
-      background: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      color: var(--accent);
-    }
-
-    .badge {
-      background: var(--secondary);
-      color: var(--primary);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      min-width: 18px;
-      text-align: center;
-      display: none;
-    }
-
-    .badge.active {
-      display: inline-block;
-    }
-
-    .main-content {
-      flex: 1;
-      overflow-y: auto;
-      background: var(--bg);
-      padding: 60px 40px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .view {
-      display: none;
-      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      width: 100%;
-      max-width: 1000px;
-    }
-
-    .view.active {
-      display: block;
-    }
-
-    /* --- DASHBOARD / CARDS --- */
-    .view-title {
-      font-size: 32px;
-      font-weight: 700;
-      margin-bottom: 40px;
-      letter-spacing: -1px;
-      text-align: center;
-      width: 100%;
-    }
-
-    .grid-dashboard {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-      width: 100%;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 24px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-    }
-
-    .card-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .stat-val {
-      font-size: 48px;
-      font-weight: 700;
-    }
-
-    .stat-diff {
-      font-size: 13px;
-      font-weight: 500;
-      margin-top: 8px;
-    }
-
-    /* --- FORM STYLES --- */
-    .form-section {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .input-main {
-      width: 100%;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--card-border);
-      padding: 14px 18px;
-      border-radius: var(--radius);
-      color: white;
-      font-family: inherit;
-      transition: var(--transition);
-    }
-
-    .input-main:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: rgba(255,255,255,0.06);
-    }
-
-    select.input-login, select.input-main {
-      color: white;
-      background-color: rgba(255,255,255,0.05);
-    }
-
-    select option {
-      background-color: #1A1A1D;
-      color: white;
-    }
-
-    /* Target specific dropdowns for better visibility */
-    #login-user option, #chat-dest option {
-      background-color: #1A1A1D;
-      color: white;
-    }
-
-    textarea.input-main {
-      min-height: 120px;
-      resize: vertical;
-    }
-
-    .checkbox-group {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      cursor: pointer;
-    }
-
-    .checkbox-group input {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--accent);
-    }
-
-    /* --- CHAT SYSTEM --- */
-    #chat-messages {
-      height: 400px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      padding-right: 10px;
-      margin-bottom: 20px;
-    }
-
-    .message {
-      padding: 12px 16px;
-      border-radius: 16px;
-      max-width: 80%;
-      font-size: 14px;
-      position: relative;
-    }
-
-    .message.own {
-      align-self: flex-end;
-      background: var(--accent);
-      color: var(--primary);
-      font-weight: 500;
-    }
-
-    .message.other {
-      align-self: flex-start;
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-    }
-
-    .msg-info {
-      font-size: 10px;
-      opacity: 0.7;
-      margin-bottom: 4px;
-    }
-
-    /* --- NOTIFICATIONS --- */
-    .notif-item {
-      padding: 16px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--card-border);
-      border-radius: 16px;
-      margin-bottom: 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .btn-small {
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      border: none;
-      background: var(--accent);
-      color: var(--primary);
-    }
-
-    /* --- TOAST --- */
-    #toast {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      padding: 16px 24px;
-      border-radius: 12px;
-      background: white;
-      color: var(--primary);
-      font-weight: 600;
-      transform: translateY(100px);
-      opacity: 0;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 3000;
-    }
-
-    #toast.active {
-      transform: translateY(0);
-      opacity: 1;
-    }
-
-    /* --- ANIMATIONS --- */
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* --- SCROLLBAR --- */
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
   </style>
 </head>
 <body>
-
-  <!-- NOTIFICATION SOUND -->
   <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-
-  <!-- TOAST NOTIFICATION -->
   <div id="toast">Operación exitosa</div>
 
   <!-- LOGIN VIEW -->
@@ -477,390 +100,148 @@
       <div class="brand" style="font-size: 14px; margin-bottom: 10px; color: var(--text-muted); letter-spacing: 2px;">PEOPLE BPO</div>
       <h1>¡Bienvenido!</h1>
       <div class="subtitle">Registro de Radicados</div>
-      <p>Selecciona tu perfil para ingresar al panel operativo</p>
-
-      <div class="login-field">
-        <label>Usuario</label>
-        <select id="login-user" class="input-login">
-          <option value="">Cargando usuarios...</option>
-        </select>
-      </div>
-
-      <div class="login-field">
-        <label>Contraseña</label>
-        <input type="password" id="login-pass" class="input-login" placeholder="••••••••">
-      </div>
-
-      <button class="btn-login" style="margin-top: 20px;" id="btn-login-action" onclick="handleLogin()">Ingresar al Sistema</button>
-
-      <div style="margin-top: 40px; font-size: 11px; color: var(--text-muted); opacity: 0.5">
-        By Duvan Ramos · 2026
-      </div>
+      <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px;">Selecciona tu perfil para ingresar</p>
+      <div class="login-field"><label>Usuario</label><select id="login-user" class="input-login"><option value="">Cargando...</option></select></div>
+      <div class="login-field"><label>Contraseña</label><input type="password" id="login-pass" class="input-login" placeholder="••••••••"></div>
+      <button class="btn-login" id="btn-login-action" onclick="handleLogin()">Ingresar al Sistema</button>
+      <div style="margin-top: 40px; font-size: 11px; color: var(--text-muted); opacity: 0.5">By Duvan Ramos · 2026</div>
     </div>
   </div>
 
   <!-- MAIN APP -->
-  <div id="app" style="display: flex;">
+  <div id="app">
     <aside class="sidebar">
-      <div class="sidebar-header">
-        <div class="brand">People BPO</div>
-      </div>
-
+      <div class="brand">People BPO</div>
       <nav class="sidebar-nav">
-        <div class="nav-item active" onclick="switchView('dashboard', this)">
-          <span>Panel Principal</span>
-        </div>
-        <div class="nav-item" onclick="switchView('registry', this)">
-          <span>Registro Radicación</span>
-        </div>
-        <div class="nav-item" onclick="switchView('snc', this)">
-          <span>Gestión SNC</span>
-        </div>
-        <div class="nav-item" onclick="switchView('search', this)">
-          <span>Búsqueda</span>
-        </div>
-        <div class="nav-item" onclick="switchView('notifications', this)">
-          <span>Notificaciones</span>
-          <span id="badge-notif" class="badge">0</span>
-        </div>
-        <div class="nav-item" onclick="switchView('chat', this)">
-          <span>Canal de Chat</span>
-          <span id="badge-chat" class="badge">0</span>
-        </div>
+        <div class="nav-item active" onclick="switchView('dashboard', this)"><span>Panel Principal</span></div>
+        <div class="nav-item" onclick="switchView('registry', this)"><span>Registro Radicación</span></div>
+        <div class="nav-item" onclick="switchView('snc', this)"><span>Gestión SNC</span></div>
+        <div class="nav-item" onclick="switchView('search', this)"><span>Búsqueda</span></div>
+        <div class="nav-item" onclick="switchView('notifications', this)"><span>Notificaciones</span><span id="badge-notif" class="badge">0</span></div>
+        <div class="nav-item" onclick="switchView('chat', this)"><span>Canal de Chat</span><span id="badge-chat" class="badge">0</span></div>
       </nav>
-
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <div class="avatar" id="user-avatar">DR</div>
-          <div>
-            <div id="user-name" style="font-weight: 600">Duvan Ramos</div>
-            <div id="user-role" style="color: var(--text-muted); font-size: 11px">Asesor</div>
-          </div>
+      <div style="border-top: 1px solid var(--card-border); padding-top: 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div class="avatar" id="user-avatar">?</div>
+          <div><div id="user-name" style="font-weight: 600; font-size: 13px;">Usuario</div><div style="color: var(--text-muted); font-size: 11px">Asesor</div></div>
         </div>
         <button class="btn-small" style="margin-top: 15px; width: 100%; background: rgba(255,255,255,0.05); color: white;" onclick="logout()">Cerrar Sesión</button>
-        <div style="margin-top: 15px; font-size: 10px; color: var(--text-muted); text-align: center; opacity: 0.6">
-          By Duvan Ramos
-        </div>
       </div>
     </aside>
 
     <main class="main-content">
-
-      <!-- VIEW: DASHBOARD -->
       <section id="view-dashboard" class="view active">
         <h1 class="view-title">Dashboard</h1>
-
         <div class="grid-dashboard">
-          <div class="card">
-            <div class="card-header"><span class="card-title">Radicados Exitosos</span></div>
-            <div class="stat-val" id="stat-efectivos">0</div>
-            <div class="stat-diff" style="color: var(--success)">Hoy</div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Devueltos por Error</span></div>
-            <div class="stat-val" id="stat-devueltos" style="color: var(--error)">0</div>
-            <div class="stat-diff" style="color: var(--error)">Hoy</div>
-          </div>
-          <div class="card">
-            <div class="card-header"><span class="card-title">Eficiencia Operativa</span></div>
-            <div class="stat-val" id="stat-total">0%</div>
-            <div class="stat-diff" style="color: var(--accent)">Total gestiones</div>
-          </div>
+          <div class="card"><span class="card-title">Radicados Exitosos</span><div class="stat-val" id="stat-efectivos">0</div><div class="stat-diff" style="color: var(--success)">Hoy</div></div>
+          <div class="card"><span class="card-title">Devueltos por Error</span><div class="stat-val" id="stat-devueltos" style="color: var(--error)">0</div><div class="stat-diff" style="color: var(--error)">Hoy</div></div>
+          <div class="card"><span class="card-title">Eficiencia Operativa</span><div class="stat-val" id="stat-total">0%</div><div class="stat-diff" style="color: var(--accent)">Total gestiones</div></div>
         </div>
-
-        <div class="card" style="margin-top: 32px;">
-          <div class="card-header"><span class="card-title">Historial Reciente</span></div>
-          <div id="history-list" style="max-height: 300px; overflow-y: auto;">
-            <!-- History here -->
-          </div>
-        </div>
+        <div class="card" style="margin-top: 32px;"><span class="card-title">Historial Reciente (Últimos 10)</span><div id="history-list"></div></div>
       </section>
 
-      <!-- VIEW: REGISTRY -->
       <section id="view-registry" class="view">
         <h1 class="view-title">Nueva Radicación</h1>
         <div class="card form-section">
-          <div class="form-group">
-            <label>Número de Radicado</label>
-            <input type="text" id="reg-radicado" class="input-main" placeholder="Ingrese el código">
-          </div>
-          <div class="form-group">
-            <label>Fecha del Caso (Opcional)</label>
-            <input type="date" id="reg-fecha" class="input-main">
-          </div>
-          <div class="form-group">
-            <label>¿Devuelto por errores?</label>
-            <div class="checkbox-group" onclick="this.querySelector('input').click()">
-              <input type="checkbox" id="reg-devuelto">
-              <span>Marcar como devuelto</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>SNC en Proceso</label>
-            <div class="checkbox-group" onclick="this.querySelector('input').click()">
-              <input type="checkbox" id="reg-snc">
-              <span>Requiere seguimiento de calidad</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Observaciones</label>
-            <textarea id="reg-obs" class="input-main" placeholder="Detalles adicionales..."></textarea>
-          </div>
+          <div class="form-group"><label>Número de Radicado</label><input type="text" id="reg-radicado" class="input-main" placeholder="Ingrese el código"></div>
+          <div class="form-group"><label>Fecha del Caso (Opcional)</label><input type="date" id="reg-fecha" class="input-main"></div>
+          <div class="form-group"><div class="checkbox-group" onclick="this.querySelector('input').click()"><input type="checkbox" id="reg-devuelto"><span>¿Devuelto por errores?</span></div></div>
+          <div class="form-group"><div class="checkbox-group" onclick="this.querySelector('input').click()"><input type="checkbox" id="reg-snc"><span>SNC en Proceso (Seguimiento Calidad)</span></div></div>
+          <div class="form-group"><label>Observaciones</label><textarea id="reg-obs" class="input-main" style="min-height: 100px; resize: none;" placeholder="Detalles adicionales..."></textarea></div>
           <button class="btn-login" id="btn-save-reg" onclick="submitRegistration()">Registrar en Sistema</button>
         </div>
       </section>
 
-      <!-- VIEW: SNC -->
       <section id="view-snc" class="view">
         <h1 class="view-title">Gestión de Calidad (SNC)</h1>
-        <div class="card" style="max-width: 600px; margin-bottom: 24px;">
-          <div class="form-group">
-            <label>Buscar Radicado</label>
-            <div style="display: flex; gap: 12px;">
-              <input type="text" id="snc-search" class="input-main" placeholder="CÓDIGO DE RADICADO">
-              <button class="btn-small" onclick="handleSncSearch()">Buscar</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="snc-result" class="card" style="display: none; max-width: 600px;">
-          <!-- Ticket results -->
-        </div>
+        <div class="card form-section"><div class="form-group"><label>Buscar Radicado</label><div style="display: flex; gap: 12px;"><input type="text" id="snc-search" class="input-main" placeholder="CÓDIGO"><button class="btn-small" onclick="handleSncSearch()">Buscar</button></div></div><div id="snc-result" style="margin-top: 20px; display: none;"></div></div>
       </section>
 
-      <!-- VIEW: SEARCH -->
       <section id="view-search" class="view">
-        <h1 class="view-title">Búsqueda de Radicados</h1>
-        <div class="card" style="max-width: 600px; margin-bottom: 24px;">
-          <div class="form-group">
-            <label>Buscar en la base de datos</label>
-            <div style="display: flex; gap: 12px;">
-              <input type="text" id="db-search" class="input-main" placeholder="INGRESE EL RADICADO">
-              <button class="btn-small" onclick="handleDbSearch()">Buscar</button>
-            </div>
-          </div>
-        </div>
-
-        <div id="search-result" class="card" style="display: none; max-width: 600px;">
-          <!-- Search results -->
-        </div>
+        <h1 class="view-title">Búsqueda General</h1>
+        <div class="card form-section"><div class="form-group"><label>Consultar Base de Datos</label><div style="display: flex; gap: 12px;"><input type="text" id="db-search" class="input-main" placeholder="RADICADO"><button class="btn-small" onclick="handleDbSearch()">Consultar</button></div></div><div id="search-result" style="margin-top: 20px; display: none;"></div></div>
       </section>
 
-      <!-- VIEW: NOTIFICATIONS -->
       <section id="view-notifications" class="view">
-        <h1 class="view-title">Notificaciones Pendientes</h1>
-        <div id="notifications-list">
-          <!-- Notif List -->
-        </div>
+        <h1 class="view-title">Notificaciones</h1>
+        <div id="notifications-list" style="max-width: 600px; margin: 0 auto;"></div>
       </section>
 
-      <!-- VIEW: CHAT -->
       <section id="view-chat" class="view">
         <h1 class="view-title">Comunicación Interna</h1>
-        <div class="card">
-          <div id="chat-messages"></div>
-          <div style="display: flex; gap: 12px;">
-            <select id="chat-dest" class="input-main" style="width: 150px; font-size: 12px;">
-              <option value="TODOS">Canal Grupal</option>
-            </select>
-            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje...">
-            <button class="btn-small" onclick="handleChatSend()">Enviar</button>
-          </div>
-        </div>
+        <div class="card form-section"><div id="chat-messages"></div><div style="display: flex; gap: 12px;"><select id="chat-dest" class="input-main" style="width: 150px; font-size: 12px;"><option value="TODOS">Grupo</option></select><input type="text" id="chat-msg" class="input-main" placeholder="Mensaje..."><button class="btn-small" onclick="handleChatSend()">Enviar</button></div></div>
       </section>
-
     </main>
   </div>
 
   <script>
     let SESSION = null;
-    let POLLING_CHAT = null;
-    let POLLING_NOTIF = null;
     let LAST_CHAT_COUNT = 0;
     let LAST_NOTIF_COUNT = 0;
 
-    function playAlert() {
-      const sound = document.getElementById('alert-sound');
-      if (sound) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Interacción requerida para audio"));
-      }
-    }
-
-    // --- INIT ---
     window.onload = () => {
       loadUsers();
       const saved = localStorage.getItem('pbpo_session');
-      if (saved) {
-        SESSION = JSON.parse(saved);
-        startApp();
-      }
+      if (saved) { SESSION = JSON.parse(saved); startApp(); }
     };
 
     function loadUsers() {
       google.script.run.withSuccessHandler(users => {
-        const select = document.getElementById('login-user');
-        select.innerHTML = '<option value="">Selecciona tu usuario...</option>';
-        users.forEach(u => {
-          // Display only the name
-          select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
-        });
-
-        // If logged in, update chat destinations if needed
+        const s = document.getElementById('login-user');
+        s.innerHTML = '<option value="">Selecciona...</option>';
+        users.forEach(u => s.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
         if (SESSION) setupChatDestinations(users);
       }).obtenerUsuarios();
     }
 
     function startApp() {
-      document.getElementById('login-view').style.opacity = '0';
-      setTimeout(() => {
-        document.getElementById('login-view').style.display = 'none';
-        document.getElementById('app').style.display = 'flex';
-
-        document.getElementById('user-name').innerText = SESSION.nombre;
-        // Set avatar initial
-        document.getElementById('user-avatar').innerText = SESSION.nombre[0];
-
-        refreshDashboard();
-        initPolls();
-        setupChatDestinations();
-      }, 300);
+      document.getElementById('login-view').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      document.getElementById('user-name').innerText = SESSION.nombre;
+      document.getElementById('user-avatar').innerText = SESSION.nombre[0];
+      refreshDashboard();
+      setInterval(refreshChat, 4000);
+      setInterval(refreshNotifs, 10000);
+      refreshChat(); refreshNotifs(); setupChatDestinations();
     }
 
     function setupChatDestinations(usersList) {
-      if (!usersList) {
-        google.script.run.withSuccessHandler(list => setupChatDestinations(list)).obtenerUsuarios();
-        return;
-      }
-      const dest = document.getElementById('chat-dest');
-      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
-      usersList.forEach(u => {
-        if (u.id !== SESSION.id) {
-          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
-        }
-      });
+      if (!usersList) { google.script.run.withSuccessHandler(l => setupChatDestinations(l)).obtenerUsuarios(); return; }
+      const d = document.getElementById('chat-dest');
+      d.innerHTML = '<option value="TODOS">Grupo</option>';
+      usersList.forEach(u => { if (u.id !== SESSION.id) d.innerHTML += `<option value="${u.id}">${u.id}</option>`; });
     }
 
-    function initPolls() {
-      if (POLLING_CHAT) clearInterval(POLLING_CHAT);
-      if (POLLING_NOTIF) clearInterval(POLLING_NOTIF);
-
-      POLLING_CHAT = setInterval(refreshChat, 3000);
-      POLLING_NOTIF = setInterval(refreshNotifs, 10000);
-
-      refreshChat();
-      refreshNotifs();
-    }
-
-    // --- NAVIGATION ---
     function switchView(viewId, el) {
       document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-
       document.getElementById(`view-${viewId}`).classList.add('active');
       el.classList.add('active');
-
       if (viewId === 'dashboard') refreshDashboard();
-
-      // Reset badges on click
-      if (viewId === 'notifications') {
-        document.getElementById('badge-notif').classList.remove('active');
-        // We don't reset LAST_NOTIF_COUNT because it's for total comparison
-      }
-      if (viewId === 'chat') {
-        document.getElementById('badge-chat').classList.remove('active');
-      }
+      if (viewId === 'notifications') document.getElementById('badge-notif').classList.remove('active');
+      if (viewId === 'chat') document.getElementById('badge-chat').classList.remove('active');
     }
 
-    // --- CORE LOGIC ---
     function handleLogin() {
       const u = document.getElementById('login-user').value;
       const p = document.getElementById('login-pass').value;
-
-      if (!u || !p) return showToast('Usuario y contraseña requeridos', 'error');
-
-      const btn = document.getElementById('btn-login-action');
-      btn.disabled = true;
-      btn.innerText = 'Verificando...';
-
-      google.script.run
-        .withSuccessHandler(res => {
-          btn.disabled = false;
-          btn.innerText = 'Ingresar al Sistema';
-
-          if (res.success) {
-            SESSION = res.user;
-            localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
-            startApp();
-            showToast('Sesión iniciada correctamente');
-          } else {
-            showToast(res.message, 'error');
-          }
-        })
-        .withFailureHandler(err => {
-          btn.disabled = false;
-          btn.innerText = 'Ingresar al Sistema';
-          showToast(err.message, 'error');
-        })
-        .login(u, p);
+      if (!u || !p) return showToast('Datos incompletos', 'error');
+      google.script.run.withSuccessHandler(res => {
+        if (res.success) { SESSION = res.user; localStorage.setItem('pbpo_session', JSON.stringify(SESSION)); startApp(); }
+        else showToast(res.message, 'error');
+      }).login(u, p);
     }
 
-    function logout() {
-      localStorage.removeItem('pbpo_session');
-      SESSION = null;
-      if (POLLING_CHAT) clearInterval(POLLING_CHAT);
-      if (POLLING_NOTIF) clearInterval(POLLING_NOTIF);
+    function logout() { localStorage.removeItem('pbpo_session'); location.reload(); }
 
-      document.getElementById('app').style.display = 'none';
-      document.getElementById('login-view').style.opacity = '1';
-      document.getElementById('login-view').style.display = 'flex';
-      showToast('Sesión cerrada');
+    function submitRegistration() {
+      const data = { radicado: document.getElementById('reg-radicado').value, fecha: document.getElementById('reg-fecha').value, devuelto: document.getElementById('reg-devuelto').checked, sncProceso: document.getElementById('reg-snc').checked, observacion: document.getElementById('reg-obs').value, funcionaria: SESSION.nombre };
+      if (!data.radicado) return showToast('Radicado obligatorio', 'error');
+      if (data.sncProceso && !data.fecha) return showToast('Fecha requerida para SNC', 'error');
+      google.script.run.withSuccessHandler(() => { showToast('Guardado'); resetRegForm(); refreshDashboard(); }).guardarRadicacion(data);
     }
 
-function submitRegistration() {
-  const data = {
-    radicado: document.getElementById('reg-radicado').value,
-    fecha: document.getElementById('reg-fecha').value,
-    devuelto: document.getElementById('reg-devuelto').checked,
-    sncProceso: document.getElementById('reg-snc').checked,
-    observacion: document.getElementById('reg-obs').value,
-    funcionaria: SESSION.nombre
-  };
-
-  if (!data.radicado) return showToast('El radicado es obligatorio', 'error');
-
-  // 🔥 VALIDACIÓN CLAVE (ÚNICO CAMBIO)
-  if (data.sncProceso && !data.fecha) {
-    return showToast('Debes seleccionar la fecha cuando es SNC', 'error');
-  }
-
-  const btn = document.getElementById('btn-save-reg');
-  btn.disabled = true;
-  btn.innerText = 'Guardando...';
-
-  google.script.run
-    .withSuccessHandler(() => {
-      showToast('Radicado guardado correctamente');
-      resetRegForm();
-      refreshDashboard();
-      btn.disabled = false;
-      btn.innerText = 'Registrar en Sistema';
-    })
-    .withFailureHandler(err => {
-      showToast(err.message, 'error');
-      btn.disabled = false;
-      btn.innerText = 'Registrar en Sistema';
-    })
-    .guardarRadicacion(data);
-}
-
-    function resetRegForm() {
-      document.getElementById('reg-radicado').value = '';
-      document.getElementById('reg-fecha').value = '';
-      document.getElementById('reg-devuelto').checked = false;
-      document.getElementById('reg-snc').checked = false;
-      document.getElementById('reg-obs').value = '';
-    }
+    function resetRegForm() { document.getElementById('reg-radicado').value = ''; document.getElementById('reg-fecha').value = ''; document.getElementById('reg-devuelto').checked = false; document.getElementById('reg-snc').checked = false; document.getElementById('reg-obs').value = ''; }
 
     function refreshDashboard() {
       google.script.run.withSuccessHandler(res => {
@@ -868,200 +249,62 @@ function submitRegistration() {
         document.getElementById('stat-devueltos').innerText = res.devueltos;
         document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
       }).obtenerResumenHoy(SESSION.nombre);
-
       google.script.run.withSuccessHandler(data => {
-        const list = document.getElementById('history-list');
-        list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
-        data.forEach(item => {
-          const isDevuelto = item.devuelto && (item.devuelto.toString().toLowerCase() === 'si' || item.devuelto.toString().toLowerCase() === 'sí');
-          list.innerHTML += `
-            <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
-              <div>
-                <span style="font-weight: 600;">${item.radicado}</span>
-                <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
-              </div>
-              <div style="color: ${isDevuelto ? 'var(--error)' : 'var(--success)'}">${isDevuelto ? 'Devuelto' : 'Exitoso'}</div>
-            </div>
-          `;
+        const l = document.getElementById('history-list');
+        l.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">Sin registros</p>';
+        data.forEach(i => {
+          const isDev = i.devuelto && (i.devuelto.toString().toLowerCase() === 'si' || i.devuelto.toString().toLowerCase() === 'sí');
+          l.innerHTML += `<div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;"><div><b>${i.radicado}</b><div style="font-size: 11px; color: var(--text-muted)">${i.fecha}</div></div><div style="color: ${isDev ? 'var(--error)' : 'var(--success)'}">${isDev ? 'Devuelto' : 'Exitoso'}</div></div>`;
         });
       }).obtenerHistorial(SESSION.nombre);
     }
 
     function handleSncSearch() {
-      const rad = document.getElementById('snc-search').value;
-      if (!rad) return;
-
       google.script.run.withSuccessHandler(res => {
-        const view = document.getElementById('snc-result');
-        if (!res) {
-          view.style.display = 'block';
-          view.innerHTML = '<p style="color:var(--error)">Radicado no encontrado</p>';
-          return;
-        }
-
-        view.style.display = 'block';
-        view.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 15px;">
-            <div style="display:flex; justify-content: space-between; align-items: center">
-              <h2 style="font-size: 20px;">Radicado: ${res.radicado}</h2>
-              <span style="padding: 4px 12px; border-radius: 20px; font-size: 11px; background: rgba(255,255,255,0.05); color: ${res.estado === 'Solucionado' ? 'var(--success)' : (res.estado === 'En proceso' ? 'var(--accent)' : 'white')}">${res.estado}</span>
-            </div>
-            <div style="font-size: 14px; color: var(--text-muted)">Funcionaria: <b style="color:white">${res.funcionaria}</b></div>
-            <div style="font-size: 14px; color: var(--text-muted)">Observación original: <p style="font-style: italic; margin-top: 5px;">"${res.observacion}"</p></div>
-            ${res.canClose ? `<button class="btn-small" style="width: 100%;" onclick="closeSnc('${res.row}')">Marcar como Solucionado</button>` : ''}
-          </div>
-        `;
-      }).buscarSNC(rad);
+        const v = document.getElementById('snc-result'); v.style.display = 'block';
+        if (!res) { v.innerHTML = '<p style="color:var(--error)">No encontrado</p>'; return; }
+        v.innerHTML = `<div style="display: flex; flex-direction: column; gap: 10px;"><h3>Radicado: ${res.radicado}</h3><p>${res.estado}</p><p>Asesor: ${res.funcionaria}</p><p style="font-style:italic">"${res.observacion}"</p>${res.canClose ? `<button class="btn-small" onclick="closeSnc('${res.row}')">Cerrar SNC</button>` : ''}</div>`;
+      }).buscarSNC(document.getElementById('snc-search').value);
     }
-
-   function closeSnc(id) {
-  google.script.run.withSuccessHandler(() => {
-    showToast('SNC Cerrado correctamente');
-    handleSncSearch();
-  }).marcarSolucionado(Number(id));
-}
+    function closeSnc(id) { google.script.run.withSuccessHandler(() => { showToast('SNC Cerrado'); handleSncSearch(); }).marcarSolucionado(Number(id)); }
 
     function handleDbSearch() {
-      const rad = document.getElementById('db-search').value;
-      if (!rad) return;
-
       google.script.run.withSuccessHandler(res => {
-        const view = document.getElementById('search-result');
-        view.style.display = 'block';
-
-        if (!res) {
-          view.innerHTML = '<p style="color:var(--error)">Radicado no encontrado en la base de datos.</p>';
-          return;
-        }
-
-        view.innerHTML = `
-          <div style="display: flex; flex-direction: column; gap: 15px;">
-            <h2 style="font-size: 20px; color: var(--accent);">Radicado Encontrado</h2>
-            <div style="padding: 20px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--card-border);">
-              <div style="margin-bottom: 12px;">
-                <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Registrado por</label>
-                <div style="font-size: 16px; font-weight: 600;">${res.funcionaria}</div>
-              </div>
-              <div>
-                <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Fecha de Registro</label>
-                <div style="font-size: 16px; font-weight: 600;">${res.fecha}</div>
-              </div>
-              ${res.observacion ? `
-              <div style="margin-top: 12px;">
-                <label style="font-size: 11px; text-transform: uppercase; color: var(--text-muted);">Observación</label>
-                <div style="font-size: 14px; font-style: italic; color: var(--text-muted);">"${res.observacion}"</div>
-              </div>` : ''}
-            </div>
-          </div>
-        `;
-      }).buscarGeneral(rad);
+        const v = document.getElementById('search-result'); v.style.display = 'block';
+        if (!res) { v.innerHTML = '<p style="color:var(--error)">No existe en BD</p>'; return; }
+        v.innerHTML = `<div class="card" style="text-align: left;"><p><b>Registrado por:</b> ${res.funcionaria}</p><p><b>Fecha:</b> ${res.fecha}</p><p><b>Obs:</b> ${res.observacion}</p></div>`;
+      }).buscarGeneral(document.getElementById('db-search').value);
     }
 
     function refreshNotifs() {
       google.script.run.withSuccessHandler(data => {
-        const badge = document.getElementById('badge-notif');
-        const activeView = document.querySelector('.view.active').id;
-
-        if (data.length > LAST_NOTIF_COUNT) {
-          playAlert();
-        }
-
-        // Show badge if there are any pending notifications
-        if (data.length > 0) {
-          badge.innerText = data.length;
-          badge.classList.add('active');
-        } else {
-          badge.classList.remove('active');
-        }
-
+        const b = document.getElementById('badge-notif');
+        if (data.length > LAST_NOTIF_COUNT) { playAlert(); b.innerText = data.length; b.classList.add('active'); }
         LAST_NOTIF_COUNT = data.length;
-
-        const list = document.getElementById('notifications-list');
-        list.innerHTML = data.length ? '' : '<div class="card" style="color:var(--text-muted)">No tienes notificaciones pendientes.</div>';
-        data.forEach(notif => {
-          list.innerHTML += `
-            <div class="notif-item">
-              <div>
-                <div style="font-weight: 600; font-size: 14px;">${notif.radicado}</div>
-                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${notif.mensaje}</div>
-                <div style="font-size: 10px; color: var(--text-muted); margin-top: 8px;">${notif.fecha}</div>
-              </div>
-              <button class="btn-small" onclick="markRead(${notif.id})">Recibido</button>
-            </div>
-          `;
-        });
+        const l = document.getElementById('notifications-list');
+        l.innerHTML = data.length ? '' : '<p style="color:var(--text-muted)">Sin pendientes</p>';
+        data.forEach(n => { l.innerHTML += `<div class="notif-item"><div><b>${n.radicado}</b><p>${n.mensaje}</p><small>${n.fecha}</small></div><button class="btn-small" onclick="markRead(${n.id})">OK</button></div>`; });
       }).obtenerNotificaciones(SESSION.nombre);
     }
-
-    function markRead(id) {
-      google.script.run.withSuccessHandler(() => {
-        refreshNotifs();
-      }).marcarRecibido(id);
-    }
+    function markRead(id) { google.script.run.withSuccessHandler(() => refreshNotifs()).marcarRecibido(id); }
 
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
-        const badge = document.getElementById('badge-chat');
-        const activeView = document.querySelector('.view.active').id;
-
-        if (data.length > LAST_CHAT_COUNT) {
-          playAlert();
-        }
-
-        const unread = data.length - LAST_CHAT_COUNT;
-        if (unread > 0) {
-          badge.innerText = unread;
-          badge.classList.add('active');
-        } else {
-          badge.classList.remove('active');
-        }
-
-        if (activeView === 'view-chat') {
-           LAST_CHAT_COUNT = data.length;
-           badge.classList.remove('active');
-        }
-
+        const b = document.getElementById('badge-chat');
+        if (data.length > LAST_CHAT_COUNT) { playAlert(); b.innerText = (data.length - LAST_CHAT_COUNT); b.classList.add('active'); }
         const box = document.getElementById('chat-messages');
-        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
-
         box.innerHTML = '';
-        data.forEach(msg => {
-          const isOwn = msg.usuario === SESSION.nombre;
-          box.innerHTML += `
-            <div class="message ${isOwn ? 'own' : 'other'}">
-              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha} ${msg.esPrivado ? '(Privado)' : ''}</div>
-              <div>${msg.mensaje}</div>
-            </div>
-          `;
-        });
-
-        if (isAtBottom) box.scrollTop = box.scrollHeight;
+        data.forEach(m => { const isOwn = m.usuario === SESSION.nombre; box.innerHTML += `<div class="message ${isOwn ? 'own' : 'other'}"><div class="msg-info">${isOwn ? 'Tú' : m.usuario} • ${m.fecha}</div><div>${m.mensaje}</div></div>`; });
+        box.scrollTop = box.scrollHeight;
       }).obtenerChat(SESSION.nombre);
     }
-
     function handleChatSend() {
-      const msg = document.getElementById('chat-msg').value;
-      const dest = document.getElementById('chat-dest').value;
-      if (!msg) return;
-
-      google.script.run.withSuccessHandler(() => {
-        document.getElementById('chat-msg').value = '';
-        refreshChat();
-      }).enviarMensajeChat({
-        usuario: SESSION.nombre,
-        mensaje: msg,
-        destinatario: dest
-      });
+      const m = document.getElementById('chat-msg').value; if (!m) return;
+      google.script.run.withSuccessHandler(() => { document.getElementById('chat-msg').value = ''; refreshChat(); }).enviarMensajeChat({ usuario: SESSION.nombre, mensaje: m, destinatario: document.getElementById('chat-dest').value });
     }
 
-    function showToast(text, type = 'success') {
-      const t = document.getElementById('toast');
-      t.innerText = text;
-      t.style.background = type === 'error' ? 'var(--error)' : 'white';
-      t.style.color = type === 'error' ? 'white' : 'var(--primary)';
-      t.classList.add('active');
-      setTimeout(() => t.classList.remove('active'), 3000);
-    }
+    function showToast(txt, type='success') { const t = document.getElementById('toast'); t.innerText = txt; t.style.background = type==='error'?'var(--error)':'white'; t.style.color = type==='error'?'white':'var(--primary)'; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
+    function playAlert() { document.getElementById('alert-sound').play().catch(()=>{}); }
   </script>
 </body>
 </html>
