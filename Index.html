@@ -660,10 +660,7 @@
         <div class="card">
           <div id="chat-messages"></div>
           <div style="display: flex; gap: 12px;">
-            <select id="chat-dest" class="input-main" style="width: 150px; font-size: 12px;">
-              <option value="TODOS">Canal Grupal</option>
-            </select>
-            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje...">
+            <input type="text" id="chat-msg" class="input-main" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') handleChatSend()">
             <button class="btn-small" onclick="handleChatSend()">Enviar</button>
           </div>
         </div>
@@ -728,17 +725,8 @@
     }
 
     function setupChatDestinations(usersList) {
-      if (!usersList) {
-        google.script.run.withSuccessHandler(list => setupChatDestinations(list)).obtenerUsuarios();
-        return;
-      }
-      const dest = document.getElementById('chat-dest');
-      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
-      usersList.forEach(u => {
-        if (u.id !== SESSION.id) {
-          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
-        }
-      });
+      // General chat only, no destinations needed
+      return;
     }
 
     function initPolls() {
@@ -1009,58 +997,69 @@ function submitRegistration() {
       }).marcarRecibido(id);
     }
 
+    let LAST_MSG_ID = 0;
+
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
         const badge = document.getElementById('badge-chat');
         const activeView = document.querySelector('.view.active').id;
 
-        if (data.length > LAST_CHAT_COUNT) {
-          playAlert();
-        }
+        const lastInServer = data.length > 0 ? data[data.length - 1].id : 0;
 
-        const unread = data.length - LAST_CHAT_COUNT;
-        if (unread > 0) {
-          badge.innerText = unread;
-          badge.classList.add('active');
-        } else {
-          badge.classList.remove('active');
+        if (LAST_MSG_ID === 0) {
+          // First load
+          LAST_MSG_ID = lastInServer;
+        } else if (lastInServer > LAST_MSG_ID) {
+          // New messages detected
+          const newMessages = data.filter(m => m.id > LAST_MSG_ID);
+          const fromOther = newMessages.some(m => m.usuario !== SESSION.nombre);
+
+          if (fromOther) {
+             playAlert();
+             if (activeView !== 'view-chat') {
+               badge.innerText = newMessages.length;
+               badge.classList.add('active');
+             }
+          }
+          LAST_MSG_ID = lastInServer;
         }
 
         if (activeView === 'view-chat') {
-           LAST_CHAT_COUNT = data.length;
            badge.classList.remove('active');
         }
 
         const box = document.getElementById('chat-messages');
-        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
+        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 10;
 
         box.innerHTML = '';
         data.forEach(msg => {
           const isOwn = msg.usuario === SESSION.nombre;
           box.innerHTML += `
             <div class="message ${isOwn ? 'own' : 'other'}">
-              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha} ${msg.esPrivado ? '(Privado)' : ''}</div>
+              <div class="msg-info">${isOwn ? 'Tú' : msg.usuario} • ${msg.fecha}</div>
               <div>${msg.mensaje}</div>
             </div>
           `;
         });
 
-        if (isAtBottom) box.scrollTop = box.scrollHeight;
-      }).obtenerChat(SESSION.nombre);
+        if (isAtBottom || activeView === 'view-chat') {
+           box.scrollTop = box.scrollHeight;
+        }
+      }).obtenerChat();
     }
 
     function handleChatSend() {
-      const msg = document.getElementById('chat-msg').value;
-      const dest = document.getElementById('chat-dest').value;
+      const msgInput = document.getElementById('chat-msg');
+      const msg = msgInput.value.trim();
       if (!msg) return;
 
+      msgInput.value = '';
       google.script.run.withSuccessHandler(() => {
-        document.getElementById('chat-msg').value = '';
         refreshChat();
       }).enviarMensajeChat({
         usuario: SESSION.nombre,
         mensaje: msg,
-        destinatario: dest
+        destinatario: 'TODOS'
       });
     }
 

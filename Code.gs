@@ -19,7 +19,9 @@ function obtenerUsuarios() {
   try {
     const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('ASESORES');
     if (!sh) return [];
-    const data = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
+    const lastRow = sh.getLastRow();
+    if (lastRow < 2) return [];
+    const data = sh.getRange(2, 1, lastRow - 1, 5).getValues();
     return data.map(r => ({ id: r[0], nombre: r[4] })).filter(u => u.id);
   } catch (e) {
     throw new Error('Error al obtener usuarios: ' + e.message);
@@ -29,7 +31,9 @@ function obtenerUsuarios() {
 function login(usuario, password) {
   try {
     const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('ASESORES');
-    const data = sh.getRange(2, 1, sh.getLastRow() - 1, 5).getValues();
+    const lastRow = sh.getLastRow();
+    if (lastRow < 2) return { success: false, message: 'No hay usuarios registrados.' };
+    const data = sh.getRange(2, 1, lastRow - 1, 5).getValues();
     const uNorm = normalize(usuario);
 
     for (let i = 0; i < data.length; i++) {
@@ -233,8 +237,44 @@ function marcarSolucionado(rowId) {
   }
 }
 
+// ================= CHAT =================
+function enviarMensajeChat(data) {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('CHAT');
+    sh.appendRow([
+      new Date(),
+      data.usuario,
+      data.mensaje,
+      'TODOS'
+    ]);
+    return true;
+  } catch (e) {
+    throw new Error('Error al enviar mensaje: ' + e.message);
+  }
+}
+
+function obtenerChat() {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('CHAT');
+    const lastRow = sh.getLastRow();
+    if (lastRow < 2) return [];
+
+    const startRow = Math.max(2, lastRow - 49);
+    const numRows = lastRow - startRow + 1;
+    const data = sh.getRange(startRow, 1, numRows, 4).getValues();
+
+    return data.map((r, i) => ({
+      id: startRow + i,
+      fecha: Utilities.formatDate(new Date(r[0]), "GMT-5", "HH:mm"),
+      usuario: r[1],
+      mensaje: r[2],
+      destinatario: r[3]
+    }));
+  } catch (e) {
+    throw new Error('Error al obtener chat: ' + e.message);
+  }
+}
+
 // ================= STUBS =================
 function obtenerNotificaciones(u) { return []; }
 function marcarRecibido(id) { return true; }
-function obtenerChat(u) { return []; }
-function enviarMensajeChat(d) { return true; }
