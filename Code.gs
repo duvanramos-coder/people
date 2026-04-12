@@ -1,19 +1,39 @@
+/**
+ * CONFIGURACIÓN GLOBAL
+ * No modificar los nombres de las hojas ni el ID a menos que sea necesario.
+ */
+const CONFIG = {
+  SPREADSHEET_ID: "148Py5yyJ1ucYF26fD2zs9g-aQgD77I_C-betaSOha7w",
+  SHEETS: {
+    PQRSF: "PQRSF Creados",
+    AGENTES: "Agentes",
+    CHAT: "CHAT",
+    NOTIFICACIONES: "Notificaciones"
+  },
+  TIMEZONE: "GMT-5"
+};
+
+/**
+ * Función principal para servir la aplicación.
+ */
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('Index')
-    .setTitle('REGISTRA TU PQRSF REALIZADO');
+    .setTitle('REGISTRA TU PQRSF REALIZADO')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
+/**
+ * REGLA DE ORO: Conserva la lógica de registro existente.
+ */
 function guardarPQRSF(datos) {
   try {
-    const spreadsheetId = "148Py5yyJ1ucYF26fD2zs9g-aQgD77I_C-betaSOha7w";
-    const ss = SpreadsheetApp.openById(spreadsheetId);
-    const hoja = ss.getSheetByName("PQRSF Creados");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const hoja = ss.getSheetByName(CONFIG.SHEETS.PQRSF);
 
     const radicadoNuevo = datos.radicado;
     const ultimaFila = hoja.getLastRow();
 
     if (ultimaFila > 1) {
-      // Optimized: Only get the Radicado column
       const radicados = hoja.getRange(2, 3, ultimaFila - 1, 1).getValues();
 
       for (let i = 0; i < radicados.length; i++) {
@@ -38,21 +58,23 @@ function guardarPQRSF(datos) {
 
     return { estado: "ok" };
   } catch(e) {
+    console.log("Error en guardarPQRSF: " + e.message);
     return { estado: "error", error: e.message };
   }
 }
 
-const SPREADSHEET_ID = "148Py5yyJ1ucYF26fD2zs9g-aQgD77I_C-betaSOha7w";
-
+/**
+ * HELPERS Y FUNCIONES DE SOPORTE
+ */
 function formatDate(date) {
   if (!date || !(date instanceof Date)) return date;
-  return Utilities.formatDate(date, "GMT-5", "dd/MM/yyyy HH:mm:ss");
+  return Utilities.formatDate(date, CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm:ss");
 }
 
 function getAgentes() {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("Agentes");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.AGENTES);
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
     const data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
@@ -65,28 +87,23 @@ function getAgentes() {
 
 function getHistorial(agente) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("PQRSF Creados");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF);
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
 
-    // Optimized: Get only necessary rows from the end
     const startRow = Math.max(2, lastRow - 50);
     const numRows = lastRow - startRow + 1;
     const data = sheet.getRange(startRow, 1, numRows, 5).getValues();
 
-    const history = data
+    return data
       .filter(row => row[1] === agente)
       .reverse()
       .slice(0, 10)
       .map(row => ({
         fecha: formatDate(row[0]),
-        radicado: row[2],
-        clasificacion: row[4],
-        caso: row[3]
+        radicado: row[2]
       }));
-
-    return history;
   } catch(e) {
     console.log("Error en getHistorial: " + e.message);
     return [];
@@ -95,13 +112,12 @@ function getHistorial(agente) {
 
 function getMensajes(usuario) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("CHAT");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.CHAT);
     if (!sheet) return [];
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
 
-    // Optimized: Only get last 50 messages
     const startRow = Math.max(2, lastRow - 50);
     const numRows = lastRow - startRow + 1;
     const data = sheet.getRange(startRow, 1, numRows, 4).getValues();
@@ -122,10 +138,10 @@ function getMensajes(usuario) {
 
 function enviarMensaje(datos) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let sheet = ss.getSheetByName("CHAT");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    let sheet = ss.getSheetByName(CONFIG.SHEETS.CHAT);
     if (!sheet) {
-      sheet = ss.insertSheet("CHAT");
+      sheet = ss.insertSheet(CONFIG.SHEETS.CHAT);
       sheet.appendRow(["Fecha", "Usuario", "Mensaje", "Destinatario"]);
     }
     sheet.appendRow([
@@ -143,8 +159,8 @@ function enviarMensaje(datos) {
 
 function getNotificaciones(usuario) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("Notificaciones");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.NOTIFICACIONES);
     if (!sheet) return [];
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
@@ -169,8 +185,8 @@ function getNotificaciones(usuario) {
 
 function marcarNotificacionRecibida(id) {
   try {
-    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName("Notificaciones");
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.NOTIFICACIONES);
     sheet.getRange(id, 6).setValue(new Date());
     return { estado: "ok" };
   } catch(e) {

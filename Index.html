@@ -235,9 +235,8 @@
       transition: transform 0.2s;
     }
     .history-item:hover { transform: translateX(5px); }
-    .history-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; color: var(--primary); }
+    .history-header { display: flex; justify-content: space-between; font-weight: 600; color: var(--primary); }
     .history-date { font-size: 11px; color: var(--text-muted); }
-    .history-body { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
     /* NOTIFICATIONS DROPDOWN */
     .notif-dropdown {
@@ -254,7 +253,7 @@
     }
     .notif-header { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; font-weight: 700; font-size: 14px; color: var(--primary); }
     .notif-body { max-height: 300px; overflow-y: auto; }
-    .notif-item { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 12px; transition: background 0.2s; }
+    .notif-item { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 12px; transition: background 0.2s; color: var(--text-dark); }
     .notif-item:hover { background: #f9fafb; }
     .notif-btn {
       background: var(--secondary);
@@ -288,6 +287,23 @@
       transition: all 0.3s;
     }
     .chat-btn:hover { transform: scale(1.1) rotate(5deg); }
+
+    .chat-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: var(--secondary);
+      color: var(--primary);
+      font-size: 11px;
+      font-weight: 800;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid white;
+    }
 
     .chat-panel {
       position: fixed;
@@ -480,7 +496,10 @@
 </div>
 
 <!-- CHAT -->
-<div id="chat-btn" class="chat-btn" onclick="toggleChat()">💬</div>
+<div id="chat-btn" class="chat-btn" onclick="toggleChat()">
+  💬
+  <span id="chat-badge" class="chat-badge">0</span>
+</div>
 <div id="chat-panel" class="chat-panel">
   <div class="chat-header">
     <span>Chat Global</span>
@@ -533,6 +552,8 @@
   let currentAgent = "";
   let lastNotifCount = 0;
   let lastMsgCount = 0;
+  let chatBadgeCount = 0;
+  let isChatOpen = false;
   let pollingNotif = null;
   let pollingChat = null;
 
@@ -593,7 +614,17 @@
     localStorage.removeItem('pqrsf_agent');
     if (pollingNotif) clearInterval(pollingNotif);
     if (pollingChat) clearInterval(pollingChat);
-    location.reload();
+
+    // Switch UI back to login screen manually
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('login-agente').value = "";
+
+    // Reset state
+    lastNotifCount = 0;
+    lastMsgCount = 0;
+    chatBadgeCount = 0;
+    updateChatBadge();
   }
 
   function showApp(name) {
@@ -661,10 +692,16 @@
 
         const isNew = list.length > lastMsgCount;
 
-        if (isNew && lastMsgCount > 0) {
-          const lastMsg = list[list.length - 1];
-          if (lastMsg && lastMsg.usuario !== currentAgent) {
+        if (isNew) {
+          const newMessages = list.slice(lastMsgCount);
+          let otherUserMessages = newMessages.filter(m => m.usuario !== currentAgent);
+
+          if (otherUserMessages.length > 0) {
             playSound('snd-msg');
+            if (!isChatOpen) {
+              chatBadgeCount += otherUserMessages.length;
+              updateChatBadge();
+            }
           }
         }
 
@@ -690,6 +727,14 @@
       .getMensajes(currentAgent);
   }
 
+  function updateChatBadge() {
+    const b = document.getElementById('chat-badge');
+    if (b) {
+      b.textContent = chatBadgeCount;
+      b.style.display = chatBadgeCount > 0 ? 'flex' : 'none';
+    }
+  }
+
   function sendMsg() {
     const inp = document.getElementById('chat-msg');
     const txt = inp.value.trim();
@@ -713,14 +758,13 @@
           container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No tienes registros aún</div>';
           return;
         }
+        // Only show Radicado and Date as requested
         container.innerHTML = list.map(h => `
           <div class="history-item">
             <div class="history-header">
               <span>${h.radicado || 'N/A'}</span>
               <span class="history-date">${h.fecha || ''}</span>
             </div>
-            <div class="history-body">${h.clasificacion || ''}</div>
-            <div style="font-size:11px; color:#999; margin-top:3px">${h.caso || ''}</div>
           </div>
         `).join('');
       })
@@ -805,8 +849,13 @@
   function toggleChat() {
     const p = document.getElementById('chat-panel');
     if (!p) return;
-    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
-    if (p.style.display === 'flex') {
+
+    isChatOpen = p.style.display !== 'flex';
+    p.style.display = isChatOpen ? 'flex' : 'none';
+
+    if (isChatOpen) {
+      chatBadgeCount = 0;
+      updateChatBadge();
       const msgDiv = document.getElementById('chat-messages');
       if (msgDiv) msgDiv.scrollTop = msgDiv.scrollHeight;
     }
