@@ -552,7 +552,7 @@
 
         <div class="grid-dashboard">
           <div class="card">
-            <div class="card-header"><span class="card-title">Radicados Efectivos</span></div>
+            <div class="card-header"><span class="card-title">Radicados Exitosos</span></div>
             <div class="stat-val" id="stat-efectivos">0</div>
             <div class="stat-diff" style="color: var(--success)">Hoy</div>
           </div>
@@ -702,7 +702,8 @@
         const select = document.getElementById('login-user');
         select.innerHTML = '<option value="">Selecciona tu usuario...</option>';
         users.forEach(u => {
-          select.innerHTML += `<option value="${u.id}">${u.id} - ${u.nombre}</option>`;
+          // Display only the name
+          select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
         });
 
         // If logged in, update chat destinations if needed

@@ -24,10 +24,13 @@ function obtenerUsuarios() {
     const data = sh.getDataRange().getValues();
     const usuarios = [];
     for (let i = 1; i < data.length; i++) {
-      usuarios.push({
-        id: data[i][0],
-        nombre: data[i][4]
-      });
+      // Only use the Full Name (Column E)
+      if (data[i][4]) {
+        usuarios.push({
+          id: data[i][4],
+          nombre: data[i][4]
+        });
+      }
     }
     return usuarios;
   } catch (e) {
@@ -44,11 +47,12 @@ function login(usuario, password) {
     const data = sh.getDataRange().getValues();
     // Headers: Usuario (A), Correo (B), Canal (C), Contraseña (D), Nombre (E)
     for (let i = 1; i < data.length; i++) {
-      if (String(data[i][0]).toLowerCase() === String(usuario).toLowerCase() && String(data[i][3]) === String(password)) {
+      // Validate against Full Name (Column E) as requested
+      if (String(data[i][4]).toLowerCase() === String(usuario).toLowerCase() && String(data[i][3]) === String(password)) {
         return {
           success: true,
           user: {
-            id: data[i][0],
+            id: data[i][4],
             nombre: data[i][4],
             correo: data[i][1],
             canal: data[i][2]
