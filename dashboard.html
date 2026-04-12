@@ -1,0 +1,343 @@
+<style>
+  .dashboard-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    height: 100vh;
+    width: 100vw;
+    background-color: var(--bg-dark);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background-color: var(--sidebar-bg);
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    z-index: 100;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 8px 32px 8px;
+  }
+
+  .sidebar-logo {
+    width: 32px;
+    height: 32px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: 700;
+    font-size: 18px;
+  }
+
+  .sidebar-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .nav-section {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .nav-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+    padding-left: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 4px;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+  }
+
+  .nav-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
+  }
+
+  .nav-item.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+  }
+
+  .sidebar-footer {
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #27272a 0%, #09090b 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+
+  .user-info {
+    overflow: hidden;
+  }
+
+  .user-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-main);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--error);
+    opacity: 0.8;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    background: transparent;
+    border: none;
+    width: 100%;
+  }
+
+  .btn-logout:hover {
+    opacity: 1;
+  }
+
+  /* Main Content Area */
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .main-header {
+    height: 64px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: var(--bg-dark);
+  }
+
+  .module-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .iframe-container {
+    flex: 1;
+    position: relative;
+    background-color: #ffffff; /* Typical for embedded tools */
+  }
+
+  .module-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: #fff;
+  }
+
+  .module-loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--bg-dark);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state h2 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 32px;
+    margin-bottom: 12px;
+    background: linear-gradient(to bottom right, #fff, #71717a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .empty-state p {
+    color: var(--text-muted);
+    font-size: 16px;
+    max-width: 400px;
+  }
+</style>
+
+<div class="dashboard-layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">D</div>
+      <span class="sidebar-title">Du Hub</span>
+    </div>
+
+    <div class="nav-section">
+      <p class="nav-label">Módulos</p>
+      <div id="module-list">
+        <!-- Modulos dinámicos aquí -->
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar" id="user-initials">DR</div>
+        <div class="user-info">
+          <p class="user-name" id="display-name">Duvan Ramos</p>
+        </div>
+      </div>
+      <button onclick="logout()" class="btn-logout">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        Salir
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="main-header">
+      <h1 class="module-title" id="active-module-title">Bienvenido</h1>
+      <div id="header-actions"></div>
+    </header>
+
+    <div class="iframe-container" id="content-area">
+      <div class="empty-state" id="empty-state">
+        <h2>Hola, <span id="welcome-name">Duvan</span></h2>
+        <p>Selecciona un módulo en la barra lateral para comenzar a trabajar.</p>
+      </div>
+      <div id="module-frame-wrapper" class="hidden" style="height: 100%;">
+        <div id="module-loader" class="module-loader">
+          <div class="spinner"></div>
+          <p style="font-size: 12px; color: var(--text-muted);">Iniciando módulo...</p>
+        </div>
+        <iframe id="module-iframe" class="module-iframe" title="Contenido del Módulo"></iframe>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  window.initDashboard = function() {
+    const user = sessionStorage.getItem('hub_user');
+    const name = sessionStorage.getItem('hub_name');
+
+    if (!user) return;
+
+    // Set UI elements
+    document.getElementById('display-name').textContent = name;
+    document.getElementById('welcome-name').textContent = name.split(' ')[0];
+    document.getElementById('user-initials').textContent = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+
+    // Fetch modules
+    google.script.run
+      .withSuccessHandler(function(data) {
+        if (data.success) {
+          renderModules(data.modulos);
+        } else {
+          console.error('Error al cargar módulos:', data.message);
+        }
+      })
+      .obtenerDatosDashboard(user);
+  };
+
+  function renderModules(modulos) {
+    const container = document.getElementById('module-list');
+    container.innerHTML = '';
+
+    if (modulos.length === 0) {
+      container.innerHTML = '<p style="padding: 10px; font-size: 12px; color: var(--text-muted);">Sin módulos asignados</p>';
+      return;
+    }
+
+    modulos.forEach(mod => {
+      const btn = document.createElement('button');
+      btn.className = 'nav-item';
+      btn.innerHTML = `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>${mod.nombre}</span>
+      `;
+      btn.onclick = () => loadModule(mod.nombre, mod.url, btn);
+      container.appendChild(btn);
+    });
+  }
+
+  function loadModule(nombre, url, btn) {
+    // UI state
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    btn.classList.add('active');
+
+    document.getElementById('empty-state').classList.add('hidden');
+    document.getElementById('module-frame-wrapper').classList.remove('hidden');
+    document.getElementById('module-loader').classList.remove('hidden');
+    document.getElementById('active-module-title').textContent = nombre;
+
+    const iframe = document.getElementById('module-iframe');
+
+    // Set loader to hide on load
+    iframe.onload = function() {
+      document.getElementById('module-loader').classList.add('hidden');
+    };
+
+    iframe.src = url;
+  }
+</script>
