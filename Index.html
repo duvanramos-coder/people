@@ -738,7 +738,6 @@
         if (u.id !== SESSION.id) {
           dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
         }
-
       });
     }
 
@@ -874,8 +873,7 @@ function submitRegistration() {
         const list = document.getElementById('history-list');
         list.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); font-size:13px">No hay registros recientes</p>';
         data.forEach(item => {
-          const status = (item.devuelto || "").toString().trim().toLowerCase();
-          const isDevuelto = status === 'si' || status === 'sí' || status === 'devuelto';
+          const isDevuelto = item.devuelto === 'Si' || item.devuelto === 'Sí';
           list.innerHTML += `
             <div style="padding: 12px 0; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; font-size: 13px;">
               <div>
