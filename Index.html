@@ -10,30 +10,21 @@
       --primary: #312B50;
       --secondary: #BEDC16;
       --accent: #7c69ff;
+      --bg: #f0f2f5;
       --text-dark: #1a1a1a;
       --text-muted: #666;
-      --text-light: #fff;
-      --bg-gradient: radial-gradient(circle at top left, #312B50, #1e1a32);
-      --glass: rgba(255, 255, 255, 0.98);
-      --input-bg: #f8fafc;
-      --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      --glass: rgba(255, 255, 255, 0.95);
+      --shadow: 0 15px 35px rgba(0,0,0,0.1);
+      --success: #28a745;
+      --error: #dc3545;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
-      background: var(--bg-gradient);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      background: var(--bg);
       color: var(--text-dark);
-      padding: 20px;
+      min-height: 100vh;
       overflow-x: hidden;
     }
 
@@ -43,228 +34,336 @@
       border-radius: 50%;
       filter: blur(80px);
       z-index: -1;
-      opacity: 0.4;
+      opacity: 0.3;
     }
-    .orb-1 { width: 400px; height: 400px; background: var(--primary); top: -100px; left: -100px; }
-    .orb-2 { width: 300px; height: 300px; background: var(--secondary); bottom: -50px; right: -50px; }
+    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -200px; left: -100px; }
+    .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; }
 
-    .container {
-      width: 100%;
-      max-width: 480px;
-      animation: fadeIn 0.8s ease-out;
-    }
-
-    .card {
-      background: var(--glass);
-      border-radius: 32px;
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      transition: transform 0.3s ease;
+    /* LOGIN SCREEN */
+    #login-screen {
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* MAIN APP LAYOUT */
+    #main-app {
+      display: none;
     }
 
     .header {
       background: var(--primary);
-      color: var(--text-light);
-      padding: 40px 30px;
-      text-align: center;
-      position: relative;
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
-    .header h1 {
-      font-size: 22px;
+    .header-logo {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-logo .company {
+      font-size: 18px;
       font-weight: 700;
-      letter-spacing: -0.5px;
-      margin-bottom: 8px;
-    }
-
-    .header .company {
-      font-size: 15px;
-      font-weight: 600;
       color: var(--secondary);
-      text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 1px;
     }
 
-    .header .author {
-      font-size: 11px;
-      opacity: 0.6;
-      margin-top: 10px;
-      font-weight: 400;
+    .header-logo .tagline {
+      font-size: 10px;
+      opacity: 0.7;
     }
 
-    .accent-bar {
-      height: 6px;
-      background: linear-gradient(90deg, var(--secondary) 0%, #d4ff00 100%);
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
 
-    .content {
-      padding: 40px;
-    }
-
-    .welcome-text {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .welcome-text h2 {
-      font-size: 20px;
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .form-group {
-      margin-bottom: 24px;
+    .nav-icon {
       position: relative;
+      cursor: pointer;
+      font-size: 20px;
+      transition: transform 0.2s;
     }
 
-    label {
-      display: block;
-      font-size: 14px;
-      font-weight: 600;
+    .nav-icon:hover { transform: scale(1.1); }
+
+    .badge {
+      position: absolute;
+      top: -8px;
+      right: -10px;
+      background: var(--secondary);
       color: var(--primary);
-      margin-bottom: 10px;
-      padding-left: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      border: 2px solid var(--primary);
+      display: none;
     }
 
-    input, select {
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .logout-btn:hover { background: var(--error); border-color: var(--error); }
+
+    /* CONTAINERS */
+    .container {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 0 20px 100px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .card {
+      background: var(--glass);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      padding: 35px;
+      border: 1px solid rgba(255,255,255,0.5);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-group { margin-bottom: 20px; position: relative; }
+    label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; padding-left: 5px; }
+    input, select, textarea {
       width: 100%;
-      padding: 14px 18px;
-      border: 2px solid #edf2f7;
-      border-radius: 16px;
+      padding: 12px 16px;
+      border: 2px solid #e1e8ed;
+      border-radius: 12px;
       font-size: 14px;
       font-family: inherit;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      background: var(--input-bg);
-      color: var(--text-dark);
+      transition: all 0.3s;
+      background: #f8fafc;
     }
-
     input:focus, select:focus {
       outline: none;
       border-color: var(--primary);
       background: white;
-      box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.08);
-      transform: translateY(-1px);
+      box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.05);
     }
 
-    input::placeholder {
-      color: #a0aec0;
-    }
-
-    button {
+    button.primary-btn {
       width: 100%;
-      padding: 16px;
+      padding: 15px;
       background: var(--primary);
       color: white;
       border: none;
-      border-radius: 18px;
-      font-size: 16px;
+      border-radius: 15px;
+      font-size: 15px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      margin-top: 10px;
+      transition: all 0.3s;
       display: flex;
       justify-content: center;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 10px 20px -5px rgba(49, 43, 80, 0.3);
+      gap: 10px;
+      margin-top: 10px;
     }
-
-    button:hover {
-      background: #3d3564;
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 15px 30px -10px rgba(49, 43, 80, 0.4);
-    }
-
-    button:active {
-      transform: translateY(0) scale(0.98);
-    }
-
-    .logout-btn {
-      background: transparent;
-      color: #e53e3e;
-      border: 2px solid #fed7d7;
-      padding: 10px 20px;
-      font-size: 13px;
-      margin: 30px auto 0;
-      width: auto;
-      box-shadow: none;
-    }
-
-    .logout-btn:hover {
-      background: #fff5f5;
-      border-color: #feb2b2;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(229, 62, 62, 0.1);
-    }
+    button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(49, 43, 80, 0.3); }
 
     /* SEARCHABLE DROPDOWN */
-    .search-box {
-      position: relative;
-    }
-
     .search-results {
       position: absolute;
-      top: calc(100% + 8px);
+      top: 100%;
       left: 0;
       right: 0;
       background: white;
-      border-radius: 18px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-      max-height: 250px;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      max-height: 200px;
       overflow-y: auto;
       z-index: 100;
       display: none;
-      border: 1px solid #f0f0f0;
-      animation: dropdownFade 0.3s ease;
+      margin-top: 5px;
     }
+    .search-results div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
+    .search-results div:hover { background: #f8fafc; color: var(--primary); }
 
-    @keyframes dropdownFade {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .search-results div {
-      padding: 14px 20px;
-      cursor: pointer;
+    /* HISTORIAL */
+    .history-list { display: flex; flex-direction: column; gap: 15px; }
+    .history-item {
+      background: white;
+      padding: 15px;
+      border-radius: 16px;
+      border-left: 4px solid var(--secondary);
       font-size: 13px;
-      transition: all 0.2s;
-      border-bottom: 1px solid #f8f9fa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      transition: transform 0.2s;
     }
+    .history-item:hover { transform: translateX(5px); }
+    .history-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-weight: 600; color: var(--primary); }
+    .history-date { font-size: 11px; color: var(--text-muted); }
+    .history-body { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-    .search-results div:last-child {
-      border-bottom: none;
-    }
-
-    .search-results div:hover {
-      background: #f7fafc;
-      color: var(--primary);
-      padding-left: 25px;
-      font-weight: 500;
-    }
-
-    /* LOADER */
-    .spinner {
-      width: 22px;
-      height: 22px;
-      border: 3px solid rgba(255,255,255,0.2);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    /* NOTIFICATIONS DROPDOWN */
+    .notif-dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      width: 300px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+      margin-top: 15px;
       display: none;
+      overflow: hidden;
+    }
+    .notif-header { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; font-weight: 700; font-size: 14px; color: var(--primary); }
+    .notif-body { max-height: 300px; overflow-y: auto; }
+    .notif-item { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 12px; transition: background 0.2s; }
+    .notif-item:hover { background: #f9fafb; }
+    .notif-btn {
+      background: var(--secondary);
+      color: var(--primary);
+      border: none;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 8px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    /* CHAT */
+    .chat-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(49, 43, 80, 0.4);
+      z-index: 2000;
+      transition: all 0.3s;
+    }
+    .chat-btn:hover { transform: scale(1.1) rotate(5deg); }
+
+    .chat-panel {
+      position: fixed;
+      bottom: 100px;
+      right: 30px;
+      width: 350px;
+      height: 500px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      z-index: 2000;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      animation: fadeIn 0.3s;
     }
 
-    /* TOAST */
+    .chat-header {
+      background: var(--primary);
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #f8fafc;
+    }
+
+    .msg {
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 15px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .msg.mine {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 2px;
+    }
+
+    .msg.other {
+      align-self: flex-start;
+      background: white;
+      color: var(--text-dark);
+      border-bottom-left-radius: 2px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .msg-user { font-size: 10px; font-weight: 700; margin-bottom: 4px; display: block; opacity: 0.8; }
+
+    .chat-input {
+      padding: 15px;
+      background: white;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input input { border-radius: 20px; padding: 10px 15px; background: #f1f5f9; border: none; }
+
+    /* UTILS */
+    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
     #toast {
       position: fixed;
       bottom: 40px;
@@ -272,26 +371,14 @@
       transform: translateX(-50%) translateY(100px);
       background: var(--primary);
       color: white;
-      padding: 16px 32px;
-      border-radius: 24px;
-      font-size: 15px;
-      font-weight: 500;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      padding: 12px 25px;
+      border-radius: 30px;
+      font-size: 14px;
       transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      white-space: nowrap;
+      z-index: 3000;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
-
-    #toast.show {
-      transform: translateX(-50%) translateY(0);
-    }
-
-    .toast-icon {
-      font-size: 20px;
-    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
 
     .hidden { display: none; }
   </style>
@@ -301,52 +388,55 @@
 <div class="orb orb-1"></div>
 <div class="orb orb-2"></div>
 
-<div class="container">
-  <!-- LOGIN SCREEN -->
-  <div id="login-screen" class="card">
-    <div class="header">
-      <p class="company">People BPO</p>
-      <h1>Bienvenido</h1>
-      <p class="author">By Duvan Ramos</p>
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="card" style="width: 400px; text-align: center;">
+    <h2 style="color: var(--primary); margin-bottom: 10px;">Bienvenido</h2>
+    <p style="color: var(--secondary); font-weight: 700; letter-spacing: 2px; margin-bottom: 5px;">People BPO</p>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 30px;">By Duvan Ramos</p>
+
+    <div class="form-group" style="text-align: left;">
+      <label>Selecciona tu nombre</label>
+      <select id="login-agente">
+        <option value="">Cargando asesores...</option>
+      </select>
     </div>
-    <div class="accent-bar"></div>
-    <div class="content">
-      <div class="welcome-text">
-        <h2>Inicia Sesión</h2>
-        <p style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Selecciona tu nombre para continuar</p>
+
+    <button class="primary-btn" onclick="login()">Ingresar</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="main-app">
+  <div class="header">
+    <div class="header-logo">
+      <span class="company">People BPO</span>
+      <span class="tagline">By Duvan Ramos</span>
+    </div>
+
+    <div class="header-actions">
+      <div class="nav-icon" onclick="toggleNotif()">
+        🔔 <span id="notif-badge" class="badge">0</span>
+        <div id="notif-dropdown" class="notif-dropdown">
+          <div class="notif-header">Notificaciones</div>
+          <div id="notif-body" class="notif-body">
+            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">No hay notificaciones</div>
+          </div>
+        </div>
       </div>
 
-      <div class="form-group">
-        <label>Asesor</label>
-        <select id="login-agente">
-          <option value="">Seleccione su nombre</option>
-          <option>Angi Johana Banda Montes</option>
-          <option>Slendy Lizzeth Pico Garcia</option>
-          <option>Heillen Tatiana Rincón Lizarazo</option>
-          <option>Juliana Roa Aragonez</option>
-          <option>Stefania Ortega Rodríguez</option>
-          <option>Hadisha Faride Bitar Lerech</option>
-          <option>Bleidis Farides Cabarcas Charris</option>
-          <option>Katherine Sofia Nieto Guerra</option>
-        </select>
+      <div class="user-info">
+        <span id="user-display">Usuario</span>
+        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
       </div>
-
-      <button onclick="login()">
-        <span>Ingresar</span>
-        <div class="spinner"></div>
-      </button>
     </div>
   </div>
 
-  <!-- MAIN FORM SCREEN -->
-  <div id="form-screen" class="card hidden">
-    <div class="header">
-      <p class="company">People BPO</p>
-      <h1 id="user-greeting">Hola, Asesor</h1>
-      <p class="author">By Duvan Ramos</p>
-    </div>
-    <div class="accent-bar"></div>
-    <div class="content">
+  <div class="container">
+    <!-- FORM CARD -->
+    <div class="card">
+      <div class="card-title">📝 Registro de PQRSF</div>
+
       <div class="form-group">
         <label>Número de radicado (PQRSF)</label>
         <input id="radicado" type="text" placeholder="Ej: PQ-12345678">
@@ -354,13 +444,13 @@
 
       <div class="form-group">
         <label>Caso</label>
-        <input id="caso" type="text" placeholder="Escribe el número de caso o motivo">
+        <input id="caso" type="text" placeholder="Número de caso o motivo">
       </div>
 
       <div class="form-group">
         <label>Clasificación</label>
         <div class="search-box">
-          <input id="clasificacion" onkeyup="filterList('clasificacion', 'list-clasificacion')" placeholder="Buscar clasificación..." autocomplete="off">
+          <input id="clasificacion" onkeyup="filterResults('clasificacion', 'list-clasificacion')" placeholder="Buscar clasificación..." autocomplete="off">
           <div id="list-clasificacion" class="search-results"></div>
         </div>
       </div>
@@ -368,25 +458,45 @@
       <div class="form-group">
         <label>Se dirige a</label>
         <div class="search-box">
-          <input id="dirige" onkeyup="filterList('dirige', 'list-dirige')" placeholder="Buscar departamento..." autocomplete="off">
+          <input id="dirige" onkeyup="filterResults('dirige', 'list-dirige')" placeholder="Buscar área..." autocomplete="off">
           <div id="list-dirige" class="search-results"></div>
         </div>
       </div>
 
-      <button id="submit-btn" onclick="registrar()">
+      <button id="submit-btn" class="primary-btn" onclick="registrar()">
         <span id="btn-text">Registrar PQRSF</span>
         <div id="btn-spinner" class="spinner"></div>
       </button>
+    </div>
 
-      <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+    <!-- HISTORY CARD -->
+    <div class="card">
+      <div class="card-title">📜 Mis Registros Recientes</div>
+      <div id="history-list" class="history-list">
+        <div style="text-align: center; color: var(--text-muted); font-size: 13px;">Cargando historial...</div>
+      </div>
     </div>
   </div>
 </div>
 
-<div id="toast">
-  <span id="toast-icon" class="toast-icon"></span>
-  <span id="toast-message"></span>
+<!-- CHAT -->
+<div id="chat-btn" class="chat-btn" onclick="toggleChat()">💬</div>
+<div id="chat-panel" class="chat-panel">
+  <div class="chat-header">
+    <span>Chat Global</span>
+    <span style="cursor: pointer;" onclick="toggleChat()">✕</span>
+  </div>
+  <div id="chat-messages" class="chat-messages"></div>
+  <div class="chat-input">
+    <input id="chat-msg" type="text" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') sendMsg()">
+    <button class="primary-btn" style="width: 50px; margin:0;" onclick="sendMsg()">➤</button>
+  </div>
 </div>
+
+<div id="toast"></div>
+
+<audio id="snd-notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
+<audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3"></audio>
 
 <script>
   const CLASIFICACIONES = [
@@ -421,95 +531,153 @@
   ];
 
   let currentAgent = "";
+  let lastNotifCount = 0;
+  let lastMsgCount = 0;
 
   window.onload = function() {
-    const savedAgent = localStorage.getItem('pqrsf_agent');
-    if (savedAgent) {
-      showForm(savedAgent);
-    }
+    loadAgentes();
+    const saved = localStorage.getItem('pqrsf_agent');
+    if (saved) showApp(saved);
 
-    populateList('list-clasificacion', CLASIFICACIONES, 'clasificacion');
-    populateList('list-dirige', AREAS, 'dirige');
+    populateResults('list-clasificacion', CLASIFICACIONES, 'clasificacion');
+    populateResults('list-dirige', AREAS, 'dirige');
 
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', e => {
       if (!e.target.closest('.search-box')) {
         document.querySelectorAll('.search-results').forEach(el => el.style.display = 'none');
+      }
+      if (!e.target.closest('.nav-icon')) {
+        document.getElementById('notif-dropdown').style.display = 'none';
       }
     });
   };
 
-  function populateList(listId, data, inputId) {
-    const list = document.getElementById(listId);
-    list.innerHTML = "";
-    data.forEach(item => {
-      const div = document.createElement('div');
-      div.textContent = item;
-      div.onclick = function() {
-        document.getElementById(inputId).value = item;
-        list.style.display = 'none';
-      };
-      list.appendChild(div);
-    });
-  }
-
-  function filterList(inputId, listId) {
-    const input = document.getElementById(inputId);
-    const filter = input.value.toLowerCase();
-    const list = document.getElementById(listId);
-    const items = list.getElementsByTagName('div');
-    let hasResults = false;
-
-    if (filter === "") {
-      list.style.display = 'none';
-      return;
-    }
-
-    for (let i = 0; i < items.length; i++) {
-      const txtValue = items[i].textContent || items[i].innerText;
-      if (txtValue.toLowerCase().indexOf(filter) > -1) {
-        items[i].style.display = "";
-        hasResults = true;
-      } else {
-        items[i].style.display = "none";
-      }
-    }
-    list.style.display = hasResults ? 'block' : 'none';
+  function loadAgentes() {
+    google.script.run.withSuccessHandler(list => {
+      const sel = document.getElementById('login-agente');
+      sel.innerHTML = '<option value="">Seleccione...</option>';
+      list.forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = name; opt.textContent = name;
+        sel.appendChild(opt);
+      });
+    }).getAgentes();
   }
 
   function login() {
-    const agente = document.getElementById('login-agente').value;
-    if (!agente) {
-      showToast('⚠️ Selecciona tu nombre', 'error');
-      return;
-    }
-    localStorage.setItem('pqrsf_agent', agente);
-    showForm(agente);
+    const name = document.getElementById('login-agente').value;
+    if (!name) return showToast('Selecciona tu nombre', 'error');
+    localStorage.setItem('pqrsf_agent', name);
+    showApp(name);
   }
 
   function logout() {
     localStorage.removeItem('pqrsf_agent');
-    document.getElementById('form-screen').classList.add('hidden');
-    document.getElementById('login-screen').classList.remove('hidden');
-    document.getElementById('login-agente').value = "";
+    location.reload();
   }
 
-  function showForm(agente) {
-    currentAgent = agente;
-    document.getElementById('user-greeting').textContent = 'Hola, ' + agente.split(' ')[0];
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('form-screen').classList.remove('hidden');
+  function showApp(name) {
+    currentAgent = name;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'block';
+    document.getElementById('user-display').textContent = name.split(' ')[0];
+
+    loadHistory();
+    startPolling();
   }
 
-  function showToast(message, type = 'success') {
-    const toast = document.getElementById('toast');
-    const icon = document.getElementById('toast-icon');
-    const msg = document.getElementById('toast-message');
+  function startPolling() {
+    fetchNotifs();
+    fetchMessages();
+    setInterval(fetchNotifs, 10000);
+    setInterval(fetchMessages, 4000);
+  }
 
-    icon.textContent = type === 'success' ? '✨' : '⚠️';
-    msg.textContent = message;
+  function fetchNotifs() {
+    google.script.run.withSuccessHandler(list => {
+      const badge = document.getElementById('notif-badge');
+      const body = document.getElementById('notif-body');
 
-    toast.className = 'show';
-    setTimeout(() => { toast.className = ''; }, 4000);
+      if (list.length > lastNotifCount) document.getElementById('snd-notif').play();
+      lastNotifCount = list.length;
+
+      badge.textContent = list.length;
+      badge.style.display = list.length > 0 ? 'block' : 'none';
+
+      if (list.length === 0) {
+        body.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">Sin pendientes</div>';
+        return;
+      }
+
+      body.innerHTML = list.map(n => `
+        <div class="notif-item">
+          <div style="font-weight:700; color:var(--primary)">Radicado: ${n.radicado}</div>
+          <div style="margin-top:4px">${n.mensaje}</div>
+          <button class="notif-btn" onclick="marcarLeida(${n.id})">Marcar Recibido</button>
+        </div>
+      `).join('');
+    }).getNotificaciones(currentAgent);
+  }
+
+  function marcarLeida(id) {
+    google.script.run.withSuccessHandler(() => fetchNotifs()).marcarNotificacionRecibida(id);
+  }
+
+  function fetchMessages() {
+    google.script.run.withSuccessHandler(list => {
+      const container = document.getElementById('chat-messages');
+      const isNew = list.length > lastMsgCount;
+
+      if (isNew) {
+        const lastMsg = list[list.length - 1];
+        if (lastMsg.usuario !== currentAgent) document.getElementById('snd-msg').play();
+      }
+
+      lastMsgCount = list.length;
+
+      const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 50;
+
+      container.innerHTML = list.map(m => `
+        <div class="msg ${m.usuario === currentAgent ? 'mine' : 'other'}">
+          <span class="msg-user">${m.usuario === currentAgent ? 'Tú' : m.usuario.split(' ')[0]}</span>
+          ${m.mensaje}
+        </div>
+      `).join('');
+
+      if (isNew && wasAtBottom) container.scrollTop = container.scrollHeight;
+    }).getMensajes(currentAgent);
+  }
+
+  function sendMsg() {
+    const inp = document.getElementById('chat-msg');
+    const txt = inp.value.trim();
+    if (!txt) return;
+    inp.value = "";
+    google.script.run.withSuccessHandler(() => fetchMessages()).enviarMensaje({
+      usuario: currentAgent,
+      mensaje: txt,
+      destinatario: "TODOS"
+    });
+  }
+
+  function loadHistory() {
+    google.script.run.withSuccessHandler(list => {
+      const container = document.getElementById('history-list');
+      if (list.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No tienes registros aún</div>';
+        return;
+      }
+      container.innerHTML = list.map(h => `
+        <div class="history-item">
+          <div class="history-header">
+            <span>${h.radicado}</span>
+            <span class="history-date">${new Date(h.fecha).toLocaleDateString()}</span>
+          </div>
+          <div class="history-body">${h.clasificacion}</div>
+          <div style="font-size:11px; color:#999; margin-top:3px">${h.caso}</div>
+        </div>
+      `).join('');
+    }).getHistorial(currentAgent);
   }
 
   function registrar() {
@@ -518,49 +686,79 @@
     const clasificacion = document.getElementById('clasificacion').value;
     const dirige = document.getElementById('dirige').value;
 
-    if (!radicado || !caso || !clasificacion || !dirige) {
-      showToast('⚠️ Completa todos los campos', 'error');
-      return;
-    }
+    if (!radicado || !caso || !clasificacion || !dirige) return showToast('Completa todos los campos', 'error');
 
     const btn = document.getElementById('submit-btn');
-    const btnText = document.getElementById('btn-text');
-    const spinner = document.getElementById('btn-spinner');
+    const text = document.getElementById('btn-text');
+    const spin = document.getElementById('btn-spinner');
 
-    btn.disabled = true;
-    btnText.style.opacity = '0.5';
-    spinner.style.display = 'block';
+    btn.disabled = true; text.style.opacity = '0.5'; spin.style.display = 'block';
 
-    const data = {
-      agente: currentAgent,
-      radicado: radicado,
-      caso: caso,
-      clasificacion: clasificacion,
-      dirige: dirige
-    };
-
-    google.script.run.withSuccessHandler(function(res) {
-      btn.disabled = false;
-      btnText.style.opacity = '1';
-      spinner.style.display = 'none';
-
-      if (res.estado === "ok") {
-        showToast('¡Registro completado con éxito!');
+    google.script.run.withSuccessHandler(res => {
+      btn.disabled = false; text.style.opacity = '1'; spin.style.display = 'none';
+      if (res.estado === 'ok') {
+        showToast('✅ Registro exitoso');
         document.getElementById('radicado').value = "";
         document.getElementById('caso').value = "";
         document.getElementById('clasificacion').value = "";
         document.getElementById('dirige').value = "";
-      } else if (res.estado === "duplicado") {
-        showToast('Ya registrado por ' + res.agente, 'error');
+        loadHistory();
       } else {
-        showToast('Error en el servidor', 'error');
+        showToast('⚠️ Duplicado por: ' + res.agente, 'error');
       }
-    }).withFailureHandler(function() {
-      btn.disabled = false;
-      btnText.style.opacity = '1';
-      spinner.style.display = 'none';
-      showToast('Error de conexión', 'error');
-    }).guardarPQRSF(data);
+    }).guardarPQRSF({
+      agente: currentAgent,
+      radicado, caso, clasificacion, dirige
+    });
+  }
+
+  function filterResults(inputId, listId) {
+    const filter = document.getElementById(inputId).value.toLowerCase();
+    const list = document.getElementById(listId);
+    const divs = list.getElementsByTagName('div');
+    let found = false;
+
+    if (!filter) { list.style.display = 'none'; return; }
+
+    for (let d of divs) {
+      if (d.textContent.toLowerCase().includes(filter)) {
+        d.style.display = 'block'; found = true;
+      } else d.style.display = 'none';
+    }
+    list.style.display = found ? 'block' : 'none';
+  }
+
+  function populateResults(listId, data, inputId) {
+    const list = document.getElementById(listId);
+    list.innerHTML = data.map(item => `<div>${item}</div>`).join('');
+    for (let div of list.children) {
+      div.onclick = () => {
+        document.getElementById(inputId).value = div.textContent;
+        list.style.display = 'none';
+      };
+    }
+  }
+
+  function toggleNotif() {
+    const d = document.getElementById('notif-dropdown');
+    d.style.display = d.style.display === 'block' ? 'none' : 'block';
+  }
+
+  function toggleChat() {
+    const p = document.getElementById('chat-panel');
+    p.style.display = p.style.display === 'flex' ? 'none' : 'flex';
+    if (p.style.display === 'flex') {
+      const msgDiv = document.getElementById('chat-messages');
+      msgDiv.scrollTop = msgDiv.scrollHeight;
+    }
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = type === 'success' ? 'var(--primary)' : 'var(--error)';
+    t.className = 'show';
+    setTimeout(() => t.className = '', 3000);
   }
 </script>
 
