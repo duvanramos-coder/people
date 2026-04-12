@@ -13,6 +13,28 @@ function doGet() {
 /**
  * Valida credenciales contra la hoja ASESORES.
  */
+/**
+ * Obtiene la lista de usuarios (asesores) para el login y destinatarios.
+ */
+function obtenerUsuarios() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sh = ss.getSheetByName('ASESORES');
+    if (!sh) return [];
+    const data = sh.getDataRange().getValues();
+    const usuarios = [];
+    for (let i = 1; i < data.length; i++) {
+      usuarios.push({
+        id: data[i][0],
+        nombre: data[i][4]
+      });
+    }
+    return usuarios;
+  } catch (e) {
+    return [];
+  }
+}
+
 function login(usuario, password) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);

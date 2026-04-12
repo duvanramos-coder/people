@@ -7,20 +7,20 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      /* Palette inspired by Linear / Meta / Stripe */
-      --primary: #312B50;
-      --secondary: #BEDC16;
+      /* Refined Corporate Palette */
+      --primary: #2E294E;
+      --secondary: #C6E20E;
       --bg: #0C0B12;
-      --card-bg: rgba(255, 255, 255, 0.04);
+      --card-bg: rgba(46, 41, 78, 0.4);
       --card-border: rgba(255, 255, 255, 0.08);
       --text-main: #FFFFFF;
-      --text-muted: #8A898E;
-      --accent: #BEDC16;
+      --text-muted: #A0A0A5;
+      --accent: #C6E20E;
       --error: #FF4D4D;
       --success: #10B981;
       --sidebar-w: 260px;
-      --radius: 12px;
-      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      --radius: 16px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
@@ -158,6 +158,7 @@
     .nav-item {
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 12px 16px;
       border-radius: var(--radius);
       color: var(--text-muted);
@@ -166,6 +167,7 @@
       transition: var(--transition);
       font-weight: 500;
       font-size: 14px;
+      position: relative;
     }
 
     .nav-item.active {
@@ -202,18 +204,37 @@
       color: var(--accent);
     }
 
+    .badge {
+      background: var(--secondary);
+      color: var(--primary);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+      display: none;
+    }
+
+    .badge.active {
+      display: inline-block;
+    }
+
     .main-content {
       flex: 1;
       overflow-y: auto;
       background: var(--bg);
-      padding: 40px;
+      padding: 60px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     .view {
       display: none;
-      animation: slideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-      max-width: 1200px;
-      margin: 0 auto;
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      width: 100%;
+      max-width: 1000px;
     }
 
     .view.active {
@@ -226,12 +247,15 @@
       font-weight: 700;
       margin-bottom: 40px;
       letter-spacing: -1px;
+      text-align: center;
+      width: 100%;
     }
 
     .grid-dashboard {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
       gap: 24px;
+      width: 100%;
     }
 
     .card {
@@ -270,6 +294,7 @@
     /* --- FORM STYLES --- */
     .form-section {
       max-width: 600px;
+      margin: 0 auto;
     }
 
     .form-group {
@@ -416,6 +441,9 @@
 </head>
 <body>
 
+  <!-- NOTIFICATION SOUND -->
+  <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
   <!-- TOAST NOTIFICATION -->
   <div id="toast">Operación exitosa</div>
 
@@ -428,15 +456,15 @@
 
       <div class="login-field">
         <label>Usuario</label>
-        <input type="text" id="login-user" class="input-login" placeholder="ej: dramos">
+        <select id="login-user" class="input-login">
+          <option value="">Selecciona tu usuario...</option>
+          <option value="J.MENDOZA382">J.MENDOZA382</option>
+          <option value="L.BUITRAGO104">L.BUITRAGO104</option>
+          <option value="M.ARAGONES300">M.ARAGONES300</option>
+        </select>
       </div>
 
-      <div class="login-field">
-        <label>Contraseña</label>
-        <input type="password" id="login-pass" class="input-login" placeholder="••••••••">
-      </div>
-
-      <button class="btn-login" onclick="handleLogin()">Ingresar</button>
+      <button class="btn-login" style="margin-top: 20px;" onclick="handleLogin()">Ingresar al Sistema</button>
 
       <div style="margin-top: 40px; font-size: 11px; color: var(--text-muted); opacity: 0.5">
         By Duvan Ramos · 2026
@@ -463,9 +491,11 @@
         </div>
         <div class="nav-item" onclick="switchView('notifications', this)">
           <span>Notificaciones</span>
+          <span id="badge-notif" class="badge">0</span>
         </div>
         <div class="nav-item" onclick="switchView('chat', this)">
           <span>Canal de Chat</span>
+          <span id="badge-chat" class="badge">0</span>
         </div>
       </nav>
 
@@ -595,6 +625,16 @@
     let SESSION = null;
     let POLLING_CHAT = null;
     let POLLING_NOTIF = null;
+    let LAST_CHAT_COUNT = 0;
+    let LAST_NOTIF_COUNT = 0;
+
+    function playAlert() {
+      const sound = document.getElementById('alert-sound');
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Interacción requerida para audio"));
+      }
+    }
 
     // --- INIT ---
     window.onload = () => {
@@ -606,14 +646,30 @@
     };
 
     function startApp() {
-      document.getElementById('login-view').style.display = 'none';
-      document.getElementById('app').style.display = 'flex';
+      document.getElementById('login-view').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
 
-      document.getElementById('user-name').innerText = SESSION.nombre;
-      document.getElementById('user-avatar').innerText = SESSION.nombre.split(' ').map(n => n[0]).join('');
+        document.getElementById('user-name').innerText = SESSION.nombre;
+        // Set avatar initial
+        document.getElementById('user-avatar').innerText = SESSION.nombre[0];
 
-      refreshDashboard();
-      initPolls();
+        refreshDashboard();
+        initPolls();
+        setupChatDestinations();
+      }, 300);
+    }
+
+    function setupChatDestinations() {
+      const users = ["J.MENDOZA382", "L.BUITRAGO104", "M.ARAGONES300"];
+      const dest = document.getElementById('chat-dest');
+      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
+      users.forEach(u => {
+        if (u !== SESSION.nombre) {
+          dest.innerHTML += `<option value="${u}">${u}</option>`;
+        }
+      });
     }
 
     function initPolls() {
@@ -636,26 +692,27 @@
       el.classList.add('active');
 
       if (viewId === 'dashboard') refreshDashboard();
+
+      // Reset badges on click
+      if (viewId === 'notifications') {
+        document.getElementById('badge-notif').classList.remove('active');
+        // We don't reset LAST_NOTIF_COUNT because it's for total comparison
+      }
+      if (viewId === 'chat') {
+        document.getElementById('badge-chat').classList.remove('active');
+      }
     }
 
     // --- CORE LOGIC ---
     function handleLogin() {
       const u = document.getElementById('login-user').value;
-      const p = document.getElementById('login-pass').value;
 
-      if (!u || !p) return showToast('Completa los campos', 'error');
+      if (!u) return showToast('Selecciona tu usuario', 'error');
 
-      google.script.run
-        .withSuccessHandler(res => {
-          if (res.success) {
-            SESSION = res.user;
-            localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
-            startApp();
-          } else {
-            showToast(res.message, 'error');
-          }
-        })
-        .login(u, p);
+      SESSION = { nombre: u, id: u };
+      localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
+      startApp();
+      showToast('Sesión iniciada correctamente');
     }
 
     function logout() {
@@ -763,6 +820,18 @@
 
     function refreshNotifs() {
       google.script.run.withSuccessHandler(data => {
+        const badge = document.getElementById('badge-notif');
+        const activeView = document.querySelector('.view.active').id;
+
+        if (data.length > LAST_NOTIF_COUNT && LAST_NOTIF_COUNT !== 0) {
+          playAlert();
+          if (activeView !== 'view-notifications') {
+            badge.innerText = data.length;
+            badge.classList.add('active');
+          }
+        }
+        LAST_NOTIF_COUNT = data.length;
+
         const list = document.getElementById('notifications-list');
         list.innerHTML = data.length ? '' : '<div class="card" style="color:var(--text-muted)">No tienes notificaciones pendientes.</div>';
         data.forEach(notif => {
@@ -788,6 +857,19 @@
 
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
+        const badge = document.getElementById('badge-chat');
+        const activeView = document.querySelector('.view.active').id;
+
+        if (data.length > LAST_CHAT_COUNT && LAST_CHAT_COUNT !== 0) {
+          playAlert();
+          if (activeView !== 'view-chat') {
+            const diff = data.length - LAST_CHAT_COUNT;
+            badge.innerText = diff;
+            badge.classList.add('active');
+          }
+        }
+        LAST_CHAT_COUNT = data.length;
+
         const box = document.getElementById('chat-messages');
         const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
 
