@@ -334,8 +334,19 @@
       background: rgba(255,255,255,0.06);
     }
 
+    select.input-login, select.input-main {
+      color: white;
+      background-color: rgba(255,255,255,0.05);
+    }
+
     select option {
-      background: #1A1A1D;
+      background-color: #1A1A1D;
+      color: white;
+    }
+
+    /* Target specific dropdowns for better visibility */
+    #login-user option, #chat-dest option {
+      background-color: #1A1A1D;
       color: white;
     }
 
@@ -471,14 +482,16 @@
       <div class="login-field">
         <label>Usuario</label>
         <select id="login-user" class="input-login">
-          <option value="">Selecciona tu usuario...</option>
-          <option value="J.MENDOZA382">J.MENDOZA382</option>
-          <option value="L.BUITRAGO104">L.BUITRAGO104</option>
-          <option value="M.ARAGONES300">M.ARAGONES300</option>
+          <option value="">Cargando usuarios...</option>
         </select>
       </div>
 
-      <button class="btn-login" style="margin-top: 20px;" onclick="handleLogin()">Ingresar al Sistema</button>
+      <div class="login-field">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" class="input-login" placeholder="••••••••">
+      </div>
+
+      <button class="btn-login" style="margin-top: 20px;" id="btn-login-action" onclick="handleLogin()">Ingresar al Sistema</button>
 
       <div style="margin-top: 40px; font-size: 11px; color: var(--text-muted); opacity: 0.5">
         By Duvan Ramos · 2026
@@ -505,9 +518,6 @@
         </div>
         <div class="nav-item" onclick="switchView('search', this)">
           <span>Búsqueda</span>
-        </div>
-        <div class="nav-item" onclick="switchView('conmutador', this)">
-          <span>Conmutador</span>
         </div>
         <div class="nav-item" onclick="switchView('notifications', this)">
           <span>Notificaciones</span>
@@ -659,13 +669,6 @@
         </div>
       </section>
 
-      <!-- VIEW: CONMUTADOR -->
-      <section id="view-conmutador" class="view" style="height: calc(100vh - 120px); max-width: 100%; display: flex; flex-direction: column;">
-        <h1 class="view-title" style="margin-bottom: 20px; flex-shrink: 0;">Conmutador</h1>
-        <iframe src="https://script.google.com/a/macros/peoplebpo.com/s/AKfycbyrph0WVMoVcKN8rmLyuoKJtThbW0S47QgaEnM8nS9gunPe6ByEXZ6kA1LV-I0Q9fGm/exec"
-                style="width: 100%; flex-grow: 1; border: none; border-radius: var(--radius); background: white;"></iframe>
-      </section>
-
     </main>
   </div>
 
@@ -686,12 +689,26 @@
 
     // --- INIT ---
     window.onload = () => {
+      loadUsers();
       const saved = localStorage.getItem('pbpo_session');
       if (saved) {
         SESSION = JSON.parse(saved);
         startApp();
       }
     };
+
+    function loadUsers() {
+      google.script.run.withSuccessHandler(users => {
+        const select = document.getElementById('login-user');
+        select.innerHTML = '<option value="">Selecciona tu usuario...</option>';
+        users.forEach(u => {
+          select.innerHTML += `<option value="${u.id}">${u.id} - ${u.nombre}</option>`;
+        });
+
+        // If logged in, update chat destinations if needed
+        if (SESSION) setupChatDestinations(users);
+      }).obtenerUsuarios();
+    }
 
     function startApp() {
       document.getElementById('login-view').style.opacity = '0';
@@ -709,13 +726,16 @@
       }, 300);
     }
 
-    function setupChatDestinations() {
-      const users = ["J.MENDOZA382", "L.BUITRAGO104", "M.ARAGONES300"];
+    function setupChatDestinations(usersList) {
+      if (!usersList) {
+        google.script.run.withSuccessHandler(list => setupChatDestinations(list)).obtenerUsuarios();
+        return;
+      }
       const dest = document.getElementById('chat-dest');
       dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
-      users.forEach(u => {
-        if (u !== SESSION.nombre) {
-          dest.innerHTML += `<option value="${u}">${u}</option>`;
+      usersList.forEach(u => {
+        if (u.id !== SESSION.id) {
+          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
         }
       });
     }
@@ -754,13 +774,34 @@
     // --- CORE LOGIC ---
     function handleLogin() {
       const u = document.getElementById('login-user').value;
+      const p = document.getElementById('login-pass').value;
 
-      if (!u) return showToast('Selecciona tu usuario', 'error');
+      if (!u || !p) return showToast('Usuario y contraseña requeridos', 'error');
 
-      SESSION = { nombre: u, id: u };
-      localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
-      startApp();
-      showToast('Sesión iniciada correctamente');
+      const btn = document.getElementById('btn-login-action');
+      btn.disabled = true;
+      btn.innerText = 'Verificando...';
+
+      google.script.run
+        .withSuccessHandler(res => {
+          btn.disabled = false;
+          btn.innerText = 'Ingresar al Sistema';
+
+          if (res.success) {
+            SESSION = res.user;
+            localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
+            startApp();
+            showToast('Sesión iniciada correctamente');
+          } else {
+            showToast(res.message, 'error');
+          }
+        })
+        .withFailureHandler(err => {
+          btn.disabled = false;
+          btn.innerText = 'Ingresar al Sistema';
+          showToast(err.message, 'error');
+        })
+        .login(u, p);
     }
 
     function logout() {
@@ -832,7 +873,7 @@
                 <span style="font-weight: 600;">${item.radicado}</span>
                 <div style="font-size: 11px; color: var(--text-muted)">${item.fecha}</div>
               </div>
-              <div style="color: ${item.devuelto === 'Sí' ? 'var(--error)' : 'var(--success)'}">${item.devuelto === 'Sí' ? 'Devuelto' : 'Efectivo'}</div>
+              <div style="color: ${item.devuelto === 'Sí' ? 'var(--error)' : 'var(--success)'}">${item.devuelto === 'Sí' ? 'Devuelto' : 'Exitoso'}</div>
             </div>
           `;
         });
@@ -918,10 +959,11 @@
           playAlert();
         }
 
-        if (data.length > 0 && activeView !== 'view-notifications') {
+        // Show badge if there are any pending notifications
+        if (data.length > 0) {
           badge.innerText = data.length;
           badge.classList.add('active');
-        } else if (data.length === 0 || activeView === 'view-notifications') {
+        } else {
           badge.classList.remove('active');
         }
 
@@ -959,15 +1001,17 @@
           playAlert();
         }
 
-        if (activeView !== 'view-chat') {
-          const unread = data.length - LAST_CHAT_COUNT;
-          if (unread > 0) {
-            badge.innerText = unread;
-            badge.classList.add('active');
-          }
+        const unread = data.length - LAST_CHAT_COUNT;
+        if (unread > 0) {
+          badge.innerText = unread;
+          badge.classList.add('active');
         } else {
-           badge.classList.remove('active');
+          badge.classList.remove('active');
+        }
+
+        if (activeView === 'view-chat') {
            LAST_CHAT_COUNT = data.length;
+           badge.classList.remove('active');
         }
 
         const box = document.getElementById('chat-messages');
