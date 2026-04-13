@@ -72,27 +72,40 @@ function formatDate(date) {
 }
 
 function getAgentes() {
+  const defaultNames = [
+    "Angi Johana Banda Montes",
+    "Slendy Lizzeth Pico Garcia",
+    "Heillen Tatiana Rincón Lizarazo",
+    "Juliana Roa Aragonez",
+    "Stefania Ortega Rodríguez",
+    "Hadisha Faride Bitar Lerech",
+    "Bleidis Farides Cabarcas Charris",
+    "Katherine Sofia Nieto Guerra"
+  ];
+
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-    let sheet = ss.getSheetByName(CONFIG.SHEETS.AGENTES);
-    if (!sheet) sheet = ss.getSheetByName("Agentes"); // Fallback
-    if (!sheet) return [];
+    let sheet = ss.getSheetByName(CONFIG.SHEETS.AGENTES) || ss.getSheetByName("Agentes");
+
+    if (!sheet) return defaultNames.sort();
 
     const lastRow = sheet.getLastRow();
-    if (lastRow < 2) return [];
+    if (lastRow < 2) return defaultNames.sort();
 
-    // Attempt Column B (2) first as per memory, then Column E (5)
     let data;
+    // USUARIOS sheet usually has names in Column B (2), Agentes usually in Column E (5)
     if (sheet.getName() === "USUARIOS") {
       data = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
     } else {
       data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
     }
 
-    return [...new Set(data.map(row => row[0]).filter(name => name && name.trim() !== ""))].sort();
+    const sheetNames = data.map(row => row[0]).filter(name => name && name.trim() !== "");
+
+    return sheetNames.length > 0 ? [...new Set(sheetNames)].sort() : defaultNames.sort();
   } catch(e) {
-    console.log("Error en getAgentes: " + e.message);
-    return [];
+    console.warn("getAgentes using defaults: " + e.message);
+    return defaultNames.sort();
   }
 }
 
