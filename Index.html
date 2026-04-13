@@ -3,209 +3,297 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>REGISTRA TU PQRSF REALIZADO</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>PRO DASHBOARD — PEOPLE BPO</title>
+  <!-- Google Fonts: Inter & Montserrat for high-end feel -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     :root {
-      --primary: #312B50;
-      --secondary: #BEDC16;
-      --accent: #7c69ff;
-      --bg: #f0f2f5;
-      --text-dark: #1a1a1a;
-      --text-muted: #666;
-      --glass: rgba(255, 255, 255, 0.95);
-      --shadow: 0 15px 35px rgba(0,0,0,0.1);
-      --success: #28a745;
-      --error: #dc3545;
+      --brand-purple: #312B50;
+      --brand-lime: #BEDC16;
+      --brand-lime-hover: #acc814;
+      --bg-main: #f0f2f5;
+      --bg-card: #ffffff;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --radius-lg: 24px;
+      --radius-md: 16px;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-main);
       color: var(--text-dark);
       min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* BACKGROUND ORBS */
-    .orb {
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      z-index: -1;
-      opacity: 0.3;
-    }
-    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -200px; left: -100px; }
-    .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; }
-
-    /* LOGIN SCREEN */
-    #login-screen {
-      height: 100vh;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
+      overflow: hidden;
     }
 
-    /* MAIN APP LAYOUT */
+    /* GLASSMORPHISM BACKGROUND */
+    .bg-blobs {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      filter: blur(100px);
+      opacity: 0.4;
+    }
+    .blob { position: absolute; border-radius: 50%; }
+    .blob-1 { width: 500px; height: 500px; background: var(--brand-purple); top: -100px; left: -100px; }
+    .blob-2 { width: 400px; height: 400px; background: var(--brand-lime); bottom: -100px; right: -100px; }
+
+    /* LOGIN EXPERIENCE */
+    #login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: var(--brand-purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .login-box {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 56px;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 480px;
+      text-align: center;
+      box-shadow: var(--shadow-xl);
+      animation: entrance 0.8s ease-out;
+    }
+
+    @keyframes entrance {
+      from { opacity: 0; transform: scale(0.9) translateY(20px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* MAIN APP STRUCTURE */
     #main-app {
       display: none;
+      width: 100%;
+      height: 100vh;
+      display: flex;
     }
 
-    .header {
-      background: var(--primary);
+    /* SIDEBAR REDESIGN */
+    .sidebar {
+      width: 300px;
+      background: var(--brand-purple);
+      display: flex;
+      flex-direction: column;
+      padding: 40px 24px;
       color: white;
-      padding: 15px 30px;
+      box-shadow: 10px 0 30px rgba(0,0,0,0.1);
+      z-index: 100;
+    }
+
+    .sidebar-header {
+      margin-bottom: 56px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .brand-logo {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-dot { width: 12px; height: 12px; background: var(--brand-lime); border-radius: 50%; box-shadow: 0 0 15px var(--brand-lime); }
+
+    .nav-group { flex: 1; }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-bottom: 8px;
+      color: rgba(255,255,255,0.6);
+      font-weight: 600;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.05); color: white; }
+    .nav-btn.active { background: white; color: var(--brand-purple); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+
+    /* CONTENT AREA */
+    .viewport {
+      flex: 1;
+      height: 100vh;
+      overflow-y: auto;
+      padding: 56px;
+      background: transparent;
+      position: relative;
+    }
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 56px;
     }
 
-    .header-logo {
-      display: flex;
-      flex-direction: column;
+    .welcome-text h2 { font-size: 32px; font-weight: 800; letter-spacing: -1px; margin-bottom: 4px; }
+    .welcome-text p { color: var(--text-muted); font-weight: 500; }
+
+    /* REORGANIZED FORM GRID */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 40px;
+      align-items: start;
     }
 
-    .header-logo .company {
+    @media (max-width: 1280px) {
+      .dashboard-layout { grid-template-columns: 1fr; }
+    }
+
+    .feature-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .section-title {
       font-size: 18px;
       font-weight: 700;
-      color: var(--secondary);
-      letter-spacing: 1px;
-    }
-
-    .header-logo .tagline {
-      font-size: 10px;
-      opacity: 0.7;
-    }
-
-    .header-actions {
+      margin-bottom: 32px;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 12px;
     }
 
-    .nav-icon {
-      position: relative;
-      cursor: pointer;
-      font-size: 20px;
-      transition: transform 0.2s;
-    }
+    /* ELITE FORM FIELDS */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
 
-    .nav-icon:hover { transform: scale(1.1); }
+    .input-wrapper { position: relative; }
+    .input-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
 
-    .badge {
-      position: absolute;
-      top: -8px;
-      right: -10px;
-      background: var(--secondary);
-      color: var(--primary);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 6px;
-      border-radius: 10px;
-      border: 2px solid var(--primary);
-      display: none;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .logout-btn {
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .logout-btn:hover { background: var(--error); border-color: var(--error); }
-
-    /* CONTAINERS */
-    .container {
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 0 20px 100px;
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
-    }
-
-    .card {
-      background: var(--glass);
-      border-radius: 24px;
-      box-shadow: var(--shadow);
-      padding: 35px;
-      border: 1px solid rgba(255,255,255,0.5);
-      animation: slideUp 0.6s ease-out;
-    }
-
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(30px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .card-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 25px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .form-group { margin-bottom: 20px; position: relative; }
-    label { display: block; font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; padding-left: 5px; }
-    input, select, textarea {
+    .custom-input {
       width: 100%;
-      padding: 12px 16px;
-      border: 2px solid #e1e8ed;
-      border-radius: 12px;
-      font-size: 14px;
-      font-family: inherit;
-      transition: all 0.3s;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      border: 2px solid #f1f5f9;
       background: #f8fafc;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      transition: all 0.3s;
     }
-    input:focus, select:focus {
+    .custom-input:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--brand-purple);
       background: white;
-      box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.05);
+      box-shadow: 0 0 0 5px rgba(49, 43, 80, 0.05);
     }
 
-    button.primary-btn {
-      width: 100%;
-      padding: 15px;
-      background: var(--primary);
+    /* ACTION BUTTONS */
+    .primary-btn {
+      background: var(--brand-purple);
       color: white;
       border: none;
-      border-radius: 15px;
-      font-size: 15px;
-      font-weight: 600;
+      padding: 20px 32px;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
-      transition: all 0.3s;
       display: flex;
-      justify-content: center;
       align-items: center;
-      gap: 10px;
-      margin-top: 10px;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      width: 100%;
     }
-    button.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(49, 43, 80, 0.3); }
+    .primary-btn:hover { transform: scale(1.02); box-shadow: 0 15px 30px rgba(49, 43, 80, 0.3); }
+    .primary-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-    /* SEARCHABLE DROPDOWN */
+    /* SIDE PANEL WIDGETS */
+    .widget {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      border-bottom: 1px solid #f1f5f9;
+      transition: background 0.2s;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item:hover { background: #f8fafc; border-radius: 12px; }
+
+    .h-tag { background: var(--brand-lime); color: var(--brand-purple); padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; }
+
+    /* TOAST SYSTEM */
+    #toast {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      z-index: 10000;
+      background: var(--brand-purple);
+      color: white;
+      padding: 20px 32px;
+      border-radius: var(--radius-md);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-weight: 600;
+      transform: translateY(200%);
+      transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    }
+    #toast.active { transform: translateY(0); }
+
+    /* OVERLAYS */
+    .overlay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      bottom: 20px;
+      width: 440px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: -20px 0 60px rgba(0,0,0,0.1);
+      z-index: 5000;
+      display: none;
+      flex-direction: column;
+      border: 1px solid var(--border-color);
+      animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideIn { from { transform: translateX(120%); } to { transform: translateX(0); } }
+
+    .overlay-header { padding: 32px; background: var(--brand-purple); color: white; display: flex; justify-content: space-between; align-items: center; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+    .overlay-body { flex: 1; overflow-y: auto; padding: 32px; background: #f8fafc; }
+
+    /* DROPDOWNS */
     .search-results {
       position: absolute;
       top: 100%;
@@ -213,311 +301,225 @@
       right: 0;
       background: white;
       border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      max-height: 200px;
-      overflow-y: auto;
-      z-index: 100;
-      display: none;
-      margin-top: 5px;
-    }
-    .search-results div { padding: 10px 15px; cursor: pointer; font-size: 13px; border-bottom: 1px solid #f1f5f9; }
-    .search-results div:hover { background: #f8fafc; color: var(--primary); }
-
-    /* HISTORIAL */
-    .history-list { display: flex; flex-direction: column; gap: 15px; }
-    .history-item {
-      background: white;
-      padding: 15px;
-      border-radius: 16px;
-      border-left: 4px solid var(--secondary);
-      font-size: 13px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-      transition: transform 0.2s;
-    }
-    .history-item:hover { transform: translateX(5px); }
-    .history-header { display: flex; justify-content: space-between; font-weight: 600; color: var(--primary); }
-    .history-date { font-size: 11px; color: var(--text-muted); }
-
-    /* NOTIFICATIONS DROPDOWN */
-    .notif-dropdown {
-      position: absolute;
-      top: 100%;
-      right: 0;
-      width: 300px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-      margin-top: 15px;
-      display: none;
-      overflow: hidden;
-    }
-    .notif-header { padding: 15px; background: #f8fafc; border-bottom: 1px solid #eee; font-weight: 700; font-size: 14px; color: var(--primary); }
-    .notif-body { max-height: 300px; overflow-y: auto; }
-    .notif-item { padding: 15px; border-bottom: 1px solid #f1f5f9; font-size: 12px; transition: background 0.2s; color: var(--text-dark); }
-    .notif-item:hover { background: #f9fafb; }
-    .notif-btn {
-      background: var(--secondary);
-      color: var(--primary);
-      border: none;
-      padding: 4px 10px;
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      z-index: 500;
       margin-top: 8px;
-    }
-
-    /* CHAT */
-    .chat-btn {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      width: 60px;
-      height: 60px;
-      background: var(--primary);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      cursor: pointer;
-      box-shadow: 0 10px 25px rgba(49, 43, 80, 0.4);
-      z-index: 2000;
-      transition: all 0.3s;
-    }
-    .chat-btn:hover { transform: scale(1.1) rotate(5deg); }
-
-    .chat-badge {
-      position: absolute;
-      top: -5px;
-      right: -5px;
-      background: var(--secondary);
-      color: var(--primary);
-      font-size: 11px;
-      font-weight: 800;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      display: none;
-      justify-content: center;
-      align-items: center;
-      border: 2px solid white;
-    }
-
-    .chat-panel {
-      position: fixed;
-      bottom: 100px;
-      right: 30px;
-      width: 350px;
-      height: 500px;
-      background: white;
-      border-radius: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-      z-index: 2000;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
-      animation: fadeIn 0.3s;
-    }
-
-    .chat-header {
-      background: var(--primary);
-      color: white;
-      padding: 15px 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 20px;
+      max-height: 250px;
       overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      display: none;
     }
+    .search-results div { padding: 14px 20px; cursor: pointer; transition: 0.2s; font-size: 14px; border-bottom: 1px solid #f1f5f9; }
+    .search-results div:hover { background: #f1f5f9; color: var(--brand-purple); font-weight: 600; }
 
-    .msg {
-      max-width: 80%;
-      padding: 10px 15px;
-      border-radius: 15px;
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .msg.mine {
-      align-self: flex-end;
-      background: var(--primary);
-      color: white;
-      border-bottom-right-radius: 2px;
-    }
-
-    .msg.other {
-      align-self: flex-start;
-      background: white;
-      color: var(--text-dark);
-      border-bottom-left-radius: 2px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    .msg-user { font-size: 10px; font-weight: 700; margin-bottom: 4px; display: block; opacity: 0.8; }
-
-    .chat-input {
-      padding: 15px;
-      background: white;
-      border-top: 1px solid #eee;
-      display: flex;
-      gap: 10px;
-    }
-
-    .chat-input input { border-radius: 20px; padding: 10px 15px; background: #f1f5f9; border: none; }
-
-    /* UTILS */
-    .spinner { width: 20px; height: 20px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.8s linear infinite; display: none; }
+    /* UI UTILS */
+    .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    #toast {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%) translateY(100px);
-      background: var(--primary);
-      color: white;
-      padding: 12px 25px;
-      border-radius: 30px;
-      font-size: 14px;
-      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      z-index: 3000;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-    #toast.show { transform: translateX(-50%) translateY(0); }
-
-    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-
-<!-- LOGIN SCREEN -->
-<div id="login-screen">
-  <div class="card" style="width: 400px; text-align: center;">
-    <h2 style="color: var(--primary); margin-bottom: 10px;">Bienvenido</h2>
-    <p style="color: var(--secondary); font-weight: 700; letter-spacing: 2px; margin-bottom: 5px;">People BPO</p>
-    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 30px;">By Duvan Ramos</p>
-
-    <div class="form-group" style="text-align: left;">
-      <label>Selecciona tu nombre</label>
-      <select id="login-agente">
-        <option value="">Cargando asesores...</option>
-      </select>
-    </div>
-
-    <button class="primary-btn" onclick="login()">Ingresar</button>
+  <div class="bg-blobs">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
   </div>
-</div>
 
-<!-- MAIN APP -->
-<div id="main-app">
-  <div class="header">
-    <div class="header-logo">
-      <span class="company">People BPO</span>
-      <span class="tagline">By Duvan Ramos</span>
-    </div>
+  <!-- AUTH PORTAL -->
+  <div id="login-screen">
+    <div class="login-box">
+      <div style="background: var(--brand-lime); width: 100px; height: 100px; border-radius: 32px; margin: 0 auto 32px; display: flex; align-items: center; justify-content: center; color: var(--brand-purple); box-shadow: 0 20px 40px rgba(190, 220, 22, 0.3);">
+        <i data-lucide="shield-check" style="width: 50px; height: 50px;"></i>
+      </div>
+      <p style="color: var(--brand-purple); font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px;">Bienvenido a</p>
+      <h1 style="font-family: Montserrat; font-size: 44px; font-weight: 900; color: var(--brand-purple); letter-spacing: -2px; line-height: 1; margin-bottom: 40px;">PEOPLE BPO</h1>
 
-    <div class="header-actions">
-      <div class="nav-icon" onclick="toggleNotif()">
-        🔔 <span id="notif-badge" class="badge">0</span>
-        <div id="notif-dropdown" class="notif-dropdown">
-          <div class="notif-header">Notificaciones</div>
-          <div id="notif-body" class="notif-body">
-            <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 12px;">No hay notificaciones</div>
-          </div>
-        </div>
+      <div class="input-wrapper" style="text-align: left;">
+        <label class="input-label">Seleccionar Perfil</label>
+        <select id="login-agente" class="custom-input" style="height: 64px;">
+          <option value="">Sincronizando perfiles...</option>
+        </select>
       </div>
 
-      <div class="user-info">
-        <span id="user-display">Usuario</span>
-        <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+      <button class="primary-btn" onclick="login()" style="height: 72px; margin-top: 32px;">
+        <span>Autenticar y Entrar</span>
+        <i data-lucide="key"></i>
+      </button>
+
+      <div style="margin-top: 56px; font-size: 11px; color: var(--text-muted); font-weight: 700;">
+        SYSTEM VERSION 4.0 — BY DUVAN RAMOS
       </div>
     </div>
   </div>
 
-  <div class="container">
-    <!-- FORM CARD -->
-    <div class="card">
-      <div class="card-title">📝 Registro de PQRSF</div>
-
-      <div class="form-group">
-        <label>Número de radicado (PQRSF)</label>
-        <input id="radicado" type="text" placeholder="Ej: PQ-12345678">
+  <!-- COMMAND CENTER -->
+  <div id="main-app">
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand-logo">
+          <div class="brand-dot"></div>
+          <span>PEOPLE <span style="color: var(--brand-lime);">PRO</span></span>
+        </div>
+        <div style="font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 1px;">Infrastructure Division</div>
       </div>
 
-      <div class="form-group">
-        <label>Caso</label>
-        <input id="caso" type="text" placeholder="Número de caso o motivo">
-      </div>
+      <nav class="nav-group">
+        <button class="nav-btn active">
+          <i data-lucide="activity"></i>
+          <span>Registro PQRSF</span>
+        </button>
+        <button class="nav-btn" onclick="openPanel('chat')">
+          <i data-lucide="message-square"></i>
+          <span>Chat Global</span>
+          <span id="chat-badge" class="badge" style="display:none; margin-left: auto;">0</span>
+        </button>
+        <button class="nav-btn" onclick="openPanel('notif')">
+          <i data-lucide="bell-ring"></i>
+          <span>Notificaciones</span>
+          <span id="notif-badge" class="badge" style="display:none; margin-left: auto;">0</span>
+        </button>
+      </nav>
 
-      <div class="form-group">
-        <label>Clasificación</label>
-        <div class="search-box">
-          <input id="clasificacion" onkeyup="filterResults('clasificacion', 'list-clasificacion')" placeholder="Buscar clasificación..." autocomplete="off">
-          <div id="list-clasificacion" class="search-results"></div>
+      <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-md); padding: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
+        <div style="font-size: 10px; font-weight: 800; color: var(--brand-lime); text-transform: uppercase; margin-bottom: 8px;">Network Status</div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="width: 8px; height: 8px; background: #10b981; border-radius: 50%; box-shadow: 0 0 10px #10b981;"></div>
+          <span style="font-size: 12px; font-weight: 700;">Secure Node Online</span>
         </div>
       </div>
 
-      <div class="form-group">
-        <label>Se dirige a</label>
-        <div class="search-box">
-          <input id="dirige" onkeyup="filterResults('dirige', 'list-dirige')" placeholder="Buscar área..." autocomplete="off">
-          <div id="list-dirige" class="search-results"></div>
-        </div>
-      </div>
-
-      <button id="submit-btn" class="primary-btn" onclick="registrar()">
-        <span id="btn-text">Registrar PQRSF</span>
-        <div id="btn-spinner" class="spinner"></div>
+      <button class="nav-btn" style="color: #ef4444;" onclick="logout()">
+        <i data-lucide="power"></i>
+        <span>Terminar Sesión</span>
       </button>
     </div>
 
-    <!-- HISTORY CARD -->
-    <div class="card">
-      <div class="card-title">📜 Mis Registros Recientes</div>
-      <div id="history-list" class="history-list">
-        <div style="text-align: center; color: var(--text-muted); font-size: 13px;">Cargando historial...</div>
+    <div class="viewport">
+      <header class="top-bar">
+        <div class="welcome-text">
+          <h2 id="header-title">Comenzar Registro</h2>
+          <p id="header-subtitle">Gestionando como: <span id="user-name-tag" style="color: var(--brand-purple); font-weight: 800;">---</span></p>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 24px;">
+          <div style="text-align: right;">
+            <div id="user-display" style="font-weight: 900; font-size: 16px; color: var(--brand-purple);">Usuario</div>
+            <div id="current-date" style="font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Lunes, 13 de Abril</div>
+          </div>
+          <div style="width: 56px; height: 56px; background: white; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 22px; color: var(--brand-purple); box-shadow: var(--shadow-md); border: 2px solid var(--brand-lime);" id="user-avatar">
+            U
+          </div>
+        </div>
+      </header>
+
+      <div class="dashboard-layout">
+        <!-- PRIMARY FORM -->
+        <div class="feature-card">
+          <div class="section-title">
+            <i data-lucide="plus-circle" style="color: var(--brand-purple);"></i>
+            <span>Formulario de Radicación de PQRSF</span>
+          </div>
+
+          <div class="form-row">
+            <div class="input-wrapper">
+              <label class="input-label">Número de Radicado</label>
+              <input id="radicado" class="custom-input" type="text" placeholder="Ej: PQ-2024-001">
+            </div>
+            <div class="input-wrapper">
+              <label class="input-label">Identificador del Caso</label>
+              <input id="caso" class="custom-input" type="text" placeholder="Número de Caso">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-wrapper">
+              <label class="input-label">Clasificación de PQRSF</label>
+              <input id="clasificacion" class="custom-input" onkeyup="filterResults('clasificacion', 'list-clasificacion')" placeholder="Escribe para buscar..." autocomplete="off">
+              <div id="list-clasificacion" class="search-results"></div>
+            </div>
+            <div class="input-wrapper">
+              <label class="input-label">Área Destino</label>
+              <input id="dirige" class="custom-input" onkeyup="filterResults('dirige', 'list-dirige')" placeholder="Seleccionar destino..." autocomplete="off">
+              <div id="list-dirige" class="search-results"></div>
+            </div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <button id="submit-btn" class="primary-btn" onclick="registrar()" style="height: 72px;">
+              <span id="btn-text">Validar y Registrar PQRSF</span>
+              <div id="btn-spinner" class="spinner"></div>
+            </button>
+          </div>
+        </div>
+
+        <!-- SECONDARY WIDGETS -->
+        <aside>
+          <div class="widget" style="background: var(--brand-purple); color: white;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <div style="font-size: 11px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Productividad Hoy</div>
+                <div id="stat-count" style="font-size: 40px; font-weight: 900; margin: 4px 0;">0</div>
+                <div style="font-size: 12px; font-weight: 600; color: var(--brand-lime);">Registros Completados</div>
+              </div>
+              <i data-lucide="bar-chart-3" style="width: 48px; height: 48px; opacity: 0.2;"></i>
+            </div>
+          </div>
+
+          <div class="widget">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+              <div style="font-weight: 800; font-size: 15px;">Últimos Movimientos</div>
+              <i data-lucide="history" style="width: 16px; color: var(--text-muted);"></i>
+            </div>
+            <div id="history-list">
+              <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px;">Sincronizando registros...</div>
+            </div>
+          </div>
+        </aside>
       </div>
     </div>
   </div>
-</div>
 
-<!-- CHAT -->
-<div id="chat-btn" class="chat-btn" onclick="toggleChat()">
-  💬
-  <span id="chat-badge" class="chat-badge">0</span>
-</div>
-<div id="chat-panel" class="chat-panel">
-  <div class="chat-header">
-    <span>Chat Global</span>
-    <span style="cursor: pointer;" onclick="toggleChat()">✕</span>
+  <!-- OVERLAY MODALS -->
+  <div id="panel-chat" class="overlay">
+    <div class="overlay-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i data-lucide="message-circle"></i>
+        <span style="font-weight: 800;">COMUNICACIÓN GLOBAL</span>
+      </div>
+      <i data-lucide="x" style="cursor: pointer;" onclick="closePanel('chat')"></i>
+    </div>
+    <div id="chat-messages" class="overlay-body" style="display: flex; flex-direction: column;"></div>
+    <div style="padding: 24px; background: white; border-top: 1px solid var(--border-color); display: flex; gap: 12px;">
+      <input id="chat-msg" class="custom-input" type="text" placeholder="Escribir mensaje..." onkeypress="if(event.key==='Enter') sendMsg()">
+      <button class="primary-btn" style="width: 64px; padding: 0;" onclick="sendMsg()"><i data-lucide="send"></i></button>
+    </div>
   </div>
-  <div id="chat-messages" class="chat-messages"></div>
-  <div class="chat-input">
-    <input id="chat-msg" type="text" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') sendMsg()">
-    <button class="primary-btn" style="width: 50px; margin:0;" onclick="sendMsg()">➤</button>
+
+  <div id="panel-notif" class="overlay">
+    <div class="overlay-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i data-lucide="bell"></i>
+        <span style="font-weight: 800;">PENDIENTES</span>
+      </div>
+      <i data-lucide="x" style="cursor: pointer;" onclick="closePanel('notif')"></i>
+    </div>
+    <div id="notif-body" class="overlay-body"></div>
   </div>
-</div>
 
-<div id="toast"></div>
+  <!-- GLOBAL TOAST -->
+  <div id="toast">
+    <i data-lucide="info" id="toast-icon"></i>
+    <span id="toast-msg"></span>
+  </div>
 
-<audio id="snd-notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-<audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+  <audio id="snd-notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+  <audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
 
 <script>
+  // Initialize Lucide
+  lucide.createIcons();
+
+  // Business Data
   const CLASIFICACIONES = [
     "(Felicitaciones) - FELICITACIONES",
     "(Solicitudes, sugerencias y peticiones) - PETICIÓN O SOLICITUD",
@@ -529,65 +531,23 @@
   ];
 
   const AREAS = [
-    "COLEGIO SAN MARTIN",
-    "COLEGIO VILLAVICENCIO",
-    "CONSEJO DIRECTIVO",
-    "CONTABILIDAD GENERAL",
-    "COORDINACION DE AFILIACIONES",
-    "COORDINACION DE GESTION DOCUMENTAL",
-    "COORDINACIÓN COMERCIAL",
-    "COORDINACIÓN DE MERCADEO",
-    "DIRECCION ADMINISTRATIVA",
-    "DIVISION COMERCIAL Y DE MERCADEO",
-    "DIVISION DE APORTES",
-    "DIVISION DE CAPACITACIÓN EMPRESARIAL",
-    "DIVISION DE RECREACION, DEPORTE Y TURISMO",
-    "DIVISION DE SUBSIDIOS",
-    "DIVISION DE TECNOLOGIAS DE LA INFORMACIÓN",
-    "DIVISION DE TESORERIA",
-    "DIVISIÓN DE ATENCIÓN A LA NIÑEZ",
-    "DIVISIÓN DE GESTIÓN DE EMPLEO",
-    "AREA DE PUBLICIDAD",
-    "AREA DE CARTERA",
-    "AREA DE CREDITO COFREM",
-    "AREA DE CULTURA Y EVENTOS",
-    "AREA DE MANTENIMIENTO",
-    "AREA INFRAESTRUCTURA",
-    "ASESORIA JURIDICA",
-    "AUDITORIA INTERNA",
-    "BIBLIOTECA",
-    "CENTRO DE SERVICIOS PUERTO GAITAN",
-    "CENTRO VACACIONAL CANEY",
-    "CENTRO VACACIONAL YURIMENA",
-    "CER",
-    "COLEGIO ACACÍAS",
-    "COLEGIO GUAMAL",
-    "COLEGIO PUERTO LOPEZ",
-    "COLEGIO RESTREPO",
-    "DIVISIÓN DE GESTIÓN DE SIST. CORPORATIVO",
-    "DIVISIÓN DE GESTIÓN HUMANA",
-    "DIVISIÓN DE LOGISTICA",
-    "EDUCACION SUPERIOR",
-    "FEDECAJAS",
-    "INSTITUTO TECNICO COFREM",
-    "MESA DE SERVICIOS",
-    "NO DEFINIDA",
-    "OFICINA MOVIL RUBIALES",
-    "PARQUE DE LA VIDA VILLAVICENCIO",
-    "PARQUE VACACIONAL ARIARI",
-    "PLANEACIÓN CORPORATIVA",
-    "PUNTO DE INFORMACIÓN",
-    "SERVICIO AL CLIENTE",
-    "SUBDIRECCION ADMINISTRATIVA Y FINANCIERA",
-    "SUBDIRECCION DE PROGRAMAS SOCIALES",
-    "SUBDIRECCION DE SERVICIOS SOCIALES",
-    "SUBDIRECCIÓN EDUCACIÓN",
-    "TURISMO SOCIAL",
-    "ZONA CENTRO",
-    "ZONA NORTE",
-    "ZONA ORIENTE",
-    "ZONA SUR",
-    "ÁREA DE VIVIENDA"
+    "COLEGIO SAN MARTIN", "COLEGIO VILLAVICENCIO", "CONSEJO DIRECTIVO", "CONTABILIDAD GENERAL",
+    "COORDINACION DE AFILIACIONES", "COORDINACION DE GESTION DOCUMENTAL", "COORDINACIÓN COMERCIAL",
+    "COORDINACIÓN DE MERCADEO", "DIRECCION ADMINISTRATIVA", "DIVISION COMERCIAL Y DE MERCADEO",
+    "DIVISION DE APORTES", "DIVISION DE CAPACITACIÓN EMPRESARIAL", "DIVISION DE RECREACION, DEPORTE Y TURISMO",
+    "DIVISION DE SUBSIDIOS", "DIVISION DE TECNOLOGIAS DE LA INFORMACIÓN", "DIVISION DE TESORERIA",
+    "DIVISIÓN DE ATENCIÓN A LA NIÑEZ", "DIVISIÓN DE GESTIÓN DE EMPLEO", "AREA DE PUBLICIDAD",
+    "AREA DE CARTERA", "AREA DE CREDITO COFREM", "AREA DE CULTURA Y EVENTOS", "AREA DE MANTENIMIENTO",
+    "AREA INFRAESTRUCTURA", "ASESORIA JURIDICA", "AUDITORIA INTERNA", "BIBLIOTECA",
+    "CENTRO DE SERVICIOS PUERTO GAITAN", "CENTRO VACACIONAL CANEY", "CENTRO VACACIONAL YURIMENA",
+    "CER", "COLEGIO ACACÍAS", "COLEGIO GUAMAL", "COLEGIO PUERTO LOPEZ", "COLEGIO RESTREPO",
+    "DIVISIÓN DE GESTIÓN DE SIST. CORPORATIVO", "DIVISIÓN DE GESTIÓN HUMANA", "DIVISIÓN DE LOGISTICA",
+    "EDUCACION SUPERIOR", "FEDECAJAS", "INSTITUTO TECNICO COFREM", "MESA DE SERVICIOS", "NO DEFINIDA",
+    "OFICINA MOVIL RUBIALES", "PARQUE DE LA VIDA VILLAVICENCIO", "PARQUE VACACIONAL ARIARI",
+    "PLANEACIÓN CORPORATIVA", "PUNTO DE INFORMACIÓN", "SERVICIO AL CLIENTE",
+    "SUBDIRECCION ADMINISTRATIVA Y FINANCIERA", "SUBDIRECCION DE PROGRAMAS SOCIALES",
+    "SUBDIRECCION DE SERVICIOS SOCIALES", "SUBDIRECCIÓN EDUCACIÓN", "TURISMO SOCIAL",
+    "ZONA CENTRO", "ZONA NORTE", "ZONA ORIENTE", "ZONA SUR", "ÁREA DE VIVIENDA"
   ];
 
   let currentAgent = "";
@@ -599,6 +559,9 @@
   let pollingChat = null;
 
   window.onload = function() {
+    const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    document.getElementById('current-date').textContent = new Date().toLocaleDateString('es-ES', opts);
+
     loadAgentes();
     const saved = localStorage.getItem('pqrsf_agent');
     if (saved) showApp(saved);
@@ -607,94 +570,11 @@
     populateResults('list-dirige', AREAS, 'dirige');
 
     document.addEventListener('click', e => {
-      if (!e.target.closest('.search-box')) {
+      if (!e.target.closest('.input-wrapper')) {
         document.querySelectorAll('.search-results').forEach(el => el.style.display = 'none');
-      }
-      if (!e.target.closest('.nav-icon')) {
-        document.getElementById('notif-dropdown').style.display = 'none';
       }
     });
   };
-
-  function playSound(id) {
-    const audio = document.getElementById(id);
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(e => console.log("Audio play error:", e));
-    }
-  }
-
-  function loadAgentes() {
-    google.script.run
-      .withSuccessHandler(list => {
-        const sel = document.getElementById('login-agente');
-        sel.innerHTML = '<option value="">Seleccione...</option>';
-        if (list && list.length > 0) {
-          list.forEach(name => {
-            if (!name) return;
-            const opt = document.createElement('option');
-            opt.value = name; opt.textContent = name;
-            sel.appendChild(opt);
-          });
-        } else {
-          sel.innerHTML = '<option value="">Sin asesores disponibles</option>';
-        }
-      })
-      .withFailureHandler(err => showToast("Error cargando asesores", "error"))
-      .getAgentes();
-  }
-
-  function login() {
-    const name = document.getElementById('login-agente').value;
-    if (!name) return showToast('Selecciona tu nombre', 'error');
-    localStorage.setItem('pqrsf_agent', name);
-    showApp(name);
-  }
-
-  function logout() {
-    localStorage.removeItem('pqrsf_agent');
-    if (pollingNotif) clearInterval(pollingNotif);
-    if (pollingChat) clearInterval(pollingChat);
-
-    // Switch UI back to login screen manually
-    const mainApp = document.getElementById('main-app');
-    const loginScreen = document.getElementById('login-screen');
-
-    mainApp.style.setProperty('display', 'none', 'important');
-    loginScreen.style.setProperty('display', 'flex', 'important');
-
-    document.getElementById('login-agente').value = "";
-    window.scrollTo(0, 0);
-
-    // Reset state
-    lastNotifCount = 0;
-    lastMsgCount = 0;
-    chatBadgeCount = 0;
-    updateChatBadge();
-
-    // Ensure the chat panel is closed
-    const p = document.getElementById('chat-panel');
-    if (p) p.style.display = 'none';
-    isChatOpen = false;
-  }
-
-  function showApp(name) {
-    if (!name) return;
-    currentAgent = name;
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('main-app').style.display = 'block';
-    document.getElementById('user-display').textContent = name.split(' ')[0] || 'Usuario';
-
-    loadHistory();
-    startPolling();
-  }
-
-  function startPolling() {
-    fetchNotifs();
-    fetchMessages();
-    pollingNotif = setInterval(fetchNotifs, 10000);
-    pollingChat = setInterval(fetchMessages, 5000);
-  }
 
   function escapeHtml(text) {
     if (!text) return "";
@@ -703,94 +583,116 @@
     return div.innerHTML;
   }
 
+  function playSound(id) {
+    const audio = document.getElementById(id);
+    if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
+  }
+
+  function loadAgentes() {
+    google.script.run
+      .withSuccessHandler(list => {
+        const sel = document.getElementById('login-agente');
+        sel.innerHTML = '<option value="">Seleccionar Perfil Autorizado...</option>';
+        list.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name; opt.textContent = name;
+          sel.appendChild(opt);
+        });
+      })
+      .getAgentes();
+  }
+
+  function login() {
+    const name = document.getElementById('login-agente').value;
+    if (!name) return showToast('Identificación Requerida', 'error');
+    localStorage.setItem('pqrsf_agent', name);
+    showApp(name);
+  }
+
+  function logout() {
+    localStorage.removeItem('pqrsf_agent');
+    clearInterval(pollingNotif); clearInterval(pollingChat);
+    document.getElementById('main-app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  }
+
+  function showApp(name) {
+    currentAgent = name;
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('main-app').style.display = 'flex';
+    document.getElementById('user-display').textContent = name;
+    document.getElementById('user-name-tag').textContent = name;
+    document.getElementById('user-avatar').textContent = name.charAt(0);
+
+    loadHistory();
+    startPolling();
+    showToast(`Dashboard Autenticado: ${name.split(' ')[0]}`);
+  }
+
+  function startPolling() {
+    fetchNotifs(); fetchMessages();
+    pollingNotif = setInterval(fetchNotifs, 10000);
+    pollingChat = setInterval(fetchMessages, 5000);
+  }
+
   function fetchNotifs() {
     google.script.run
       .withSuccessHandler(list => {
-        const badge = document.getElementById('notif-badge');
+        const b = document.getElementById('notif-badge');
         const body = document.getElementById('notif-body');
-
-        if (list && list.length > lastNotifCount) {
-          playSound('snd-notif');
-        }
+        if (list && list.length > lastNotifCount) playSound('snd-notif');
         lastNotifCount = list ? list.length : 0;
-
-        badge.textContent = lastNotifCount;
-        badge.style.display = lastNotifCount > 0 ? 'block' : 'none';
+        b.textContent = lastNotifCount;
+        b.style.display = lastNotifCount > 0 ? 'flex' : 'none';
 
         if (!list || list.length === 0) {
-          body.innerHTML = '<div style="padding: 20px; text-align: center; color: #999; font-size: 12px;">Sin pendientes</div>';
+          body.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 13px;">No hay alertas pendientes.</div>';
           return;
         }
-
         body.innerHTML = list.map(n => `
-          <div class="notif-item">
-            <div style="font-weight:700; color:var(--primary)">Radicado: ${escapeHtml(n.radicado) || 'N/A'}</div>
-            <div style="margin-top:4px">${escapeHtml(n.mensaje)}</div>
-            <div style="font-size:10px; color:#999; margin-top:2px">${escapeHtml(n.fecha)}</div>
-            <button class="notif-btn" onclick="marcarLeida(${n.id})">Marcar Recibido</button>
+          <div style="background: white; padding: 20px; border-radius: 18px; margin-bottom: 12px; border: 1px solid var(--border-color);">
+            <div style="font-weight: 800; color: var(--brand-purple); font-size: 15px;">${escapeHtml(n.radicado)}</div>
+            <div style="font-size: 13px; color: var(--text-muted); margin: 8px 0;">${escapeHtml(n.mensaje)}</div>
+            <button class="primary-btn" style="padding: 10px; font-size: 12px; height: auto;" onclick="marcarLeida(${n.id})">Confirmar Recepción</button>
           </div>
         `).join('');
       })
-      .withFailureHandler(err => console.log("Error en fetchNotifs: ", err))
       .getNotificaciones(currentAgent);
   }
 
   function marcarLeida(id) {
-    google.script.run
-      .withSuccessHandler(() => fetchNotifs())
-      .withFailureHandler(err => showToast("Error al marcar como leído", "error"))
-      .marcarNotificacionRecibida(id);
+    google.script.run.withSuccessHandler(() => fetchNotifs()).marcarNotificacionRecibida(id);
   }
 
   function fetchMessages() {
     google.script.run
       .withSuccessHandler(list => {
         const container = document.getElementById('chat-messages');
+        const b = document.getElementById('chat-badge');
         if (!list) return;
 
         const isNew = list.length > lastMsgCount;
-
         if (isNew) {
           const newMessages = list.slice(lastMsgCount);
-          let otherUserMessages = newMessages.filter(m => m.usuario !== currentAgent);
-
-          if (otherUserMessages.length > 0) {
+          if (newMessages.some(m => m.usuario !== currentAgent)) {
             playSound('snd-msg');
             if (!isChatOpen) {
-              chatBadgeCount += otherUserMessages.length;
-              updateChatBadge();
+              chatBadgeCount += newMessages.filter(m => m.usuario !== currentAgent).length;
+              b.textContent = chatBadgeCount; b.style.display = 'flex';
             }
           }
         }
 
         lastMsgCount = list.length;
-        const wasAtBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 100;
-
-        container.innerHTML = list.map(m => {
-          if (!m) return '';
-          const user = m.usuario || 'Anónimo';
-          const time = m.fecha && m.fecha.includes(' ') ? m.fecha.split(' ')[1] : '';
-          return `
-            <div class="msg ${user === currentAgent ? 'mine' : 'other'}">
-              <span class="msg-user">${user === currentAgent ? 'Tú' : escapeHtml(user.split(' ')[0])}</span>
-              ${escapeHtml(m.mensaje)}
-              <div style="font-size:9px; opacity:0.6; text-align:right; margin-top:3px;">${escapeHtml(time)}</div>
-            </div>
-          `;
-        }).join('');
-
-        if (isNew && wasAtBottom) container.scrollTop = container.scrollHeight;
+        container.innerHTML = list.map(m => `
+          <div class="msg ${m.usuario === currentAgent ? 'mine' : 'other'}">
+            <span class="msg-user">${m.usuario === currentAgent ? 'Tú' : escapeHtml(m.usuario.split(' ')[0])}</span>
+            ${escapeHtml(m.mensaje)}
+          </div>
+        `).join('');
+        if (isNew) container.scrollTop = container.scrollHeight;
       })
-      .withFailureHandler(err => console.log("Error en fetchMessages: ", err))
       .getMensajes(currentAgent);
-  }
-
-  function updateChatBadge() {
-    const b = document.getElementById('chat-badge');
-    if (b) {
-      b.textContent = chatBadgeCount;
-      b.style.display = chatBadgeCount > 0 ? 'flex' : 'none';
-    }
   }
 
   function sendMsg() {
@@ -798,36 +700,29 @@
     const txt = inp.value.trim();
     if (!txt) return;
     inp.value = "";
-    google.script.run
-      .withSuccessHandler(() => fetchMessages())
-      .withFailureHandler(err => showToast("Error al enviar mensaje", "error"))
-      .enviarMensaje({
-        usuario: currentAgent,
-        mensaje: txt,
-        destinatario: "TODOS"
-      });
+    google.script.run.withSuccessHandler(() => fetchMessages()).enviarMensaje({ usuario: currentAgent, mensaje: txt, destinatario: "TODOS" });
   }
 
   function loadHistory() {
     google.script.run
       .withSuccessHandler(list => {
         const container = document.getElementById('history-list');
+        const stat = document.getElementById('stat-count');
+        stat.textContent = list ? list.length : 0;
+
         if (!list || list.length === 0) {
-          container.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No tienes registros aún</div>';
+          container.innerHTML = '<div style="padding: 32px; text-align: center; color: var(--text-muted); font-size: 13px;">Sin actividad reciente</div>';
           return;
         }
-        // Only show Radicado and Date as requested
         container.innerHTML = list.map(h => `
           <div class="history-item">
-            <div class="history-header">
-              <span>${escapeHtml(h.radicado) || 'N/A'}</span>
-              <span class="history-date">${escapeHtml(h.fecha) || ''}</span>
+            <div>
+              <div class="h-id">${escapeHtml(h.radicado)}</div>
+              <div class="h-date">${escapeHtml(h.fecha)}</div>
             </div>
+            <div class="h-tag">SUCCESS</div>
           </div>
         `).join('');
-      })
-      .withFailureHandler(err => {
-        document.getElementById('history-list').innerHTML = '<div style="text-align: center; color: var(--error); padding: 20px;">Error al cargar historial</div>';
       })
       .getHistorial(currentAgent);
   }
@@ -838,7 +733,7 @@
     const clasificacion = document.getElementById('clasificacion').value;
     const dirige = document.getElementById('dirige').value;
 
-    if (!radicado || !caso || !clasificacion || !dirige) return showToast('Completa todos los campos', 'error');
+    if (!radicado || !caso || !clasificacion || !dirige) return showToast('Error: Campos Incompletos', 'error');
 
     const btn = document.getElementById('submit-btn');
     const text = document.getElementById('btn-text');
@@ -850,83 +745,70 @@
       .withSuccessHandler(res => {
         btn.disabled = false; text.style.opacity = '1'; spin.style.display = 'none';
         if (res.estado === 'ok') {
-          showToast('✅ Registro exitoso');
+          showToast('Radicación Exitosa');
           document.getElementById('radicado').value = "";
           document.getElementById('caso').value = "";
           document.getElementById('clasificacion').value = "";
           document.getElementById('dirige').value = "";
           loadHistory();
         } else {
-          showToast('⚠️ Duplicado por: ' + (res.agente || 'otro agente'), 'error');
+          showToast('Duplicado: ' + (res.agente || 'Otro Agente'), 'error');
         }
       })
-      .withFailureHandler(err => {
+      .withFailureHandler(() => {
         btn.disabled = false; text.style.opacity = '1'; spin.style.display = 'none';
-        showToast("Error de conexión", "error");
+        showToast("Error de Conexión Crítico", "error");
       })
-      .guardarPQRSF({
-        agente: currentAgent,
-        radicado, caso, clasificacion, dirige
-      });
+      .guardarPQRSF({ agente: currentAgent, radicado, caso, clasificacion, dirige });
   }
 
   function filterResults(inputId, listId) {
     const filter = document.getElementById(inputId).value.toLowerCase();
     const list = document.getElementById(listId);
-    if (!list) return;
     const divs = list.getElementsByTagName('div');
     let found = false;
-
     if (!filter) { list.style.display = 'none'; return; }
-
     for (let d of divs) {
-      if (d.textContent.toLowerCase().includes(filter)) {
-        d.style.display = 'block'; found = true;
-      } else d.style.display = 'none';
+      if (d.textContent.toLowerCase().includes(filter)) { d.style.display = 'block'; found = true; }
+      else d.style.display = 'none';
     }
     list.style.display = found ? 'block' : 'none';
   }
 
   function populateResults(listId, data, inputId) {
     const list = document.getElementById(listId);
-    if (!list) return;
     list.innerHTML = data.map(item => `<div>${item}</div>`).join('');
     for (let div of list.children) {
-      div.onclick = () => {
-        document.getElementById(inputId).value = div.textContent;
-        list.style.display = 'none';
-      };
-    }
-  }
-
-  function toggleNotif() {
-    const d = document.getElementById('notif-dropdown');
-    if (d) d.style.display = d.style.display === 'block' ? 'none' : 'block';
-  }
-
-  function toggleChat() {
-    const p = document.getElementById('chat-panel');
-    if (!p) return;
-
-    isChatOpen = p.style.display !== 'flex';
-    p.style.display = isChatOpen ? 'flex' : 'none';
-
-    if (isChatOpen) {
-      chatBadgeCount = 0;
-      updateChatBadge();
-      const msgDiv = document.getElementById('chat-messages');
-      if (msgDiv) msgDiv.scrollTop = msgDiv.scrollHeight;
+      div.onclick = () => { document.getElementById(inputId).value = div.textContent; list.style.display = 'none'; };
     }
   }
 
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toast');
-    if (!t) return;
-    t.textContent = msg;
-    t.style.background = type === 'success' ? 'var(--primary)' : 'var(--error)';
-    t.className = 'show';
-    setTimeout(() => t.className = '', 3000);
+    const m = document.getElementById('toast-msg');
+    const i = document.getElementById('toast-icon');
+    m.textContent = msg;
+    t.style.background = type === 'success' ? 'var(--brand-purple)' : 'var(--error)';
+    i.setAttribute('data-lucide', type === 'success' ? 'check-circle' : 'alert-octagon');
+    lucide.createIcons();
+    t.classList.add('active');
+    setTimeout(() => t.classList.remove('active'), 5000);
   }
+
+  function openPanel(type) {
+    document.getElementById(`panel-${type}`).style.display = 'flex';
+    if (type === 'chat') {
+      isChatOpen = true; chatBadgeCount = 0;
+      document.getElementById('chat-badge').style.display = 'none';
+      const c = document.getElementById('chat-messages'); c.scrollTop = c.scrollHeight;
+    }
+  }
+
+  function closePanel(type) {
+    document.getElementById(`panel-${type}`).style.display = 'none';
+    if (type === 'chat') isChatOpen = false;
+  }
+
 </script>
 
 </body>
