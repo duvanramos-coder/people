@@ -114,23 +114,39 @@ function getHistorial(agente) {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     const sheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF);
     const lastRow = sheet.getLastRow();
-    if (lastRow < 2) return [];
+    if (lastRow < 2) return { historial: [], hoy: 0 };
 
-    const startRow = Math.max(2, lastRow - 50);
+    // Obtenemos los últimos 300 registros para asegurar capturar los del día
+    const startRow = Math.max(2, lastRow - 300);
     const numRows = lastRow - startRow + 1;
     const data = sheet.getRange(startRow, 1, numRows, 5).getValues();
 
-    return data
-      .filter(row => row[1] === agente)
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+    const agentData = data.filter(row => row[1] === agente);
+
+    const hoyCount = agentData.filter(row => {
+      const d = new Date(row[0]);
+      d.setHours(0,0,0,0);
+      return d.getTime() === hoy.getTime();
+    }).length;
+
+    const historial = agentData
       .reverse()
       .slice(0, 10)
       .map(row => ({
         fecha: formatDate(row[0]),
         radicado: row[2]
       }));
+
+    return {
+      historial: historial,
+      hoy: hoyCount
+    };
   } catch(e) {
     console.log("Error en getHistorial: " + e.message);
-    return [];
+    return { historial: [], hoy: 0 };
   }
 }
 
