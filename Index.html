@@ -740,6 +740,8 @@
     let LAST_CHAT_SEEN = 0;
     let LAST_NOTIF_TOTAL = 0;
     let LAST_NOTIF_SEEN = 0;
+    let POLL_CHAT = null;
+    let POLL_NOTIF = null;
 
     // --- INIT ---
     window.onload = () => {
@@ -770,9 +772,15 @@
         document.getElementById('app').style.display = 'flex';
         document.getElementById('user-name').innerText = SESSION.nombre;
         document.getElementById('user-avatar').innerText = SESSION.nombre[0];
+
         refreshDashboard();
-        setInterval(refreshChat, 4000);
-        setInterval(refreshNotifs, 10000);
+
+        if (POLL_CHAT) clearInterval(POLL_CHAT);
+        if (POLL_NOTIF) clearInterval(POLL_NOTIF);
+
+        POLL_CHAT = setInterval(refreshChat, 4000);
+        POLL_NOTIF = setInterval(refreshNotifs, 10000);
+
         refreshChat();
         refreshNotifs();
         setupChatDestinations();
@@ -844,7 +852,18 @@
 
     function logout() {
       localStorage.removeItem('pbpo_session');
-      location.reload();
+      SESSION = null;
+      if (POLL_CHAT) clearInterval(POLL_CHAT);
+      if (POLL_NOTIF) clearInterval(POLL_NOTIF);
+
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-view').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('login-view').style.opacity = '1';
+      }, 50);
+
+      document.getElementById('login-pass').value = '';
+      showToast('Sesión cerrada correctamente');
     }
 
     function submitRegistration() {
