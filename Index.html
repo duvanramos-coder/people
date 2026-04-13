@@ -3,371 +3,734 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>People BPO - Gestión Operativa</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>People BPO | Panel Operativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --primary: #312B50;
-      --secondary: #BEDC16;
-      --accent: #7c69ff;
-      --text-dark: #1a1a1a;
-      --text-muted: #666;
-      --text-light: #fff;
-      --bg-gradient: radial-gradient(circle at top left, #312B50, #1e1a32);
-      --glass: rgba(255, 255, 255, 0.98);
-      --input-bg: #f8fafc;
-      --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      --sidebar-w: 260px;
+      --bg: #0b0e14;
+      --sidebar: #11141d;
+      --card: #161b26;
+      --card-hover: #1c2331;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --error: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.06);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
       --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+
     body {
-      font-family: 'Poppins', sans-serif;
-      background: var(--bg-gradient);
-      min-height: 100vh;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      height: 100vh;
       overflow: hidden;
       display: flex;
     }
 
-    /* BACKGROUND ORBS */
-    .orb {
+    /* --- LOGIN VIEW --- */
+    .login-wrapper {
       position: fixed;
-      border-radius: 50%;
-      filter: blur(80px);
-      z-index: -1;
-      opacity: 0.3;
+      inset: 0;
+      z-index: 5000;
+      background: radial-gradient(circle at top right, #1e1b4b 0%, #0b0e14 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
-    .orb-1 { width: 500px; height: 500px; background: var(--primary); top: -150px; left: -150px; }
-    .orb-2 { width: 400px; height: 400px; background: var(--secondary); bottom: -100px; right: -100px; }
+
+    .login-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
+
+    .login-box h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 28px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+
+    .login-box p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      margin-left: 4px;
+    }
+
+    .input-field {
+      width: 100%;
+      background: #0f1218;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      color: white;
+      font-family: inherit;
+      font-size: 15px;
+      transition: var(--transition);
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-glow);
+    }
+
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-primary:hover {
+      background: #4f46e5;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+
+    /* --- APP LAYOUT --- */
+    #app {
+      display: none;
+      width: 100%;
+      height: 100vh;
+    }
 
     /* --- SIDEBAR --- */
     .sidebar {
-      width: var(--sidebar-w);
-      background: rgba(49, 43, 80, 0.95);
-      backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(255,255,255,0.1);
+      width: 280px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      padding: 40px 20px;
-      z-index: 100;
+      padding: 32px 20px;
+      transition: var(--transition);
     }
-    .sidebar .brand { font-size: 22px; font-weight: 700; color: var(--secondary); margin-bottom: 50px; letter-spacing: -0.5px; text-align: center; }
-    .sidebar-nav { flex: 1; }
-    .nav-item {
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 40px;
+    }
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
+    }
+
+    .brand-name {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .nav-list {
+      flex: 1;
+      list-style: none;
+    }
+
+    .nav-link {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 14px 18px;
-      border-radius: 16px;
-      color: rgba(255,255,255,0.6);
-      cursor: pointer;
-      margin-bottom: 8px;
-      transition: var(--transition);
-      font-weight: 500;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      text-decoration: none;
       font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: var(--transition);
     }
-    .nav-item.active { background: var(--secondary); color: var(--primary); font-weight: 600; box-shadow: 0 10px 20px rgba(190, 220, 22, 0.2); }
-    .nav-item:hover:not(.active) { background: rgba(255,255,255,0.05); color: white; }
 
-    .sidebar-footer {
-      border-top: 1px solid rgba(255,255,255,0.1);
-      padding-top: 30px;
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: white;
     }
-    .user-pill {
+
+    .nav-link.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-badge {
+      background: var(--error);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 20px;
+      display: none;
+    }
+
+    .nav-badge.active { display: block; }
+
+    .sidebar-user {
+      margin-top: auto;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 12px;
-      background: rgba(255,255,255,0.03);
-      border-radius: 20px;
-      margin-bottom: 15px;
     }
-    .avatar { width: 36px; height: 36px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: var(--primary); font-size: 14px; }
-    .badge { background: var(--secondary); color: var(--primary); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 20px; display: none; }
-    .badge.active { display: inline-block; }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+
+    .user-meta { flex: 1; overflow: hidden; }
+    .user-meta h4 { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta p { font-size: 11px; color: var(--text-muted); }
 
     /* --- MAIN CONTENT --- */
-    .main-content {
+    .main-canvas {
       flex: 1;
-      overflow-y: auto;
-      padding: 60px 40px;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      position: relative;
-    }
-
-    /* --- CARDS & VIEWS (Matches Ref) --- */
-    .view { display: none; width: 100%; max-width: 550px; animation: fadeIn 0.8s ease; }
-    .view.active { display: block; }
-
-    .card {
-      background: var(--glass);
-      border-radius: 32px;
-      box-shadow: var(--shadow);
       overflow: hidden;
       position: relative;
-      border: 1px solid rgba(255, 255, 255, 0.2);
     }
 
-    .header {
-      background: var(--primary);
-      color: var(--text-light);
-      padding: 35px 30px;
-      text-align: center;
+    .top-bar {
+      height: 80px;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title h2 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px;
+    }
+
+    .view-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .view-container.active { display: block; }
+
+    /* --- DASHBOARD WIDGETS --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 32px;
+      border-radius: var(--radius-xl);
       position: relative;
+      transition: var(--transition);
     }
 
-    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
-    .header .company { font-size: 14px; font-weight: 600; color: var(--secondary); text-transform: uppercase; letter-spacing: 2px; }
-    .header .author { font-size: 10px; opacity: 0.6; margin-top: 8px; font-weight: 400; }
+    .stat-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-4px);
+    }
 
-    .accent-bar { height: 6px; background: linear-gradient(90deg, var(--secondary) 0%, #d4ff00 100%); }
+    .stat-card .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: block;
+    }
 
-    .content { padding: 40px; }
+    .stat-card .value {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .stat-card .sub-text {
+      font-size: 13px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* --- DATA TABLE / LISTS --- */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-header h3 { font-size: 18px; font-weight: 700; }
+
+    .history-row {
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .history-row:last-child { border-bottom: none; }
+    .history-row:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .row-main { flex: 1; }
+    .row-main b { font-size: 15px; display: block; margin-bottom: 2px; }
+    .row-main span { font-size: 12px; color: var(--text-muted); }
+
+    .status-pill {
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pill.success { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    .status-pill.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
 
     /* --- FORMS --- */
-    .form-group { margin-bottom: 24px; text-align: left; }
-    .form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; padding-left: 4px; }
-
-    input, select, textarea {
-      width: 100%;
-      background: var(--input-bg);
-      border: 2px solid #edf2f7;
-      padding: 14px 18px;
-      border-radius: 16px;
-      color: var(--text-dark);
-      transition: var(--transition);
-      font-family: inherit;
-      font-size: 14px;
+    .form-box {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 40px;
+      border-radius: var(--radius-xl);
     }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.08); transform: translateY(-1px); }
 
-    .checkbox-group { display: flex; align-items: center; gap: 14px; cursor: pointer; padding: 4px 0; }
-    .checkbox-group input { width: 22px; height: 22px; accent-color: var(--primary); cursor: pointer; }
-    .checkbox-group span { font-size: 14px; color: var(--primary); font-weight: 500; }
+    .form-title { margin-bottom: 32px; text-align: center; }
+    .form-title h2 { font-family: 'Poppins', sans-serif; font-size: 24px; margin-bottom: 8px; }
+    .form-title p { color: var(--text-muted); font-size: 14px; }
 
-    button {
-      width: 100%;
-      padding: 16px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 18px;
-      font-weight: 600;
-      font-size: 16px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .checkbox-item {
       display: flex;
-      justify-content: center;
       align-items: center;
       gap: 12px;
-      box-shadow: 0 10px 20px -5px rgba(49, 43, 80, 0.3);
+      background: #0f1218;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 12px;
     }
-    button:hover { transform: translateY(-3px) scale(1.02); background: #3d3564; box-shadow: 0 15px 30px -10px rgba(49, 43, 80, 0.4); }
-    button:active { transform: translateY(0) scale(0.98); }
 
-    .btn-secondary { background: transparent; color: #e53e3e; border: 2px solid #fed7d7; box-shadow: none; font-size: 13px; padding: 10px 20px; width: auto; margin: 0 auto; }
-    .btn-secondary:hover { background: #fff5f5; border-color: #feb2b2; }
+    .checkbox-item:hover { border-color: var(--primary); }
 
-    /* --- DASHBOARD SPECIFIC --- */
-    .metric-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 30px; }
-    .metric-item { background: #f8fafc; border: 1px solid #edf2f7; padding: 20px; border-radius: 20px; text-align: center; }
-    .metric-label { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-    .metric-value { font-size: 32px; font-weight: 700; color: var(--primary); }
+    .checkbox-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
 
-    /* --- HISTORY / LISTS --- */
-    .list-container { max-height: 350px; overflow-y: auto; padding-right: 5px; }
-    .list-item { padding: 16px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-    .list-item:hover { background: #f8fafc; }
-    .list-item:last-child { border-bottom: none; }
+    .checkbox-item span { font-size: 14px; font-weight: 500; }
 
-    /* --- LOGIN VIEW --- */
-    .login-container { position: fixed; inset: 0; z-index: 2000; background: var(--bg-gradient); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    /* --- CHAT SYSTEM --- */
+    .chat-container {
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
 
-    #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%) translateY(120px); background: var(--primary); color: white; padding: 16px 32px; border-radius: 24px; font-size: 15px; font-weight: 500; box-shadow: 0 20px 40px rgba(0,0,0,0.3); transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 3000; display: flex; align-items: center; gap: 15px; white-space: nowrap; }
-    #toast.active { transform: translateX(-50%) translateY(0); }
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .chat-msg {
+      max-width: 75%;
+      padding: 14px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
 
-    .status-tag { font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 12px; text-transform: uppercase; }
-    .status-success { background: #dcfce7; color: #15803d; }
-    .status-error { background: #fee2e2; color: #b91c1c; }
+    .chat-msg.own {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
 
-    /* CHAT MESSAGES */
-    #chat-messages { height: 350px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; padding: 10px; background: #f8fafc; border-radius: 20px; border: 1px solid #edf2f7; }
-    .message { padding: 12px 16px; border-radius: 18px; max-width: 85%; font-size: 13px; position: relative; }
-    .message.own { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
-    .message.other { align-self: flex-start; background: white; border: 1px solid #edf2f7; border-bottom-left-radius: 4px; color: var(--text-dark); }
-    .msg-info { font-size: 9px; opacity: 0.7; margin-bottom: 4px; font-weight: 600; }
+    .chat-msg.other {
+      align-self: flex-start;
+      background: #0f1218;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-info {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      opacity: 0.6;
+    }
+
+    .chat-input-area {
+      padding: 24px 32px;
+      background: #0f1218;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* --- TOAST --- */
+    #toast {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      background: #fff;
+      color: #000;
+      padding: 16px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 6000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #toast.active { transform: translateY(0); opacity: 1; }
+    #toast.error { background: var(--error); color: white; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
   </style>
 </head>
 <body>
-  <div class="orb orb-1"></div>
-  <div class="orb orb-2"></div>
 
   <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
   <div id="toast">Operación exitosa</div>
 
   <!-- LOGIN VIEW -->
-  <div id="login-view" class="login-container">
-    <div class="card" style="width: 100%; max-width: 420px;">
-      <div class="header">
-        <p class="company">People BPO</p>
-        <h1>Bienvenido</h1>
-        <p class="author">By Duvan Ramos</p>
+  <div id="login-view" class="login-wrapper">
+    <div class="login-box">
+      <div class="brand-section" style="justify-content: center; padding-bottom: 24px;">
+        <div class="brand-logo">P</div>
+        <div class="brand-name">People BPO</div>
       </div>
-      <div class="accent-bar"></div>
-      <div class="content" style="text-align: center;">
-        <div style="margin-bottom: 30px;">
-          <h2 style="font-size: 20px; color: var(--primary);">Inicia Sesión</h2>
-          <p style="font-size: 14px; color: var(--text-muted); margin-top: 5px;">Selecciona tu perfil de asesor</p>
-        </div>
-        <div class="form-group"><label>Asesor</label><select id="login-user"><option value="">Cargando funcionarios...</option></select></div>
-        <div class="form-group"><label>Contraseña</label><input type="password" id="login-pass" placeholder="••••••••"></div>
-        <button id="btn-login-action" onclick="handleLogin()">Ingresar al Sistema</button>
-        <div style="margin-top: 30px; font-size: 11px; color: var(--text-muted); opacity: 0.5">By Duvan Ramos · 2026</div>
+      <h1>Bienvenido</h1>
+      <p>Accede al panel de gestión operativa</p>
+
+      <div class="input-group">
+        <label>Funcionario</label>
+        <select id="login-user" class="input-field">
+          <option value="">Cargando funcionarios...</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" class="input-field" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" id="btn-login-action" onclick="handleLogin()">
+        <span>Entrar al sistema</span>
+      </button>
+
+      <div style="margin-top: 32px; font-size: 11px; color: var(--text-muted);">
+        People BPO © 2026 · By Duvan Ramos
       </div>
     </div>
   </div>
 
   <!-- MAIN APP -->
-  <div id="app" style="width: 100%; height: 100vh;">
+  <div id="app">
     <aside class="sidebar">
-      <div class="brand">People BPO</div>
-      <nav class="sidebar-nav">
-        <div class="nav-item active" onclick="switchView('dashboard', this)"><span>Panel Principal</span></div>
-        <div class="nav-item" onclick="switchView('registry', this)"><span>Registro Radicación</span></div>
-        <div class="nav-item" onclick="switchView('snc', this)"><span>Gestión SNC</span></div>
-        <div class="nav-item" onclick="switchView('search', this)"><span>Búsqueda</span></div>
-        <div class="nav-item" onclick="switchView('notifications', this)"><span>Notificaciones</span><span id="badge-notif" class="badge">0</span></div>
-        <div class="nav-item" onclick="switchView('chat', this)"><span>Canal de Chat</span><span id="badge-chat" class="badge">0</span></div>
-      </nav>
-      <div class="sidebar-footer">
-        <div class="user-pill">
-          <div class="avatar" id="user-avatar">?</div>
-          <div style="overflow: hidden;">
-            <div id="user-name" style="font-weight: 600; font-size: 13px; color: white; white-space: nowrap; text-overflow: ellipsis;">Usuario</div>
-            <div style="color: rgba(255,255,255,0.4); font-size: 10px; font-weight: 500;">Funcionario Activo</div>
-          </div>
-        </div>
-        <button class="btn-secondary" style="width: 100%; border-radius: 12px;" onclick="logout()">Cerrar Sesión</button>
+      <div class="brand-section">
+        <div class="brand-logo">P</div>
+        <div class="brand-name">People BPO</div>
       </div>
+
+      <nav class="nav-list">
+        <div class="nav-link active" onclick="switchView('dashboard', this)">
+          <span>Panel de Control</span>
+        </div>
+        <div class="nav-link" onclick="switchView('registry', this)">
+          <span>Registro Radicado</span>
+        </div>
+        <div class="nav-link" onclick="switchView('snc', this)">
+          <span>Gestión Calidad</span>
+        </div>
+        <div class="nav-link" onclick="switchView('search', this)">
+          <span>Búsqueda Global</span>
+        </div>
+        <div class="nav-link" onclick="switchView('notifications', this)">
+          <span>Notificaciones</span>
+          <span id="badge-notif" class="nav-badge">0</span>
+        </div>
+        <div class="nav-link" onclick="switchView('chat', this)">
+          <span>Canal Interno</span>
+          <span id="badge-chat" class="nav-badge">0</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar">DR</div>
+        <div class="user-meta">
+          <h4 id="user-name">Duvan Ramos</h4>
+          <p>Funcionario Activo</p>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top: 16px; background: rgba(255,255,255,0.05); color: white; padding: 12px; font-size: 13px;" onclick="logout()">Cerrar Sesión</button>
     </aside>
 
-    <main class="main-content">
-      <!-- DASHBOARD -->
-      <section id="view-dashboard" class="view active">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Dashboard Operativo</h1>
-            <p class="author">By Duvan Ramos</p>
+    <main class="main-canvas">
+      <header class="top-bar">
+        <div class="page-title">
+          <h2 id="current-view-name">Panel de Control</h2>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+          <div style="text-align: right;">
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="live-date">24 Mar, 2026</div>
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
-            <div class="metric-grid">
-              <div class="metric-item"><div class="metric-label">Exitosos (Hoy)</div><div class="metric-value" id="stat-efectivos" style="color: #10B981">0</div></div>
-              <div class="metric-item"><div class="metric-label">Devueltos (Hoy)</div><div class="metric-value" id="stat-devueltos" style="color: #FF4D4D">0</div></div>
-              <div class="metric-item"><div class="metric-label">Eficiencia Total</div><div class="metric-value" id="stat-total">0%</div></div>
+        </div>
+      </header>
+
+      <div class="scroll-area">
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view-container active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span class="label">Exitosos</span>
+              <div class="value" id="stat-efectivos" style="color: var(--secondary)">0</div>
+              <div class="sub-text" style="color: var(--secondary)">Gestiones de hoy</div>
             </div>
-            <div style="margin-top: 20px;">
-              <h3 style="font-size: 12px; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;">Historial Reciente</h3>
-              <div id="history-list" class="list-container"></div>
+            <div class="stat-card">
+              <span class="label">Devueltos</span>
+              <div class="value" id="stat-devueltos" style="color: var(--error)">0</div>
+              <div class="sub-text" style="color: var(--error)">Errores hoy</div>
+            </div>
+            <div class="stat-card">
+              <span class="label">Eficiencia</span>
+              <div class="value" id="stat-total">0%</div>
+              <div class="sub-text" style="color: var(--primary)">Rendimiento global</div>
             </div>
           </div>
-        </div>
-      </section>
 
-      <!-- REGISTRY -->
-      <section id="view-registry" class="view">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Nueva Radicación</h1>
-            <p class="author">By Duvan Ramos</p>
+          <div class="section-card">
+            <div class="section-header">
+              <h3>Historial Reciente</h3>
+            </div>
+            <div id="history-list">
+              <!-- Activity rows -->
+            </div>
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
-            <div class="form-group"><label>Número de Radicado</label><input type="text" id="reg-radicado" placeholder="Ingrese el código"></div>
-            <div class="form-group"><label>Fecha del Caso (Opcional)</label><input type="date" id="reg-fecha"></div>
-            <div class="form-group"><div class="checkbox-group" onclick="this.querySelector('input').click()"><input type="checkbox" id="reg-devuelto"><span>¿Devuelto por errores?</span></div></div>
-            <div class="form-group"><div class="checkbox-group" onclick="this.querySelector('input').click()"><input type="checkbox" id="reg-snc"><span>SNC en Proceso</span></div></div>
-            <div class="form-group"><label>Observaciones</label><textarea id="reg-obs" style="min-height: 100px; resize: none;" placeholder="Detalles adicionales..."></textarea></div>
-            <button id="btn-save-reg" onclick="submitRegistration()">Registrar en Sistema</button>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- SNC -->
-      <section id="view-snc" class="view">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Gestión de Calidad</h1>
-            <p class="author">By Duvan Ramos</p>
+        <!-- VIEW: REGISTRY -->
+        <section id="view-registry" class="view-container">
+          <div class="form-box">
+            <div class="form-title">
+              <h2>Nueva Radicación</h2>
+              <p>Completa los datos del radicado procesado</p>
+            </div>
+            <div class="input-group">
+              <label>Código de Radicado</label>
+              <input type="text" id="reg-radicado" class="input-field" placeholder="PQ-XXXXXXX">
+            </div>
+            <div class="input-group">
+              <label>Fecha del Caso</label>
+              <input type="date" id="reg-fecha" class="input-field">
+            </div>
+            <div class="checkbox-item" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-devuelto">
+              <span>¿Devuelto por errores?</span>
+            </div>
+            <div class="checkbox-item" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-snc">
+              <span>Requiere seguimiento de calidad (SNC)</span>
+            </div>
+            <div class="input-group">
+              <label>Observaciones</label>
+              <textarea id="reg-obs" class="input-field" style="min-height: 120px; resize: none;" placeholder="Escribe detalles adicionales..."></textarea>
+            </div>
+            <button class="btn-primary" id="btn-save-reg" onclick="submitRegistration()">
+              <span>Registrar Radicado</span>
+            </button>
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
-            <div class="form-group"><label>Buscar Radicado</label><div style="display: flex; gap: 12px;"><input type="text" id="snc-search" placeholder="CÓDIGO"><button style="width: auto; padding: 0 25px;" onclick="handleSncSearch()">Buscar</button></div></div>
-            <div id="snc-result" style="margin-top: 20px; display: none;"></div>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- SEARCH -->
-      <section id="view-search" class="view">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Búsqueda General</h1>
-            <p class="author">By Duvan Ramos</p>
+        <!-- VIEW: SNC -->
+        <section id="view-snc" class="view-container">
+          <div class="form-box" style="margin-bottom: 32px;">
+            <div class="input-group">
+              <label>Buscar Radicado SNC</label>
+              <div style="display: flex; gap: 12px;">
+                <input type="text" id="snc-search" class="input-field" placeholder="CÓDIGO RADICADO">
+                <button class="btn-primary" style="width: auto; padding: 0 24px;" onclick="handleSncSearch()">Buscar</button>
+              </div>
+            </div>
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
-            <div class="form-group"><label>Consultar Base de Datos</label><div style="display: flex; gap: 12px;"><input type="text" id="db-search" placeholder="RADICADO"><button style="width: auto; padding: 0 25px;" onclick="handleDbSearch()">Consultar</button></div></div>
-            <div id="search-result" style="margin-top: 20px; display: none;"></div>
-          </div>
-        </div>
-      </section>
+          <div id="snc-result" style="display: none;"></div>
+        </section>
 
-      <!-- NOTIFICATIONS -->
-      <section id="view-notifications" class="view">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Notificaciones</h1>
-            <p class="author">By Duvan Ramos</p>
+        <!-- VIEW: SEARCH -->
+        <section id="view-search" class="view-container">
+          <div class="form-box" style="margin-bottom: 32px;">
+            <div class="input-group">
+              <label>Búsqueda en Base de Datos</label>
+              <div style="display: flex; gap: 12px;">
+                <input type="text" id="db-search" class="input-field" placeholder="INGRESE EL RADICADO">
+                <button class="btn-primary" style="width: auto; padding: 0 24px;" onclick="handleDbSearch()">Consultar</button>
+              </div>
+            </div>
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
-            <div id="notifications-list" class="list-container"></div>
-          </div>
-        </div>
-      </section>
+          <div id="search-result" style="display: none;"></div>
+        </section>
 
-      <!-- CHAT -->
-      <section id="view-chat" class="view">
-        <div class="card">
-          <div class="header">
-            <p class="company">People BPO</p>
-            <h1>Comunicación Interna</h1>
-            <p class="author">By Duvan Ramos</p>
+        <!-- VIEW: NOTIFICATIONS -->
+        <section id="view-notifications" class="view-container">
+          <div id="notifications-list" style="display: grid; gap: 16px;">
+            <!-- Notifications items -->
           </div>
-          <div class="accent-bar"></div>
-          <div class="content">
+        </section>
+
+        <!-- VIEW: CHAT -->
+        <section id="view-chat" class="view-container">
+          <div class="chat-container">
             <div id="chat-messages"></div>
-            <div style="display: flex; gap: 10px;">
-              <select id="chat-dest" style="width: 120px; padding: 8px 12px; border-radius: 12px;"><option value="TODOS">Grupo</option></select>
-              <input type="text" id="chat-msg" style="padding: 12px 18px; border-radius: 12px;" placeholder="Escribe un mensaje...">
-              <button style="width: auto; padding: 0 20px; border-radius: 12px;" onclick="handleChatSend()">Enviar</button>
+            <div class="chat-input-area">
+              <select id="chat-dest" class="input-field" style="width: 140px; padding: 10px;">
+                <option value="TODOS">Canal Grupal</option>
+              </select>
+              <input type="text" id="chat-msg" class="input-field" placeholder="Escribe un mensaje para el equipo...">
+              <button class="btn-primary" style="width: auto; padding: 12px 24px;" onclick="handleChatSend()">Enviar</button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+
+      </div>
     </main>
   </div>
 
@@ -378,70 +741,149 @@
     let LAST_NOTIF_TOTAL = 0;
     let LAST_NOTIF_SEEN = 0;
 
+    // --- INIT ---
     window.onload = () => {
       loadUsers();
       const saved = localStorage.getItem('pbpo_session');
-      if (saved) { SESSION = JSON.parse(saved); startApp(); }
+      if (saved) {
+        SESSION = JSON.parse(saved);
+        startApp();
+      }
+      document.getElementById('live-date').innerText = new Date().toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
     };
 
     function loadUsers() {
       google.script.run.withSuccessHandler(users => {
-        const s = document.getElementById('login-user');
-        s.innerHTML = '<option value="">Selecciona funcionario...</option>';
-        users.forEach(u => s.innerHTML += `<option value="${u.id}">${u.nombre}</option>`);
+        const select = document.getElementById('login-user');
+        select.innerHTML = '<option value="">Selecciona funcionario...</option>';
+        users.forEach(u => {
+          select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
+        });
         if (SESSION) setupChatDestinations(users);
       }).obtenerUsuarios();
     }
 
     function startApp() {
-      document.getElementById('login-view').style.display = 'none';
-      document.getElementById('app').style.display = 'flex';
-      document.getElementById('user-name').innerText = SESSION.nombre;
-      document.getElementById('user-avatar').innerText = SESSION.nombre[0];
-      refreshDashboard();
-      setInterval(refreshChat, 4000);
-      setInterval(refreshNotifs, 10000);
-      refreshChat(); refreshNotifs(); setupChatDestinations();
+      document.getElementById('login-view').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('user-name').innerText = SESSION.nombre;
+        document.getElementById('user-avatar').innerText = SESSION.nombre[0];
+        refreshDashboard();
+        setInterval(refreshChat, 4000);
+        setInterval(refreshNotifs, 10000);
+        refreshChat();
+        refreshNotifs();
+        setupChatDestinations();
+      }, 500);
     }
 
     function setupChatDestinations(usersList) {
-      if (!usersList) { google.script.run.withSuccessHandler(l => setupChatDestinations(l)).obtenerUsuarios(); return; }
-      const d = document.getElementById('chat-dest');
-      d.innerHTML = '<option value="TODOS">Grupo</option>';
-      usersList.forEach(u => { if (u.id !== SESSION.id) d.innerHTML += `<option value="${u.id}">${u.id}</option>`; });
+      if (!usersList) {
+        google.script.run.withSuccessHandler(l => setupChatDestinations(l)).obtenerUsuarios();
+        return;
+      }
+      const dest = document.getElementById('chat-dest');
+      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
+      usersList.forEach(u => {
+        if (u.id !== SESSION.id) {
+          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
+        }
+      });
     }
 
     function switchView(viewId, el) {
-      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
       document.getElementById(`view-${viewId}`).classList.add('active');
       el.classList.add('active');
+
+      const names = {
+        'dashboard': 'Panel de Control',
+        'registry': 'Nueva Radicación',
+        'snc': 'Gestión de Calidad (SNC)',
+        'search': 'Búsqueda Global',
+        'notifications': 'Centro de Notificaciones',
+        'chat': 'Comunicación Interna'
+      };
+      document.getElementById('current-view-name').innerText = names[viewId];
+
       if (viewId === 'dashboard') refreshDashboard();
-      if (viewId === 'notifications') { document.getElementById('badge-notif').classList.remove('active'); refreshNotifs(); }
-      if (viewId === 'chat') { document.getElementById('badge-chat').classList.remove('active'); refreshChat(); }
+      if (viewId === 'notifications') {
+        document.getElementById('badge-notif').classList.remove('active');
+        refreshNotifs();
+      }
+      if (viewId === 'chat') {
+        document.getElementById('badge-chat').classList.remove('active');
+        refreshChat();
+      }
     }
 
     function handleLogin() {
       const u = document.getElementById('login-user').value;
       const p = document.getElementById('login-pass').value;
       if (!u || !p) return showToast('Datos incompletos', 'error');
+
+      const btn = document.getElementById('btn-login-action');
+      btn.disabled = true;
+      btn.innerText = 'Verificando...';
+
       google.script.run.withSuccessHandler(res => {
-        if (res.success) { SESSION = res.user; localStorage.setItem('pbpo_session', JSON.stringify(SESSION)); startApp(); }
-        else showToast(res.message, 'error');
+        btn.disabled = false;
+        btn.innerText = 'Entrar al sistema';
+        if (res.success) {
+          SESSION = res.user;
+          localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
+          startApp();
+        } else {
+          showToast(res.message, 'error');
+        }
       }).login(u, p);
     }
 
-    function logout() { localStorage.removeItem('pbpo_session'); location.reload(); }
-
-    function submitRegistration() {
-      const data = { radicado: document.getElementById('reg-radicado').value, fecha: document.getElementById('reg-fecha').value, devuelto: document.getElementById('reg-devuelto').checked, sncProceso: document.getElementById('reg-snc').checked, observacion: document.getElementById('reg-obs').value, funcionaria: SESSION.nombre };
-      if (!data.radicado) return showToast('Radicado obligatorio', 'error');
-      if (data.sncProceso && !data.fecha) return showToast('Fecha requerida para SNC', 'error');
-      const btn = document.getElementById('btn-save-reg'); btn.disabled = true; btn.innerText = 'Guardando...';
-      google.script.run.withSuccessHandler(() => { showToast('Radicado guardado'); resetRegForm(); refreshDashboard(); btn.disabled = false; btn.innerText = 'Registrar en Sistema'; }).guardarRadicacion(data);
+    function logout() {
+      localStorage.removeItem('pbpo_session');
+      location.reload();
     }
 
-    function resetRegForm() { document.getElementById('reg-radicado').value = ''; document.getElementById('reg-fecha').value = ''; document.getElementById('reg-devuelto').checked = false; document.getElementById('reg-snc').checked = false; document.getElementById('reg-obs').value = ''; }
+    function submitRegistration() {
+      const data = {
+        radicado: document.getElementById('reg-radicado').value,
+        fecha: document.getElementById('reg-fecha').value,
+        devuelto: document.getElementById('reg-devuelto').checked,
+        sncProceso: document.getElementById('reg-snc').checked,
+        observacion: document.getElementById('reg-obs').value,
+        funcionaria: SESSION.nombre
+      };
+
+      if (!data.radicado) return showToast('El radicado es obligatorio', 'error');
+      if (data.sncProceso && !data.fecha) return showToast('Se requiere fecha para reporte SNC', 'error');
+
+      const btn = document.getElementById('btn-save-reg');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      google.script.run.withSuccessHandler(() => {
+        showToast('Radicado registrado con éxito');
+        resetRegForm();
+        refreshDashboard();
+        btn.disabled = false;
+        btn.innerText = 'Registrar Radicado';
+      }).withFailureHandler(err => {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerText = 'Registrar Radicado';
+      }).guardarRadicacion(data);
+    }
+
+    function resetRegForm() {
+      document.getElementById('reg-radicado').value = '';
+      document.getElementById('reg-fecha').value = '';
+      document.getElementById('reg-devuelto').checked = false;
+      document.getElementById('reg-snc').checked = false;
+      document.getElementById('reg-obs').value = '';
+    }
 
     function refreshDashboard() {
       google.script.run.withSuccessHandler(res => {
@@ -449,82 +891,205 @@
         document.getElementById('stat-devueltos').innerText = res.devueltos;
         document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
       }).obtenerResumenHoy(SESSION.nombre);
+
       google.script.run.withSuccessHandler(data => {
-        const l = document.getElementById('history-list');
-        l.innerHTML = data.length ? '' : '<p style="color:var(--text-muted); text-align:center; padding:20px;">Sin registros recientes</p>';
-        data.forEach(i => {
-          const isDev = i.devuelto && (i.devuelto.toString().toLowerCase() === 'si' || i.devuelto.toString().toLowerCase() === 'sí');
-          l.innerHTML += `<div class="list-item"><div><b style="color:var(--primary); font-size:14px;">${i.radicado}</b><div style="font-size: 11px; color: var(--text-muted)">${i.fecha}</div></div><span class="status-tag ${isDev ? 'status-error' : 'status-success'}">${isDev ? 'DEVUELTO' : 'EXITOSO'}</span></div>`;
+        const list = document.getElementById('history-list');
+        list.innerHTML = data.length ? '' : '<p style="padding:40px; text-align:center; color:var(--text-muted);">No hay registros recientes</p>';
+        data.forEach(item => {
+          const isDev = item.devuelto && (item.devuelto.toString().toLowerCase() === 'si' || item.devuelto.toString().toLowerCase() === 'sí');
+          list.innerHTML += `
+            <div class="history-row">
+              <div class="row-main">
+                <b>${item.radicado}</b>
+                <span>${item.fecha}</span>
+              </div>
+              <span class="status-pill ${isDev ? 'error' : 'success'}">${isDev ? 'Devuelto' : 'Exitoso'}</span>
+            </div>
+          `;
         });
       }).obtenerHistorial(SESSION.nombre);
     }
 
     function handleSncSearch() {
+      const rad = document.getElementById('snc-search').value;
+      if (!rad) return;
+
       google.script.run.withSuccessHandler(res => {
-        const v = document.getElementById('snc-result'); v.style.display = 'block';
-        if (!res) { v.innerHTML = '<p style="color:#b91c1c; text-align:center; font-size:14px; font-weight:600;">Radicado no encontrado</p>'; return; }
-        v.innerHTML = `<div style="background: #f8fafc; border: 1px solid #edf2f7; border-radius: 20px; padding: 25px;">
-          <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h3 style="color:var(--primary); font-size:18px;">Radicado: ${res.radicado}</h3>
-            <span style="font-size:11px; font-weight:700; padding:4px 10px; border-radius:10px; background:var(--primary); color:white">${res.status || 'EN PROCESO'}</span>
+        const view = document.getElementById('snc-result');
+        view.style.display = 'block';
+        if (!res) {
+          view.innerHTML = '<div class="form-box" style="color:var(--error); text-align:center; font-weight:600;">Radicado no encontrado en sistema</div>';
+          return;
+        }
+        view.innerHTML = `
+          <div class="form-box">
+            <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
+              <h3>Radicado: ${res.radicado}</h3>
+              <span class="status-pill" style="background:var(--primary); color:white">${res.estado}</span>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Asesor Responsable</label>
+              <div style="font-weight:600;">${res.funcionaria}</div>
+            </div>
+            <div style="margin-bottom:32px;">
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Observación Original</label>
+              <p style="font-style:italic; font-size:14px; margin-top:4px;">"${res.observacion || 'Sin detalles'}"</p>
+            </div>
+            ${res.canClose ? `<button class="btn-primary" onclick="closeSnc('${res.row}')">Marcar como Solucionado</button>` : ''}
           </div>
-          <div style="margin-bottom:12px;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Funcionario Responsable</label><div style="font-weight:600; color:var(--primary);">${res.funcionaria}</div></div>
-          <div style="margin-bottom:20px;"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Observación</label><div style="font-style:italic; font-size:13px; color:var(--text-muted);">"${res.observacion || 'Sin detalles'}"</div></div>
-          ${res.canClose ? `<button style="padding:12px; font-size:14px;" onclick="closeSnc('${res.row}')">Marcar como Solucionado</button>` : ''}
-        </div>`;
-      }).buscarSNC(document.getElementById('snc-search').value);
+        `;
+      }).buscarSNC(rad);
     }
-    function closeSnc(id) { google.script.run.withSuccessHandler(() => { showToast('SNC Cerrado'); handleSncSearch(); }).marcarSolucionado(Number(id)); }
+
+    function closeSnc(id) {
+      google.script.run.withSuccessHandler(() => {
+        showToast('SNC Cerrado correctamente');
+        handleSncSearch();
+      }).marcarSolucionado(Number(id));
+    }
 
     function handleDbSearch() {
+      const rad = document.getElementById('db-search').value;
+      if (!rad) return;
+
       google.script.run.withSuccessHandler(res => {
-        const v = document.getElementById('search-result'); v.style.display = 'block';
-        if (!res) { v.innerHTML = '<p style="color:#b91c1c; text-align:center; font-size:14px; font-weight:600;">No existe en la base de datos</p>'; return; }
-        v.innerHTML = `<div style="background: #f8fafc; border: 1px solid #edf2f7; border-radius: 24px; padding: 30px; text-align: left;">
-          <div style="margin-bottom:15px"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Registrado por</label><div style="font-size:18px; font-weight:700; color:var(--primary)">${res.funcionaria}</div></div>
-          <div style="margin-bottom:15px"><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Fecha de Registro</label><div style="font-size:18px; font-weight:700; color:var(--primary)">${res.fecha}</div></div>
-          <div><label style="font-size:10px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Observaciones</label><div style="font-size:14px; font-style:italic; color:var(--text-muted)">"${res.observacion || 'Sin detalles adicionales'}"</div></div>
-        </div>`;
-      }).buscarGeneral(document.getElementById('db-search').value);
+        const view = document.getElementById('search-result');
+        view.style.display = 'block';
+        if (!res) {
+          view.innerHTML = '<div class="form-box" style="color:var(--error); text-align:center; font-weight:600;">No existe registro en la base de datos</div>';
+          return;
+        }
+        view.innerHTML = `
+          <div class="form-box">
+            <div style="margin-bottom:24px; text-align:center;">
+              <h3 style="color:var(--primary)">Resultado Encontrado</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
+              <div>
+                <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Registrado por</label>
+                <div style="font-weight:600; font-size:16px;">${res.funcionaria}</div>
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Fecha de Registro</label>
+                <div style="font-weight:600; font-size:16px;">${res.fecha}</div>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Observaciones</label>
+              <p style="font-style:italic; font-size:14px; margin-top:4px; border-left:4px solid var(--primary); padding-left:16px;">"${res.observacion || 'Sin detalles adicionales'}"</p>
+            </div>
+          </div>
+        `;
+      }).buscarGeneral(rad);
     }
 
     function refreshNotifs() {
       google.script.run.withSuccessHandler(data => {
         const b = document.getElementById('badge-notif');
-        const activeView = document.querySelector('.view.active').id;
-        if (data.length > LAST_NOTIF_TOTAL) { playAlert(); }
+        const activeView = document.querySelector('.view-container.active').id;
+        if (data.length > LAST_NOTIF_TOTAL) playAlert();
         LAST_NOTIF_TOTAL = data.length;
-        if (activeView === 'view-notifications') { LAST_NOTIF_SEEN = data.length; b.classList.remove('active'); }
-        else { const unread = data.length - LAST_NOTIF_SEEN; if (unread > 0) { b.innerText = unread; b.classList.add('active'); } }
-        const l = document.getElementById('notifications-list');
-        l.innerHTML = data.length ? '' : '<div style="text-align:center; color:var(--text-muted); padding:40px;">No tienes notificaciones pendientes</div>';
-        data.forEach(n => { l.innerHTML += `<div class="list-item"><div><b style="color:var(--primary);">${n.radicado}</b><p style="margin:5px 0; font-size:13px; color:var(--text-dark);">${n.mensaje}</p><small style="color:var(--text-muted); font-size:10px;">${n.fecha}</small></div><button style="width:auto; padding:8px 15px; font-size:11px; border-radius:10px;" onclick="markRead(${n.id})">Recibido</button></div>`; });
+
+        if (activeView === 'view-notifications') {
+          LAST_NOTIF_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_NOTIF_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        }
+
+        const list = document.getElementById('notifications-list');
+        list.innerHTML = data.length ? '' : '<div class="section-card" style="padding:48px; text-align:center; color:var(--text-muted);">No tienes notificaciones pendientes</div>';
+        data.forEach(n => {
+          list.innerHTML += `
+            <div class="section-card" style="padding:24px 32px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b style="font-size:16px; display:block; margin-bottom:4px;">${n.radicado}</b>
+                <p style="font-size:14px; color:var(--text-muted);">${n.mensaje}</p>
+                <span style="font-size:10px; margin-top:8px; display:block; color:var(--primary); font-weight:600;">${n.fecha}</span>
+              </div>
+              <button class="btn-primary" style="width:auto; padding:10px 20px; font-size:12px;" onclick="markRead(${n.id})">Entendido</button>
+            </div>
+          `;
+        });
       }).obtenerNotificaciones(SESSION.nombre);
     }
-    function markRead(id) { google.script.run.withSuccessHandler(() => refreshNotifs()).marcarRecibido(id); }
+
+    function markRead(id) {
+      google.script.run.withSuccessHandler(() => refreshNotifs()).marcarRecibido(id);
+    }
 
     function refreshChat() {
       google.script.run.withSuccessHandler(data => {
         const b = document.getElementById('badge-chat');
-        const activeView = document.querySelector('.view.active').id;
-        if (data.length > LAST_CHAT_TOTAL) { const lastMsg = data[data.length-1]; if (lastMsg.usuario !== SESSION.nombre) playAlert(); }
+        const activeView = document.querySelector('.view-container.active').id;
+        if (data.length > LAST_CHAT_TOTAL) {
+          const lastMsg = data[data.length - 1];
+          if (lastMsg.usuario !== SESSION.nombre) playAlert();
+        }
         LAST_CHAT_TOTAL = data.length;
-        if (activeView === 'view-chat') { LAST_CHAT_SEEN = data.length; b.classList.remove('active'); }
-        else { const unread = data.length - LAST_CHAT_SEEN; if (unread > 0) { b.innerText = unread; b.classList.add('active'); } }
+
+        if (activeView === 'view-chat') {
+          LAST_CHAT_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_CHAT_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        }
+
         const box = document.getElementById('chat-messages');
         const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
         box.innerHTML = '';
-        data.forEach(m => { const isOwn = m.usuario === SESSION.nombre; box.innerHTML += `<div class="message ${isOwn ? 'own' : 'other'}"><div class="msg-info">${isOwn ? 'Tú' : m.usuario} • ${m.fecha}</div><div>${m.mensaje}</div></div>`; });
+        data.forEach(m => {
+          const isOwn = m.usuario === SESSION.nombre;
+          box.innerHTML += `
+            <div class="chat-msg ${isOwn ? 'own' : 'other'}">
+              <div class="chat-info">${isOwn ? 'Tú' : m.usuario} • ${m.fecha}</div>
+              <div>${m.mensaje}</div>
+            </div>
+          `;
+        });
         if (isAtBottom) box.scrollTop = box.scrollHeight;
       }).obtenerChat(SESSION.nombre);
     }
+
     function handleChatSend() {
-      const m = document.getElementById('chat-msg').value; if (!m) return;
-      google.script.run.withSuccessHandler(() => { document.getElementById('chat-msg').value = ''; refreshChat(); }).enviarMensajeChat({ usuario: SESSION.nombre, mensaje: m, destinatario: document.getElementById('chat-dest').value });
+      const msg = document.getElementById('chat-msg').value;
+      if (!msg) return;
+      google.script.run.withSuccessHandler(() => {
+        document.getElementById('chat-msg').value = '';
+        refreshChat();
+      }).enviarMensajeChat({
+        usuario: SESSION.nombre,
+        mensaje: msg,
+        destinatario: document.getElementById('chat-dest').value
+      });
     }
 
-    function showToast(txt, type='success') { const t = document.getElementById('toast'); t.innerText = txt; t.classList.add('active'); setTimeout(()=>t.classList.remove('active'),3000); }
-    function playAlert() { const audio = document.getElementById('alert-sound'); if (audio) { audio.currentTime = 0; audio.play().catch(()=>{}); } }
+    function showToast(text, type = 'success') {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.className = type === 'error' ? 'active error' : 'active';
+      setTimeout(() => t.classList.remove('active'), 4000);
+    }
+
+    function playAlert() {
+      const audio = document.getElementById('alert-sound');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    }
   </script>
 </body>
 </html>

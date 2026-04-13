@@ -187,7 +187,7 @@ function marcarSolucionado(rowId) {
 // ================= NOTIFICACIONES =================
 function obtenerNotificaciones(usuario) {
   try {
-    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Notificaciones');
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
     if (!sh) return [];
     const data = sh.getDataRange().getValues();
     const res = [];
@@ -210,7 +210,7 @@ function obtenerNotificaciones(usuario) {
 }
 
 function marcarRecibido(id) {
-  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Notificaciones');
+  const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
   sh.getRange(id, 5).setValue('Recibido');
   sh.getRange(id, 6).setValue(new Date());
   return true;
