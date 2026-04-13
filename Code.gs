@@ -6,7 +6,7 @@ const CONFIG = {
   SPREADSHEET_ID: "148Py5yyJ1ucYF26fD2zs9g-aQgD77I_C-betaSOha7w",
   SHEETS: {
     PQRSF: "PQRSF Creados",
-    AGENTES: "Agentes",
+    AGENTES: "USUARIOS",
     CHAT: "CHAT",
     NOTIFICACIONES: "Notificaciones"
   },
@@ -74,11 +74,22 @@ function formatDate(date) {
 function getAgentes() {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
-    const sheet = ss.getSheetByName(CONFIG.SHEETS.AGENTES);
+    let sheet = ss.getSheetByName(CONFIG.SHEETS.AGENTES);
+    if (!sheet) sheet = ss.getSheetByName("Agentes"); // Fallback
+    if (!sheet) return [];
+
     const lastRow = sheet.getLastRow();
     if (lastRow < 2) return [];
-    const data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
-    return data.map(row => row[0]).filter(name => name && name.trim() !== "");
+
+    // Attempt Column B (2) first as per memory, then Column E (5)
+    let data;
+    if (sheet.getName() === "USUARIOS") {
+      data = sheet.getRange(2, 2, lastRow - 1, 1).getValues();
+    } else {
+      data = sheet.getRange(2, 5, lastRow - 1, 1).getValues();
+    }
+
+    return [...new Set(data.map(row => row[0]).filter(name => name && name.trim() !== ""))].sort();
   } catch(e) {
     console.log("Error en getAgentes: " + e.message);
     return [];
