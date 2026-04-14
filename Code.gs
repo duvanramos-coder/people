@@ -63,6 +63,34 @@ function guardarPQRSF(datos) {
   }
 }
 
+function buscarPQRSF(radicado) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF);
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return null;
+
+    const data = sheet.getRange(2, 1, lastRow - 1, 6).getValues();
+    const searchVal = String(radicado).trim().toLowerCase();
+
+    for (let i = 0; i < data.length; i++) {
+      if (String(data[i][2]).trim().toLowerCase() === searchVal) {
+        return {
+          fecha: formatDate(data[i][0]),
+          agente: data[i][1],
+          radicado: data[i][2],
+          clasificacion: data[i][4],
+          dirige: data[i][5]
+        };
+      }
+    }
+    return null;
+  } catch(e) {
+    console.log("Error en buscarPQRSF: " + e.message);
+    return null;
+  }
+}
+
 /**
  * HELPERS Y FUNCIONES DE SOPORTE
  */
