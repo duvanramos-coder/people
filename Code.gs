@@ -262,3 +262,40 @@ function marcarNotificacionRecibida(id) {
     return { estado: "error", error: e.message };
   }
 }
+
+/**
+ * MÓDULO DE SUGERENCIAS (INTELIGENCIA COLECTIVA)
+ * Busca coincidencias en base externa por descripción.
+ */
+function buscarSimilitudPQRSF(texto) {
+  try {
+    const externalId = "1_itknIlAM9fEo7dZazIEW8LfHcnAFQ6YXRIR1zVs4zk";
+    const ss = SpreadsheetApp.openById(externalId);
+    const sheet = ss.getSheets()[0];
+    const data = sheet.getDataRange().getValues();
+
+    const results = [];
+    const searchVal = String(texto).trim().toLowerCase();
+
+    if (!searchVal) return [];
+
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      // A=0, B=1, C=2, D=3, E=4, F=5, G=6
+      const descripcion = String(row[6] || "").toLowerCase();
+
+      if (descripcion.includes(searchVal)) {
+        results.push({
+          radicado: row[0],
+          canal: row[5],
+          radicador: row[4]
+        });
+        if (results.length >= 20) break;
+      }
+    }
+    return results;
+  } catch(e) {
+    console.log("Error en buscarSimilitudPQRSF: " + e.message);
+    return [];
+  }
+}

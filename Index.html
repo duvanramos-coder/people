@@ -416,6 +416,10 @@
           <i data-lucide="search"></i>
           <span>Búsqueda</span>
         </button>
+        <button class="nav-btn" onclick="openPanel('sugerencias')">
+          <i data-lucide="brain"></i>
+          <span>Sugerencias</span>
+        </button>
       </nav>
 
       <div style="background: rgba(255,255,255,0.03); border-radius: var(--radius-md); padding: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 24px;">
@@ -517,6 +521,44 @@
             </div>
           </div>
         </aside>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-sugerencias" class="overlay">
+    <div class="overlay-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i data-lucide="brain"></i>
+        <span style="font-weight: 800;">SUGERENCIAS INTELIGENTES</span>
+      </div>
+      <i data-lucide="x" style="cursor: pointer;" onclick="closePanel('sugerencias')"></i>
+    </div>
+    <div class="overlay-body">
+      <p style="font-size: 11px; color: var(--brand-purple); font-weight: 700; background: rgba(190, 220, 22, 0.2); padding: 12px; border-radius: 10px; margin-bottom: 24px; line-height: 1.4;">
+        👉 Estos son los radicados con mayor similitud a tu búsqueda. Valida cuál se ajusta mejor a tu caso y copia el radicado.
+      </p>
+
+      <div style="background: white; padding: 24px; border-radius: 18px; border: 1px solid var(--border-color); margin-bottom: 24px;">
+        <label class="input-label">Describe el caso</label>
+        <div style="display: flex; gap: 12px;">
+          <input id="input-sugerencia" class="custom-input" type="text" placeholder="Ej: problemas huella..." onkeypress="if(event.key==='Enter') buscarSugerencias()">
+          <button class="primary-btn" style="width: 64px; padding: 0;" onclick="buscarSugerencias()">
+            <i data-lucide="search"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="sugerencias-results-area">
+        <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 40px;">
+          Describe el problema para encontrar casos similares.
+        </div>
+      </div>
+
+      <div style="margin-top: 24px;">
+        <button class="primary-btn" style="background: #f8fafc; color: var(--brand-purple); border: 1px solid var(--border-color);" onclick="window.open('https://docs.google.com/spreadsheets/d/1_itknIlAM9fEo7dZazIEW8LfHcnAFQ6YXRIR1zVs4zk', '_blank')">
+          <i data-lucide="external-link"></i>
+          <span>Abrir base completa</span>
+        </button>
       </div>
     </div>
   </div>
@@ -795,6 +837,46 @@
         `).join('');
       })
       .getHistorial(currentAgent);
+  }
+
+  function buscarSugerencias() {
+    const texto = document.getElementById("input-sugerencia").value.trim();
+    const area = document.getElementById('sugerencias-results-area');
+    if (!texto) return showToast('Describe el caso para buscar', 'error');
+
+    area.innerHTML = '<div style="text-align: center; padding: 40px;"><div class="spinner" style="display:block; margin: 0 auto; border-top-color: var(--brand-purple);"></div></div>';
+
+    google.script.run
+      .withSuccessHandler(renderResultados)
+      .withFailureHandler(() => {
+        area.innerHTML = '<div style="text-align: center; color: var(--error); padding: 40px;">Error de conexión con el servidor.</div>';
+      })
+      .buscarSimilitudPQRSF(texto);
+  }
+
+  function renderResultados(results) {
+    const area = document.getElementById('sugerencias-results-area');
+    if (!results || results.length === 0) {
+      area.innerHTML = '<div style="text-align: center; color: var(--text-muted); font-weight: 700; padding: 40px;">No se encontraron casos similares.</div>';
+      return;
+    }
+
+    area.innerHTML = results.map(r => `
+      <div style="background: white; padding: 20px; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 12px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+          <div style="font-weight: 800; color: var(--brand-purple); font-size: 16px;">🔢 ${escapeHtml(r.radicado)}</div>
+          <div style="background: var(--brand-lime); color: var(--brand-purple); font-size: 10px; font-weight: 800; padding: 4px 8px; border-radius: 6px; text-transform: uppercase;">${escapeHtml(r.canal)}</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); font-weight: 600;">
+          <i data-lucide="user" style="width: 14px; height: 14px;"></i>
+          <span>🧑 ${escapeHtml(r.radicador)}</span>
+        </div>
+        <button class="primary-btn" style="margin-top: 16px; padding: 8px; font-size: 12px; height: auto; background: #f1f5f9; color: var(--brand-purple);" onclick="navigator.clipboard.writeText('${r.radicado}'); showToast('Radicado copiado')">
+          Copiar Radicado
+        </button>
+      </div>
+    `).join('');
+    lucide.createIcons();
   }
 
   function buscarRadicado() {
