@@ -250,3 +250,103 @@ function enviarMensajeChat(data) {
   ]);
   return true;
 }
+
+// ================= WFM / HORARIOS =================
+function obtenerHorarioHoy(usuario) {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('Turnos');
+    if (!sh) return null;
+    const data = sh.getDataRange().getValues();
+    const hoy = new Date();
+    const hoyStr = Utilities.formatDate(hoy, "GMT-5", "d/M/yyyy");
+
+    for (let i = 1; i < data.length; i++) {
+      let fVal = data[i][3];
+      let fStr = "";
+      if (fVal instanceof Date) {
+        fStr = Utilities.formatDate(fVal, "GMT-5", "d/M/yyyy");
+      } else {
+        fStr = String(fVal).trim();
+      }
+
+      if (data[i][0] === usuario && fStr === hoyStr) {
+        if (data[i][4] === 'DESCANSO') return { descanso: true };
+        return {
+          jornada: data[i][4],
+          almuerzo: data[i][5],
+          break1: data[i][6],
+          break2: data[i][7]
+        };
+      }
+    }
+    return null;
+  } catch(e) { return null; }
+}
+
+function verificarHorarios(usuario) {
+  try {
+    const horario = obtenerHorarioHoy(usuario);
+    if (!horario || horario.descanso) return;
+
+    const hoy = new Date();
+    const eventos = [];
+
+    const parseRange = (range, label) => {
+      if (!range || range === "Sin break" || range === "-" || range === "DESCANSO") return;
+      const parts = range.split(" a ");
+      if (parts.length !== 2) return;
+      eventos.push({ time: convertirHora(parts[0]), msg: `Inicio de ${label}` });
+      eventos.push({ time: convertirHora(parts[1]), msg: `Fin de ${label}` });
+    };
+
+    parseRange(horario.jornada, "Jornada");
+    parseRange(horario.almuerzo, "Almuerzo");
+    parseRange(horario.break1, "Break Mañana");
+    parseRange(horario.break2, "Break Tarde");
+
+    eventos.forEach(ev => {
+      const diff = (ev.time.getTime() - hoy.getTime()) / 60000;
+      if (diff > 0 && diff <= 2.1) {
+        if (!yaNotificado(usuario, "HORARIO", ev.msg)) {
+          const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+          sh.appendRow([usuario, new Date(), "HORARIO", ev.msg, "Pendiente", ""]);
+        }
+      }
+    });
+  } catch(e) {}
+}
+
+function convertirHora(horaStr) {
+  const hoy = new Date();
+  const match = horaStr.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+  if (!match) return new Date();
+
+  let hours = parseInt(match[1], 10);
+  const minutes = parseInt(match[2], 10);
+  const modifier = match[3];
+
+  if (hours === 12 && modifier === 'am') hours = 0;
+  else if (hours !== 12 && modifier === 'pm') hours += 12;
+
+  const d = new Date(hoy.getTime());
+  d.setHours(hours, minutes, 0, 0);
+  return d;
+}
+
+function yaNotificado(usuario, radicado, mensaje) {
+  try {
+    const sh = SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName('NOTIFICACIONES');
+    const data = sh.getDataRange().getValues();
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+
+    for (let i = data.length - 1; i >= Math.max(1, data.length - 50); i--) {
+      const fVal = data[i][1];
+      if (!(fVal instanceof Date)) continue;
+      const f = new Date(fVal); f.setHours(0,0,0,0);
+      if (data[i][0] === usuario && data[i][2] === radicado && data[i][3] === mensaje && f.getTime() === hoy.getTime()) {
+        return true;
+      }
+    }
+  } catch(e) {}
+  return false;
+}

@@ -518,6 +518,61 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* --- WFM STYLES --- */
+    .wfm-card {
+      background: linear-gradient(135deg, var(--card) 0%, #1a1f2e 100%) !important;
+      border: 1px solid var(--primary) !important;
+    }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .status-online { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+    .status-break { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .status-lunch { background: #f97316; box-shadow: 0 0 10px #f97316; }
+    .status-offline { background: var(--error); box-shadow: 0 0 10px var(--error); }
+
+    .countdown-timer {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'Poppins', sans-serif;
+      color: var(--primary);
+      margin-top: 10px;
+    }
+
+    .fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(11, 14, 20, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .alert-box {
+      background: var(--card);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-xl);
+      padding: 60px;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 50px var(--primary-glow);
+      animation: pulseAlert 2s infinite;
+    }
+
+    @keyframes pulseAlert {
+      0% { box-shadow: 0 0 20px var(--primary-glow); }
+      50% { box-shadow: 0 0 60px var(--primary-glow); }
+      100% { box-shadow: 0 0 20px var(--primary-glow); }
+    }
+
     /* --- SCROLLBAR --- */
     ::-webkit-scrollbar { width: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -621,6 +676,18 @@
         <!-- VIEW: DASHBOARD -->
         <section id="view-dashboard" class="view-container active">
           <div class="stats-grid">
+            <div class="stat-card wfm-card">
+              <span class="label">Turno del Día</span>
+              <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <span id="wfm-status-dot" class="status-dot status-offline"></span>
+                <span id="wfm-status-text" style="font-weight:700; font-size:14px;">Cargando...</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+                Jornada: <b id="wfm-jornada" style="color:var(--text-main)">--:--</b>
+              </div>
+              <span class="label" style="font-size:10px;">Próximo: <span id="wfm-next">--</span></span>
+              <div class="countdown-timer" id="wfm-countdown">00:00</div>
+            </div>
             <div class="stat-card">
               <span class="label">Exitosos</span>
               <div class="value" id="stat-efectivos" style="color: var(--secondary)">0</div>
@@ -734,6 +801,17 @@
     </main>
   </div>
 
+  <div id="wfm-modal" class="fullscreen-overlay" style="display:none">
+    <div class="alert-box">
+      <div class="brand-logo" style="margin:0 auto 20px;">P</div>
+      <h1 style="font-family:'Poppins'; margin-bottom:10px; color:var(--primary);">Alerta de Horario</h1>
+      <h2 id="wfm-alert-msg" style="font-size:24px; margin-bottom:40px;">Inicio de Almuerzo</h2>
+      <button class="btn-primary" onclick="closeWfmAlert()">
+        <span>Entendido / Detener Alerta</span>
+      </button>
+    </div>
+  </div>
+
   <script>
     let SESSION = null;
     let LAST_CHAT_TOTAL = 0;
@@ -742,6 +820,9 @@
     let LAST_NOTIF_SEEN = 0;
     let POLL_CHAT = null;
     let POLL_NOTIF = null;
+    let CURRENT_SHIFT = null;
+    let ALERT_INTERVAL = null;
+    let ACTIVE_WFM_NOTIF = null;
 
     // --- INIT ---
     window.onload = () => {
@@ -774,12 +855,18 @@
         document.getElementById('user-avatar').innerText = SESSION.nombre[0];
 
         refreshDashboard();
+        loadShift();
 
         if (POLL_CHAT) clearInterval(POLL_CHAT);
         if (POLL_NOTIF) clearInterval(POLL_NOTIF);
 
         POLL_CHAT = setInterval(refreshChat, 4000);
         POLL_NOTIF = setInterval(refreshNotifs, 10000);
+
+        setInterval(updateWFM, 1000);
+        setInterval(() => {
+          if (SESSION) google.script.run.verificarHorarios(SESSION.nombre);
+        }, 60000);
 
         refreshChat();
         refreshNotifs();
@@ -853,8 +940,10 @@
     function logout() {
       localStorage.removeItem('pbpo_session');
       SESSION = null;
+      CURRENT_SHIFT = null;
       if (POLL_CHAT) clearInterval(POLL_CHAT);
       if (POLL_NOTIF) clearInterval(POLL_NOTIF);
+      stopAlertSound();
 
       document.getElementById('app').style.display = 'none';
       document.getElementById('login-view').style.display = 'flex';
@@ -1025,6 +1114,9 @@
         const list = document.getElementById('notifications-list');
         list.innerHTML = data.length ? '' : '<div class="section-card" style="padding:48px; text-align:center; color:var(--text-muted);">No tienes notificaciones pendientes</div>';
         data.forEach(n => {
+          if (n.radicado === 'HORARIO' && !document.getElementById('wfm-modal').offsetParent) {
+            showWfmAlert(n);
+          }
           list.innerHTML += `
             <div class="section-card" style="padding:24px 32px; display:flex; justify-content:space-between; align-items:center;">
               <div>
@@ -1108,6 +1200,129 @@
         audio.currentTime = 0;
         audio.play().catch(() => {});
       }
+    }
+
+    // --- WFM LOGIC ---
+    function loadShift() {
+      google.script.run.withSuccessHandler(res => {
+        CURRENT_SHIFT = res;
+        updateWFM();
+      }).obtenerHorarioHoy(SESSION.nombre);
+    }
+
+    function parseTime(str) {
+      if (!str || str === 'Sin break' || str === '-' || str === 'DESCANSO') return null;
+      const match = str.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+      if (!match) return null;
+      let hours = parseInt(match[1], 10);
+      const mins = parseInt(match[2], 10);
+      const mod = match[3];
+      if (hours === 12 && mod === 'am') hours = 0;
+      else if (hours !== 12 && mod === 'pm') hours += 12;
+      const d = new Date();
+      d.setHours(hours, mins, 0, 0);
+      return d;
+    }
+
+    function updateWFM() {
+       if (!CURRENT_SHIFT || !document.getElementById('wfm-status-text')) return;
+       const now = new Date();
+       let status = "Fuera de turno";
+       let colorClass = "status-offline";
+       let nextEvent = null;
+       let nextLabel = "";
+
+       if (CURRENT_SHIFT.descanso) {
+         status = "Día de Descanso";
+       } else {
+         const jornadaArr = CURRENT_SHIFT.jornada.split(' a ');
+         const almuerzoArr = CURRENT_SHIFT.almuerzo.split(' a ');
+         const b1Arr = (CURRENT_SHIFT.break1 && CURRENT_SHIFT.break1.includes(' a ')) ? CURRENT_SHIFT.break1.split(' a ') : null;
+         const b2Arr = (CURRENT_SHIFT.break2 && CURRENT_SHIFT.break2.includes(' a ')) ? CURRENT_SHIFT.break2.split(' a ') : null;
+
+         const jornada = { start: parseTime(jornadaArr[0]), end: parseTime(jornadaArr[1]) };
+         const almuerzo = { start: parseTime(almuerzoArr[0]), end: parseTime(almuerzoArr[1]) };
+         const b1 = b1Arr ? { start: parseTime(b1Arr[0]), end: parseTime(b1Arr[1]) } : null;
+         const b2 = b2Arr ? { start: parseTime(b2Arr[0]), end: parseTime(b2Arr[1]) } : null;
+
+         const events = [
+           { t: jornada.start, l: "Inicio Jornada", type: "in" },
+           { t: jornada.end, l: "Fin Jornada", type: "out" },
+           { t: almuerzo.start, l: "Inicio Almuerzo", type: "lunch" },
+           { t: almuerzo.end, l: "Fin Almuerzo", type: "in" },
+           { t: b1 ? b1.start : null, l: "Inicio Break 1", type: "break" },
+           { t: b1 ? b1.end : null, l: "Fin Break 1", type: "in" },
+           { t: b2 ? b2.start : null, l: "Inicio Break 2", type: "break" },
+           { t: b2 ? b2.end : null, l: "Fin Break 2", type: "in" }
+         ].filter(e => e.t);
+
+         events.sort((a,b) => a.t - b.t);
+
+         if (now < jornada.start || now > jornada.end) {
+           status = "Fuera de turno";
+           colorClass = "status-offline";
+         } else if (almuerzo && now >= almuerzo.start && now < almuerzo.end) {
+           status = "En almuerzo";
+           colorClass = "status-lunch";
+         } else if (b1 && b1.start && now >= b1.start && now < b1.end) {
+           status = "En break";
+           colorClass = "status-break";
+         } else if (b2 && b2.start && now >= b2.start && now < b2.end) {
+           status = "En break";
+           colorClass = "status-break";
+         } else {
+           status = "En jornada";
+           colorClass = "status-online";
+         }
+
+         const upcoming = events.filter(e => e.t > now);
+         if (upcoming.length > 0) {
+           nextEvent = upcoming[0].t;
+           nextLabel = upcoming[0].l;
+         }
+       }
+
+       document.getElementById('wfm-status-text').innerText = status;
+       document.getElementById('wfm-status-dot').className = 'status-dot ' + colorClass;
+       document.getElementById('wfm-jornada').innerText = CURRENT_SHIFT.descanso ? 'DESCANSO' : CURRENT_SHIFT.jornada;
+
+       if (nextEvent) {
+         const diff = nextEvent - now;
+         const mins = Math.floor(diff / 60000);
+         const secs = Math.floor((diff % 60000) / 1000);
+         document.getElementById('wfm-next').innerText = nextLabel;
+         document.getElementById('wfm-countdown').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+       } else {
+         document.getElementById('wfm-next').innerText = "Sin eventos";
+         document.getElementById('wfm-countdown').innerText = "--:--";
+       }
+    }
+
+    function showWfmAlert(n) {
+      ACTIVE_WFM_NOTIF = n.id;
+      document.getElementById('wfm-alert-msg').innerText = n.mensaje;
+      document.getElementById('wfm-modal').style.display = 'flex';
+      loopAlertSound();
+    }
+
+    function closeWfmAlert() {
+      stopAlertSound();
+      document.getElementById('wfm-modal').style.display = 'none';
+      if (ACTIVE_WFM_NOTIF) {
+        markRead(ACTIVE_WFM_NOTIF);
+        ACTIVE_WFM_NOTIF = null;
+      }
+    }
+
+    function loopAlertSound() {
+      playAlert();
+      if (ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
+      ALERT_INTERVAL = setInterval(playAlert, 3000);
+    }
+
+    function stopAlertSound() {
+      if (ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
+      ALERT_INTERVAL = null;
     }
   </script>
 </body>
