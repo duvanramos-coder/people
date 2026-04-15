@@ -314,6 +314,64 @@
 
     /* UI UTILS */
     .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: #fff; animation: spin 0.8s linear infinite; display: none; }
+
+    /* SCHEDULE WIDGET */
+    .schedule-widget {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      position: relative;
+    }
+    .status-indicator::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid currentColor;
+      animation: pulse 2s infinite;
+      opacity: 0;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(1.8); opacity: 0; }
+    }
+
+    .alert-fullscreen {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      background: var(--brand-purple);
+      color: white;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px;
+    }
+    .alert-icon-box {
+      width: 120px;
+      height: 120px;
+      background: var(--brand-lime);
+      color: var(--brand-purple);
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      animation: bounce 1s infinite alternate;
+    }
+    @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-20px); } }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* CHAT BUBBLES */
@@ -500,6 +558,30 @@
 
         <!-- SECONDARY WIDGETS -->
         <aside>
+          <!-- JORNADA WIDGET -->
+          <div class="widget" style="background: white; border-left: 6px solid var(--brand-lime);">
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+              <div id="status-dot" class="status-indicator" style="color: #64748b; background: #64748b;"></div>
+              <span id="status-text" style="font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Sincronizando...</span>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="background: #f8fafc; padding: 12px; border-radius: 12px;">
+                <div style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Jornada Hoy</div>
+                <div id="sched-jornada" style="font-weight: 700; font-size: 13px;">--:--</div>
+              </div>
+              <div style="background: var(--brand-purple); color: white; padding: 12px; border-radius: 12px;">
+                <div style="font-size: 10px; font-weight: 800; opacity: 0.6; text-transform: uppercase;">Próximo Evento</div>
+                <div id="sched-next" style="font-weight: 700; font-size: 13px;">--:--</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px; text-align: center;">
+              <div id="countdown-label" style="font-size: 10px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px;">Inicia en</div>
+              <div id="countdown-timer" style="font-size: 24px; font-weight: 900; color: var(--brand-purple);">00:00</div>
+            </div>
+          </div>
+
           <div class="widget" style="background: var(--brand-purple); color: white;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <div>
@@ -622,8 +704,21 @@
     <span id="toast-msg"></span>
   </div>
 
+  <!-- FULLSCREEN ALERT -->
+  <div id="alert-fs" class="alert-fullscreen">
+    <div class="alert-icon-box">
+      <i data-lucide="clock" style="width: 60px; height: 60px;"></i>
+    </div>
+    <h1 style="font-size: 48px; font-weight: 900; margin-bottom: 16px;">¡ALERTA DE HORARIO!</h1>
+    <p id="alert-msg" style="font-size: 24px; font-weight: 500; opacity: 0.9; margin-bottom: 48px;">Es momento de iniciar tu descanso.</p>
+    <button class="primary-btn" style="background: var(--brand-lime); color: var(--brand-purple); max-width: 300px; height: 80px; font-size: 20px;" onclick="confirmarAlerta()">
+      <span>Entendido, Recibido</span>
+    </button>
+  </div>
+
   <audio id="snd-notif" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
   <audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3" preload="auto"></audio>
+  <audio id="snd-alert" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3" preload="auto" loop></audio>
 
 <script>
   // Initialize Lucide
@@ -668,6 +763,10 @@
   let isChatOpen = false;
   let pollingNotif = null;
   let pollingChat = null;
+  let pollingSched = null;
+  let scheduleData = null;
+  let countdownInterval = null;
+  let currentAlertId = null;
 
   window.onload = function() {
     const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -741,9 +840,95 @@
   }
 
   function startPolling() {
-    fetchNotifs(); fetchMessages();
+    fetchNotifs(); fetchMessages(); fetchSchedule();
     pollingNotif = setInterval(fetchNotifs, 10000);
     pollingChat = setInterval(fetchMessages, 5000);
+    pollingSched = setInterval(() => {
+      google.script.run.verificarHorarios(currentAgent);
+      fetchSchedule();
+    }, 60000);
+
+    if (countdownInterval) clearInterval(countdownInterval);
+    countdownInterval = setInterval(updateCountdown, 1000);
+  }
+
+  function fetchSchedule() {
+    google.script.run
+      .withSuccessHandler(data => {
+        if (!data) return;
+        scheduleData = data;
+        document.getElementById('sched-jornada').textContent = data.jornada || '--:--';
+        updateCountdown();
+      })
+      .obtenerHorarioHoy(currentAgent);
+  }
+
+  function updateCountdown() {
+    if (!scheduleData) return;
+
+    const ahora = new Date();
+    const parse = (h) => {
+      if (!h || h === "-" || h.toUpperCase() === "DESCANSO") return null;
+      const m = h.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+      if (!m) return null;
+      let hrs = parseInt(m[1]);
+      const min = parseInt(m[2]);
+      if (m[3] === "pm" && hrs < 12) hrs += 12;
+      if (m[3] === "am" && hrs === 12) hrs = 0;
+      const d = new Date(); d.setHours(hrs, min, 0, 0);
+      return d;
+    };
+
+    const jornada = scheduleData.jornada.split(" a ");
+    const inicioJ = parse(jornada[0]);
+    const finJ = parse(jornada[1]);
+
+    const b1 = scheduleData.break1.split(" a ");
+    const b2 = scheduleData.break2.split(" a ");
+    const alm = scheduleData.almuerzo.split(" a ");
+
+    const eventos = [
+      { name: "Break 1", start: parse(b1[0]), end: parse(b1[1]), status: "🟡 En break 1", color: "#eab308" },
+      { name: "Almuerzo", start: parse(alm[0]), end: parse(alm[1]), status: "🟠 En almuerzo", color: "#f97316" },
+      { name: "Break 2", start: parse(b2[0]), end: parse(b2[1]), status: "🟡 En break 2", color: "#eab308" },
+      { name: "Fin Jornada", start: finJ, end: null, status: "🔴 Fuera de turno", color: "#ef4444" }
+    ].filter(e => e.start);
+
+    // Determinar Estado Actual
+    let currentStatus = "🔴 Fuera de turno";
+    let statusColor = "#ef4444";
+
+    if (inicioJ && ahora >= inicioJ && ahora <= finJ) {
+      currentStatus = "🟢 En jornada";
+      statusColor = "#10b981";
+
+      for (const ev of eventos) {
+        if (ev.end && ahora >= ev.start && ahora <= ev.end) {
+          currentStatus = ev.status;
+          statusColor = ev.color;
+          break;
+        }
+      }
+    }
+
+    const dot = document.getElementById('status-dot');
+    dot.style.background = statusColor;
+    dot.style.color = statusColor;
+    document.getElementById('status-text').textContent = currentStatus;
+    document.getElementById('status-text').style.color = statusColor;
+
+    // Próximo Evento y Countdown
+    const prox = eventos.find(e => e.start > ahora);
+    if (prox) {
+      document.getElementById('sched-next').textContent = prox.name;
+      const diff = prox.start - ahora;
+      const mm = Math.floor(diff / 60000);
+      const ss = Math.floor((diff % 60000) / 1000);
+      document.getElementById('countdown-timer').textContent = `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+    } else {
+      document.getElementById('sched-next').textContent = "---";
+      document.getElementById('countdown-timer').textContent = "00:00";
+    }
   }
 
   function fetchNotifs() {
@@ -751,16 +936,25 @@
       .withSuccessHandler(list => {
         const b = document.getElementById('notif-badge');
         const body = document.getElementById('notif-body');
-        if (list && list.length > lastNotifCount) playSound('snd-notif');
-        lastNotifCount = list ? list.length : 0;
+        if (!list) return;
+
+        // Buscar alertas de HORARIO nuevas
+        const horarioAlert = list.find(n => n.radicado === "HORARIO" && !n.recibido);
+        if (horarioAlert) {
+          lanzarAlertaFS(horarioAlert);
+        }
+
+        if (list.length > lastNotifCount) playSound('snd-notif');
+        lastNotifCount = list.length;
         b.textContent = lastNotifCount;
         b.style.display = lastNotifCount > 0 ? 'flex' : 'none';
 
-        if (!list || list.length === 0) {
+        const validList = list.filter(n => n.radicado !== "HORARIO");
+        if (validList.length === 0) {
           body.innerHTML = '<div style="padding: 40px; text-align: center; color: var(--text-muted); font-size: 13px;">No hay alertas pendientes.</div>';
           return;
         }
-        body.innerHTML = list.map(n => `
+        body.innerHTML = validList.map(n => `
           <div style="background: white; padding: 20px; border-radius: 18px; margin-bottom: 12px; border: 1px solid var(--border-color);">
             <div style="font-weight: 800; color: var(--brand-purple); font-size: 15px;">${escapeHtml(n.radicado)}</div>
             <div style="font-size: 13px; color: var(--text-muted); margin: 8px 0;">${escapeHtml(n.mensaje)}</div>
@@ -769,6 +963,24 @@
         `).join('');
       })
       .getNotificaciones(currentAgent);
+  }
+
+  function lanzarAlertaFS(notif) {
+    if (currentAlertId === notif.id) return;
+    currentAlertId = notif.id;
+    document.getElementById('alert-msg').textContent = notif.mensaje;
+    document.getElementById('alert-fs').style.display = 'flex';
+    playSound('snd-alert');
+  }
+
+  function confirmarAlerta() {
+    const audio = document.getElementById('snd-alert');
+    audio.pause(); audio.currentTime = 0;
+    document.getElementById('alert-fs').style.display = 'none';
+    if (currentAlertId) {
+      marcarLeida(currentAlertId);
+      currentAlertId = null;
+    }
   }
 
   function marcarLeida(id) {

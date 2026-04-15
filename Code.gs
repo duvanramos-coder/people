@@ -299,3 +299,140 @@ function buscarSimilitudPQRSF(texto) {
     return [];
   }
 }
+
+/**
+ * MÓDULO DE HORARIOS (SISTEMA DE TURNOS)
+ */
+function obtenerHorarioHoy(usuario) {
+  try {
+    const ssId = "1C4f1DBu2VW9fJPISnzH0icsELR3146gIS3c-rKG5Vtg";
+    const ss = SpreadsheetApp.openById(ssId);
+    const sheet = ss.getSheetByName("Turnos");
+    if (!sheet) return null;
+
+    const data = sheet.getDataRange().getValues();
+    const hoyStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "d/M/yyyy");
+
+    // Saltamos cabecera
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const rowNombre = String(row[0]).trim();
+      const rowFecha = row[3];
+
+      let rowFechaStr = "";
+      if (rowFecha instanceof Date) {
+        rowFechaStr = Utilities.formatDate(rowFecha, CONFIG.TIMEZONE, "d/M/yyyy");
+      } else {
+        rowFechaStr = String(rowFecha).trim();
+      }
+
+      if (rowNombre === usuario && rowFechaStr === hoyStr) {
+        return {
+          jornada: row[4],
+          almuerzo: row[5],
+          break1: row[6],
+          break2: row[7]
+        };
+      }
+    }
+    return null;
+  } catch(e) {
+    console.log("Error en obtenerHorarioHoy: " + e.message);
+    return null;
+  }
+}
+
+function verificarHorarios(usuario) {
+  const info = obtenerHorarioHoy(usuario);
+  if (!info) return;
+
+  const ahora = new Date();
+  const eventos = [
+    { nombre: "almuerzo", rango: info.almuerzo, msg: "En 2 minutos inicia tu almuerzo" },
+    { nombre: "break 1", rango: info.break1, msg: "En 2 minutos inicia tu break" },
+    { nombre: "break 2", rango: info.break2, msg: "En 2 minutos inicia tu break" }
+  ];
+
+  eventos.forEach(ev => {
+    if (!ev.rango || ev.rango === "-" || ev.rango.toUpperCase() === "DESCANSO") return;
+
+    // Formato esperado: "12:00pm a 1:00pm"
+    const partes = ev.rango.split(" a ");
+    if (partes.length < 1) return;
+
+    const horaInicioStr = partes[0].trim(); // "12:00pm"
+    const inicio = parseHora(horaInicioStr);
+    if (!inicio) return;
+
+    // Diferencia en ms
+    const diff = inicio.getTime() - ahora.getTime();
+    const diffMin = diff / (1000 * 60);
+
+    // Si falta exactamente entre 1.5 y 2.5 minutos (para margen de ejecución)
+    if (diffMin > 1.5 && diffMin <= 2.5) {
+      if (!yaNotificadoHoy(usuario, ev.msg)) {
+        crearNotificacion(usuario, ev.msg);
+      }
+    }
+  });
+}
+
+function yaNotificadoHoy(usuario, mensaje) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.NOTIFICACIONES);
+    const data = sheet.getDataRange().getValues();
+    const hoyStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "dd/MM/yyyy");
+
+    for (let i = 1; i < data.length; i++) {
+      const rowFechaStr = Utilities.formatDate(new Date(data[i][1]), CONFIG.TIMEZONE, "dd/MM/yyyy");
+      if (data[i][0] === usuario && rowFechaStr === hoyStr && data[i][3] === mensaje) {
+        return true;
+      }
+    }
+    return false;
+  } catch(e) {
+    return false;
+  }
+}
+
+function crearNotificacion(usuario, mensaje) {
+  try {
+    const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(CONFIG.SHEETS.NOTIFICACIONES);
+    sheet.appendRow([
+      usuario,
+      new Date(),
+      "HORARIO",
+      mensaje,
+      "PENDIENTE",
+      ""
+    ]);
+    return { estado: "ok" };
+  } catch(e) {
+    return { estado: "error", error: e.message };
+  }
+}
+
+/**
+ * Parsea strings tipo "7:00am" o "12:00pm" a un objeto Date de hoy.
+ */
+function parseHora(horaStr) {
+  try {
+    const match = horaStr.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+    if (!match) return null;
+
+    let horas = parseInt(match[1]);
+    const minutos = parseInt(match[2]);
+    const meridiano = match[3];
+
+    if (meridiano === "pm" && horas < 12) horas += 12;
+    if (meridiano === "am" && horas === 12) horas = 0;
+
+    const d = new Date();
+    d.setHours(horas, minutos, 0, 0);
+    return d;
+  } catch(e) {
+    return null;
+  }
+}
