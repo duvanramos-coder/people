@@ -885,7 +885,7 @@
 
     const ahora = new Date();
     const parse = (h) => {
-      if (!h || h === "-" || h.toUpperCase() === "DESCANSO") return null;
+      if (!h || typeof h !== 'string' || h === "-" || h.toUpperCase() === "DESCANSO") return null;
       const m = h.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
       if (!m) return null;
       let hrs = parseInt(m[1]);
@@ -896,13 +896,13 @@
       return d;
     };
 
-    const jornada = scheduleData.jornada.split(" a ");
+    const jornada = (scheduleData.jornada || "").split(" a ");
     const inicioJ = parse(jornada[0]);
     const finJ = parse(jornada[1]);
 
-    const b1 = scheduleData.break1.split(" a ");
-    const b2 = scheduleData.break2.split(" a ");
-    const alm = scheduleData.almuerzo.split(" a ");
+    const b1 = (scheduleData.break1 || "").split(" a ");
+    const b2 = (scheduleData.break2 || "").split(" a ");
+    const alm = (scheduleData.almuerzo || "").split(" a ");
 
     const eventos = [
       { name: "Break 1", start: parse(b1[0]), end: parse(b1[1]), status: "🟡 En break 1", color: "#eab308" },

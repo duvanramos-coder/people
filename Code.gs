@@ -390,11 +390,18 @@ function yaNotificadoHoy(usuario, mensaje) {
   try {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     const sheet = ss.getSheetByName(CONFIG.SHEETS.NOTIFICACIONES);
-    const data = sheet.getDataRange().getValues();
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return false;
+
+    // Scan only last 100 notifications for efficiency
+    const startRow = Math.max(2, lastRow - 100);
+    const data = sheet.getRange(startRow, 1, lastRow - startRow + 1, 4).getValues();
     const hoyStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "dd/MM/yyyy");
 
-    for (let i = 1; i < data.length; i++) {
-      const rowFechaStr = Utilities.formatDate(new Date(data[i][1]), CONFIG.TIMEZONE, "dd/MM/yyyy");
+    for (let i = 0; i < data.length; i++) {
+      const rowFecha = data[i][1];
+      if (!rowFecha) continue;
+      const rowFechaStr = Utilities.formatDate(new Date(rowFecha), CONFIG.TIMEZONE, "dd/MM/yyyy");
       if (data[i][0] === usuario && rowFechaStr === hoyStr && data[i][3] === mensaje) {
         return true;
       }
