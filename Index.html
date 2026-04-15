@@ -847,7 +847,7 @@
     pollingNotif = setInterval(fetchNotifs, 10000);
     pollingChat = setInterval(fetchMessages, 5000);
     pollingSched = setInterval(() => {
-      google.script.run.verificarHorarios(currentAgent);
+      google.script.run.verificarHorarios(currentAgent, Date.now());
       fetchSchedule();
     }, 60000);
 
@@ -874,7 +874,7 @@
         document.getElementById('status-text').textContent = "Error de conexión";
         document.getElementById('status-dot').style.background = "#ef4444";
       })
-      .obtenerHorarioHoy(currentAgent);
+      .obtenerHorarioHoy(currentAgent, Date.now());
   }
 
   function updateCountdown() {

@@ -94,6 +94,17 @@ function buscarPQRSF(radicado) {
 /**
  * HELPERS Y FUNCIONES DE SOPORTE
  */
+function normalize(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/\u00a0/g, ' ') // Replace non-breaking spaces
+    .replace(/\s+/g, ' ')    // Collapse multiple spaces
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 function formatDate(date) {
   if (!date || !(date instanceof Date)) return date;
   return Utilities.formatDate(date, CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm:ss");
@@ -152,7 +163,7 @@ function getHistorial(agente) {
     const hoy = new Date();
     hoy.setHours(0,0,0,0);
 
-    const agentData = data.filter(row => row[1] === agente);
+    const agentData = data.filter(row => normalize(row[1]) === normalize(agente));
 
     const hoyCount = agentData.filter(row => {
       const d = new Date(row[0]);
@@ -191,7 +202,7 @@ function getMensajes(usuario) {
     const data = sheet.getRange(startRow, 1, numRows, 4).getValues();
 
     return data
-      .filter(row => row[3] === "TODOS" || row[3] === usuario || row[1] === usuario)
+      .filter(row => row[3] === "TODOS" || normalize(row[3]) === normalize(usuario) || normalize(row[1]) === normalize(usuario))
       .map(row => ({
         fecha: formatDate(row[0]),
         usuario: row[1],
@@ -244,7 +255,7 @@ function getNotificaciones(usuario) {
         estado: row[4],
         recibido: row[5]
       }))
-      .filter(n => n.funcionaria === usuario && !n.recibido);
+      .filter(n => normalize(n.funcionaria) === normalize(usuario) && !n.recibido);
   } catch(e) {
     console.log("Error en getNotificaciones: " + e.message);
     return [];
@@ -303,39 +314,64 @@ function buscarSimilitudPQRSF(texto) {
 /**
  * MÓDULO DE HORARIOS (SISTEMA DE TURNOS)
  */
-function obtenerHorarioHoy(usuario) {
+function obtenerHorarioHoy(usuario, timestamp) {
   try {
     const ssId = "1C4f1DBu2VW9fJPISnzH0icsELR3146gIS3c-rKG5Vtg";
     const ss = SpreadsheetApp.openById(ssId);
-    const sheet = ss.getSheetByName("Turnos");
+    const ssTz = ss.getSpreadsheetTimeZone();
+
+    let sheet = ss.getSheetByName("Turnos");
     if (!sheet) {
-      console.warn("No se encontró la hoja 'Turnos'");
-      return null;
+      const allSheets = ss.getSheets();
+      sheet = allSheets.find(s => normalize(s.getName()) === "turnos");
     }
+    if (!sheet) return null;
 
     const data = sheet.getDataRange().getValues();
-    const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+    const now = timestamp ? new Date(timestamp) : new Date();
+    const targetDateStr = Utilities.formatDate(now, ssTz, "yyyy-MM-dd");
+    const userNorm = normalize(usuario);
+
+    const parseToIso = (val) => {
+      if (!val) return "";
+      let d_obj = null;
+      if (val instanceof Date) {
+        d_obj = val;
+      } else {
+        let s = String(val).replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+        let parts = s.split(/[\/\-\.]/);
+        if (parts.length === 3) {
+          let day, month, year;
+          if (parts[0].length === 4) { // YYYY-MM-DD
+            year = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            day = parseInt(parts[2]);
+          } else { // DD-MM-YYYY
+            day = parseInt(parts[0]);
+            month = parseInt(parts[1]) - 1;
+            year = parts[2].length === 2 ? 2000 + parseInt(parts[2]) : parseInt(parts[2]);
+          }
+          if (!isNaN(day) && !isNaN(month) && !isNaN(year)) {
+            d_obj = new Date(year, month, day);
+          }
+        }
+      }
+
+      if (d_obj && !isNaN(d_obj.getTime())) {
+        return Utilities.formatDate(d_obj, ssTz, "yyyy-MM-dd");
+      }
+      return String(val).trim();
+    };
 
     // Saltamos cabecera
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      const rowNombre = String(row[0]).trim();
+      const rowNombre = String(row[0] || "").trim();
       const rowFecha = row[3];
 
       if (!rowNombre || !rowFecha) continue;
 
-      let match = false;
-      if (rowFecha instanceof Date) {
-        const d = new Date(rowFecha);
-        d.setHours(0,0,0,0);
-        if (d.getTime() === hoy.getTime()) match = true;
-      } else {
-        const hoyStr = Utilities.formatDate(hoy, CONFIG.TIMEZONE, "d/M/yyyy");
-        if (String(rowFecha).trim() === hoyStr) match = true;
-      }
-
-      if (rowNombre === usuario && match) {
+      if (normalize(rowNombre) === userNorm && parseToIso(rowFecha) === targetDateStr) {
         return {
           jornada: String(row[4] || "-"),
           almuerzo: String(row[5] || "-"),
@@ -351,8 +387,8 @@ function obtenerHorarioHoy(usuario) {
   }
 }
 
-function verificarHorarios(usuario) {
-  const info = obtenerHorarioHoy(usuario);
+function verificarHorarios(usuario, timestamp) {
+  const info = obtenerHorarioHoy(usuario, timestamp);
   if (!info) return;
 
   const ahora = new Date();
@@ -402,7 +438,7 @@ function yaNotificadoHoy(usuario, mensaje) {
       const rowFecha = data[i][1];
       if (!rowFecha) continue;
       const rowFechaStr = Utilities.formatDate(new Date(rowFecha), CONFIG.TIMEZONE, "dd/MM/yyyy");
-      if (data[i][0] === usuario && rowFechaStr === hoyStr && data[i][3] === mensaje) {
+      if (normalize(data[i][0]) === normalize(usuario) && rowFechaStr === hoyStr && data[i][3] === mensaje) {
         return true;
       }
     }
