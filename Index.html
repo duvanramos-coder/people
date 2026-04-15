@@ -821,7 +821,10 @@
 
   function logout() {
     localStorage.removeItem('pqrsf_agent');
-    clearInterval(pollingNotif); clearInterval(pollingChat);
+    clearInterval(pollingNotif);
+    clearInterval(pollingChat);
+    clearInterval(pollingSched);
+    if (countdownInterval) clearInterval(countdownInterval);
     document.getElementById('main-app').style.display = 'none';
     document.getElementById('login-screen').style.display = 'flex';
   }
@@ -855,16 +858,30 @@
   function fetchSchedule() {
     google.script.run
       .withSuccessHandler(data => {
-        if (!data) return;
+        if (!data) {
+          document.getElementById('status-text').textContent = "Horario no asignado";
+          document.getElementById('status-dot').style.background = "#64748b";
+          document.getElementById('sched-jornada').textContent = "--:--";
+          document.getElementById('sched-next').textContent = "---";
+          document.getElementById('countdown-timer').textContent = "00:00";
+          return;
+        }
         scheduleData = data;
         document.getElementById('sched-jornada').textContent = data.jornada || '--:--';
         updateCountdown();
+      })
+      .withFailureHandler(() => {
+        document.getElementById('status-text').textContent = "Error de conexión";
+        document.getElementById('status-dot').style.background = "#ef4444";
       })
       .obtenerHorarioHoy(currentAgent);
   }
 
   function updateCountdown() {
-    if (!scheduleData) return;
+    if (!scheduleData) {
+      document.getElementById('status-text').textContent = "Sin datos de turno";
+      return;
+    }
 
     const ahora = new Date();
     const parse = (h) => {

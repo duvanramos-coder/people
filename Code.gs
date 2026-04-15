@@ -308,10 +308,14 @@ function obtenerHorarioHoy(usuario) {
     const ssId = "1C4f1DBu2VW9fJPISnzH0icsELR3146gIS3c-rKG5Vtg";
     const ss = SpreadsheetApp.openById(ssId);
     const sheet = ss.getSheetByName("Turnos");
-    if (!sheet) return null;
+    if (!sheet) {
+      console.warn("No se encontró la hoja 'Turnos'");
+      return null;
+    }
 
     const data = sheet.getDataRange().getValues();
-    const hoyStr = Utilities.formatDate(new Date(), CONFIG.TIMEZONE, "d/M/yyyy");
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
 
     // Saltamos cabecera
     for (let i = 1; i < data.length; i++) {
@@ -319,19 +323,24 @@ function obtenerHorarioHoy(usuario) {
       const rowNombre = String(row[0]).trim();
       const rowFecha = row[3];
 
-      let rowFechaStr = "";
+      if (!rowNombre || !rowFecha) continue;
+
+      let match = false;
       if (rowFecha instanceof Date) {
-        rowFechaStr = Utilities.formatDate(rowFecha, CONFIG.TIMEZONE, "d/M/yyyy");
+        const d = new Date(rowFecha);
+        d.setHours(0,0,0,0);
+        if (d.getTime() === hoy.getTime()) match = true;
       } else {
-        rowFechaStr = String(rowFecha).trim();
+        const hoyStr = Utilities.formatDate(hoy, CONFIG.TIMEZONE, "d/M/yyyy");
+        if (String(rowFecha).trim() === hoyStr) match = true;
       }
 
-      if (rowNombre === usuario && rowFechaStr === hoyStr) {
+      if (rowNombre === usuario && match) {
         return {
-          jornada: row[4],
-          almuerzo: row[5],
-          break1: row[6],
-          break2: row[7]
+          jornada: String(row[4] || "-"),
+          almuerzo: String(row[5] || "-"),
+          break1: String(row[6] || "-"),
+          break2: String(row[7] || "-")
         };
       }
     }
