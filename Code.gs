@@ -16,7 +16,7 @@ const CONFIG = {
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('Admin Dashboard Premium')
+    .setTitle('People BPO | Admin Dashboard')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
@@ -35,7 +35,7 @@ function login(username, password) {
   const data = sheet.getDataRange().getValues();
 
   for (let i = 1; i < data.length; i++) {
-    if (data[i][0] === username && String(data[i][1]) === String(password)) {
+    if (String(data[i][0]).trim() === String(username).trim() && String(data[i][1]) === String(password)) {
       return { success: true, username: username };
     }
   }
@@ -52,10 +52,14 @@ function getDashboardData() {
   const now = new Date();
   const todayStr = Utilities.formatDate(now, CONFIG.TIMEZONE, "dd/MM/yyyy");
 
-  // 1. PQRSF_COMUNICADOS Metrics
+  // Historical context for trends (last 7 days average)
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = Utilities.formatDate(yesterday, CONFIG.TIMEZONE, "dd/MM/yyyy");
+
+  // 1. PQRSF_COMUNICADOS (Main DB)
   const pqrsfComunicadosSheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF_COMUNICADOS);
-  const pqrsfData = pqrsfComunicadosSheet.getDataRange().getValues();
-  const pqrsfRows = pqrsfData.slice(1);
+  const pqrsfData = pqrsfComunicadosSheet.getDataRange().getValues().slice(1);
 
   let totalPQRS = 0;
   let comunicados = 0;
@@ -64,28 +68,26 @@ function getDashboardData() {
   let conteoEfectividad = 0;
   let canales = {};
   let estados = {};
-  let requiereSolucion = 0;
 
-  pqrsfRows.forEach(row => {
+  pqrsfData.forEach(row => {
     const estado = row[8]; // I
     const nombre = row[4]; // E
     const tel = row[5];    // F
     const correo = row[6]; // G
     const empresa = row[7]; // H
     const canal = row[9];  // J
-    const efectividad = parseFloat(row[10]) || 0; // K
-    const reqSol = row[11]; // L
+    const efectividad = parseFloat(row[10]) || 0;
 
-    let isValuable = false;
+    let valuable = false;
     if (estado) {
       comunicados++;
-      isValuable = true;
+      valuable = true;
     } else if (nombre || tel || correo || empresa) {
       pendientes++;
-      isValuable = true;
+      valuable = true;
     }
 
-    if (isValuable) {
+    if (valuable) {
       totalPQRS++;
       if (canal) canales[canal] = (canales[canal] || 0) + 1;
       if (estado) estados[estado] = (estados[estado] || 0) + 1;
@@ -93,138 +95,144 @@ function getDashboardData() {
         sumaEfectividad += efectividad;
         conteoEfectividad++;
       }
-      if (normalize(reqSol) === "si") requiereSolucion++;
     }
   });
 
-  // 2. RADICACIÓN_LIVE Metrics
+  // 2. RADICACIÓN_LIVE & PQRSF_LIVE (Daily Performance)
   const radLiveSheet = ss.getSheetByName(CONFIG.SHEETS.RADICACION_LIVE);
   const radLiveData = radLiveSheet.getDataRange().getValues().slice(1);
-  let radicadosHoy = 0;
-  let radicadosPorAsesor = {};
 
-  radLiveData.forEach(row => {
-    const fechaMarca = row[0];
-    if (fechaMarca instanceof Date) {
-      const fStr = Utilities.formatDate(fechaMarca, CONFIG.TIMEZONE, "dd/MM/yyyy");
-      if (fStr === todayStr) radicadosHoy++;
-    }
-    const asesor = row[2]; // C
-    if (asesor) {
-      radicadosPorAsesor[asesor] = (radicadosPorAsesor[asesor] || 0) + 1;
-    }
-  });
-
-  // 3. PQRSF_LIVE (PQRS hoy)
   const pqrsLiveSheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF_LIVE);
   const pqrsLiveData = pqrsLiveSheet.getDataRange().getValues().slice(1);
-  let pqrsHoy = 0;
-  pqrsLiveData.forEach(row => {
-    const fechaMarca = row[0];
-    if (fechaMarca instanceof Date) {
-      const fStr = Utilities.formatDate(fechaMarca, CONFIG.TIMEZONE, "dd/MM/yyyy");
-      if (fStr === todayStr) pqrsHoy++;
-    }
+
+  let radHoy = 0, radAyer = 0;
+  let pqrsHoy = 0, pqrsAyer = 0;
+  let radPorAsesor = {};
+
+  radLiveData.forEach(row => {
+    if (!(row[0] instanceof Date)) return;
+    const fStr = Utilities.formatDate(row[0], CONFIG.TIMEZONE, "dd/MM/yyyy");
+    if (fStr === todayStr) radHoy++;
+    else if (fStr === yesterdayStr) radAyer++;
+
+    const asesor = row[2];
+    if (asesor) radPorAsesor[asesor] = (radPorAsesor[asesor] || 0) + 1;
   });
 
-  // 4. PQRSF_DEVUELTOS (Errores)
+  pqrsLiveData.forEach(row => {
+    if (!(row[0] instanceof Date)) return;
+    const fStr = Utilities.formatDate(row[0], CONFIG.TIMEZONE, "dd/MM/yyyy");
+    if (fStr === todayStr) pqrsHoy++;
+    else if (fStr === yesterdayStr) pqrsAyer++;
+  });
+
+  // 3. PQRSF_DEVUELTOS (Errors)
   const devueltosSheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF_DEVUELTOS);
   const devueltosData = devueltosSheet.getDataRange().getValues().slice(1);
-  let erroresTotales = devueltosData.length;
   let erroresPorAsesor = {};
-  let motivosFrecuentes = {};
-
   devueltosData.forEach(row => {
-    const asesor = row[0]; // A
-    const motivo = row[2]; // C
+    const asesor = row[0];
     if (asesor) erroresPorAsesor[asesor] = (erroresPorAsesor[asesor] || 0) + 1;
-    if (motivo) motivosFrecuentes[motivo] = (motivosFrecuentes[motivo] || 0) + 1;
   });
 
-  // 5. BASE_METRICAS (For deep performance ranking)
-  const baseMetricasSheet = ss.getSheetByName(CONFIG.SHEETS.BASE_METRICAS);
-  const baseMetricasData = baseMetricasSheet.getDataRange().getValues().slice(1);
-  let performanceMap = {};
+  // 4. INSIGHTS GENERATOR (MANDATORY)
+  let insights = [];
+  if (pendientes > 10) insights.push({ type: 'warning', text: '⚠️ Alto volumen de PQRS pendientes (' + pendientes + ')' });
+  if (pqrsHoy > pqrsAyer && pqrsAyer > 0) insights.push({ type: 'info', text: '📈 Incremento en PQRS recibidos hoy vs ayer' });
 
-  baseMetricasData.forEach(row => {
-    const asesor = row[1]; // Funcionaria (B)
-    if (!asesor) return;
-    if (!performanceMap[asesor]) {
-      performanceMap[asesor] = { pecSuma: 0, count: 0 };
+  // Find top performer
+  let topAsesor = "";
+  let maxRad = 0;
+  for (let a in radPorAsesor) {
+    if (radPorAsesor[a] > maxRad) {
+      maxRad = radPorAsesor[a];
+      topAsesor = a;
     }
-    // PEC is column F in most blocks, but let's assume a general structure or focus on Radicacion
-    // Actually BASE_METRICAS has blocks. This is tricky.
-    // Let's just use it to gather advisors names if they aren't in live sheets.
-  });
+  }
+  if (topAsesor) insights.push({ type: 'success', text: '🔥 ' + topAsesor + ' es top performer hoy (' + maxRad + ' radicados)' });
 
-  // Ranking calculation
-  const allAsesores = new Set([...Object.keys(radicadosPorAsesor), ...Object.keys(erroresPorAsesor)]);
+  // 5. RANKING DINÁMICO
+  const allAsesores = new Set([...Object.keys(radPorAsesor), ...Object.keys(erroresPorAsesor)]);
   let ranking = Array.from(allAsesores).map(name => {
+    const r = radPorAsesor[name] || 0;
+    const e = erroresPorAsesor[name] || 0;
     return {
       nombre: name,
-      radicados: radicadosPorAsesor[name] || 0,
-      errores: erroresPorAsesor[name] || 0,
-      errorRate: radicadosPorAsesor[name] ? ((erroresPorAsesor[name] || 0) / radicadosPorAsesor[name] * 100).toFixed(1) : 0
+      radicados: r,
+      errores: e,
+      errorRate: r > 0 ? ((e / r) * 100).toFixed(1) : 0
     };
   }).sort((a, b) => b.radicados - a.radicados);
 
+  // Worst performers (highest error rate with at least some volume)
+  let worstPerformers = [...ranking]
+    .filter(a => a.radicados > 5)
+    .sort((a, b) => b.errorRate - a.errorRate)
+    .slice(0, 3);
+
   return {
-    metrics: {
-      pqrsHoy,
-      radicadosHoy,
-      pendientes,
-      errores: erroresTotales,
-      efectividadPromedio: conteoEfectividad > 0 ? (sumaEfectividad / conteoEfectividad) * 100 : 0
+    kpis: {
+      pqrsHoy: { value: pqrsHoy, trend: calculateTrend(pqrsHoy, pqrsAyer) },
+      radicadosHoy: { value: radHoy, trend: calculateTrend(radHoy, radAyer) },
+      pendientes: { value: pendientes },
+      errores: { value: devueltosData.length },
+      efectividad: { value: (conteoEfectividad > 0 ? (sumaEfectividad / conteoEfectividad) * 100 : 0).toFixed(1) }
     },
-    pqrsfStats: {
-      total: totalPQRS,
-      comunicados,
-      pendientes,
-      canales,
-      estados,
-      requiereSolucion
-    },
+    insights,
     ranking,
-    motivosFrecuentes
+    worstPerformers,
+    stats: { canales, estados }
   };
 }
 
-function searchRadicado(numero) {
-  const ss = getSs();
-  const sheet = ss.getSheetByName(CONFIG.SHEETS.RADICACION_LIVE);
-  const data = sheet.getDataRange().getValues().slice(1);
+function calculateTrend(now, prev) {
+  if (prev === 0) return now > 0 ? 100 : 0;
+  return (((now - prev) / prev) * 100).toFixed(1);
+}
 
-  for (let i = data.length - 1; i >= 0; i--) {
-    if (String(data[i][3]).trim() === String(numero).trim()) {
+function searchGlobal(numero) {
+  const ss = getSs();
+
+  // Try RADICACION_LIVE first
+  const radSheet = ss.getSheetByName(CONFIG.SHEETS.RADICACION_LIVE);
+  const radData = radSheet.getDataRange().getValues().slice(1);
+  for (let i = radData.length - 1; i >= 0; i--) {
+    if (String(radData[i][3]).trim() === String(numero).trim()) {
       return {
-        funcionaria: data[i][2],
-        fecha: data[i][0] instanceof Date ? Utilities.formatDate(data[i][0], CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm:ss") : data[i][0],
-        estado: data[i][4] || "Sin estado"
+        type: 'Radicado',
+        data: {
+          'Número': radData[i][3],
+          'Funcionaria': radData[i][2],
+          'Fecha': radData[i][0] instanceof Date ? Utilities.formatDate(radData[i][0], CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm") : radData[i][0],
+          'Estado': radData[i][4] || 'Pendiente',
+          'SNC': radData[i][6] || 'No'
+        }
       };
     }
   }
-  return null;
-}
 
-function searchPQRS(numero) {
-  const ss = getSs();
-  const sheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF_LIVE);
-  const data = sheet.getDataRange().getValues().slice(1);
-
-  for (let i = data.length - 1; i >= 0; i--) {
-    if (String(data[i][2]).trim() === String(numero).trim()) {
+  // Try PQRSF_LIVE
+  const pqrsSheet = ss.getSheetByName(CONFIG.SHEETS.PQRSF_LIVE);
+  const pqrsData = pqrsSheet.getDataRange().getValues().slice(1);
+  for (let i = pqrsData.length - 1; i >= 0; i--) {
+    if (String(pqrsData[i][2]).trim() === String(numero).trim()) {
       return {
-        fecha: data[i][0] instanceof Date ? Utilities.formatDate(data[i][0], CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm:ss") : data[i][0],
-        agente: data[i][1],
-        clasificacion: data[i][4],
-        direccion: data[i][5]
+        type: 'PQRSF',
+        data: {
+          'Número': pqrsData[i][2],
+          'Agente': pqrsData[i][1],
+          'Fecha': pqrsData[i][0] instanceof Date ? Utilities.formatDate(pqrsData[i][0], CONFIG.TIMEZONE, "dd/MM/yyyy HH:mm") : pqrsData[i][0],
+          'Clasificación': pqrsData[i][4],
+          'Área': pqrsData[i][5]
+        }
       };
     }
   }
+
   return null;
 }
 
-function getTurnosData() {
+function getTurnosStatus() {
   const ss = getSs();
   const sheet = ss.getSheetByName(CONFIG.SHEETS.TURNOS);
   const data = sheet.getDataRange().getValues().slice(1);
@@ -233,13 +241,8 @@ function getTurnosData() {
   const currentTime = Utilities.formatDate(now, CONFIG.TIMEZONE, "HH:mm");
 
   return data.filter(row => {
-    const rowDate = row[4];
-    let fStr = "";
-    if (rowDate instanceof Date) {
-      fStr = Utilities.formatDate(rowDate, CONFIG.TIMEZONE, "d/M/yyyy");
-    } else {
-      fStr = String(rowDate);
-    }
+    const rDate = row[4];
+    const fStr = (rDate instanceof Date) ? Utilities.formatDate(rDate, CONFIG.TIMEZONE, "d/M/yyyy") : String(rDate);
     return fStr === todayStr;
   }).map(row => {
     const nombre = row[0];
@@ -248,20 +251,20 @@ function getTurnosData() {
     const breakM = row[7];
     const breakT = row[8];
 
-    let estado = "Fuera de turno";
+    let status = "🔴 Fuera";
+    let color = "#ef4444";
 
     if (horario && horario.includes("-")) {
       const [start, end] = horario.split("-").map(t => t.trim());
       if (currentTime >= start && currentTime <= end) {
-        estado = "En jornada";
+        status = "🟢 Activo";
+        color = "#22c55e";
 
-        if (isTimeInRange(currentTime, almuerzo)) estado = "En almuerzo";
-        else if (isTimeInRange(currentTime, breakM)) estado = "En break";
-        else if (isTimeInRange(currentTime, breakT)) estado = "En break";
+        if (isTimeInRange(currentTime, almuerzo)) { status = "🔵 Almuerzo"; color = "#3b82f6"; }
+        else if (isTimeInRange(currentTime, breakM) || isTimeInRange(currentTime, breakT)) { status = "🟡 Break"; color = "#eab308"; }
       }
     }
-
-    return { nombre, estado, horario };
+    return { nombre, status, color, horario: horario || 'Sin turno' };
   });
 }
 

@@ -1,184 +1,223 @@
 <script>
 let charts = {};
-let dashboardPolling;
+let dashboardInterval;
 
 window.onload = () => {
-    const savedUser = localStorage.getItem('admin_user');
-    if (savedUser) {
-        initDashboard(savedUser);
-    } else {
-        document.getElementById('loader').style.display = 'none';
-    }
+  const user = localStorage.getItem('admin_session');
+  if (user) {
+    startDashboard(user);
+  } else {
+    document.getElementById('loader').style.display = 'none';
+  }
 };
 
 function handleLogin(e) {
-    e.preventDefault();
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
-    const btn = document.getElementById('login-btn');
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const btn = document.getElementById('btn-login-action');
 
-    btn.disabled = true;
-    btn.innerText = 'Verificando...';
+  btn.innerText = 'Autenticando...';
+  btn.disabled = true;
 
-    google.script.run.withSuccessHandler(res => {
-        if (res.success) {
-            localStorage.setItem('admin_user', res.username);
-            initDashboard(res.username);
-        } else {
-            document.getElementById('login-error').style.display = 'block';
-            btn.disabled = false;
-            btn.innerText = 'Entrar al Sistema';
+  google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+      localStorage.setItem('admin_session', res.username);
+      startDashboard(res.username);
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      btn.innerText = 'Entrar al Sistema';
+      btn.disabled = false;
+    }
+  }).login(u, p);
+}
+
+function startDashboard(user) {
+  document.getElementById('auth-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('loader').style.display = 'flex';
+
+  refreshDashboard();
+  dashboardInterval = setInterval(refreshDashboard, 60000); // Polling 1 min
+}
+
+function refreshDashboard() {
+  google.script.run.withSuccessHandler(data => {
+    renderKPIs(data.kpis);
+    renderInsights(data.insights);
+    renderRanking(data.ranking);
+    renderWorst(data.worstPerformers);
+    renderCharts(data.stats);
+
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('sync-status').innerText = 'Sincronizado: ' + new Date().toLocaleTimeString();
+  }).getDashboardData();
+
+  google.script.run.withSuccessHandler(turnos => {
+    renderTurnos(turnos);
+  }).getTurnosStatus();
+}
+
+function renderKPIs(kpis) {
+  document.getElementById('kpi-pqrs').innerText = kpis.pqrsHoy.value;
+  renderTrend('trend-pqrs', kpis.pqrsHoy.trend);
+
+  document.getElementById('kpi-rad').innerText = kpis.radicadosHoy.value;
+  renderTrend('trend-rad', kpis.radicadosHoy.trend);
+
+  document.getElementById('kpi-pend').innerText = kpis.pendientes.value;
+  document.getElementById('kpi-err').innerText = kpis.errores.value;
+  document.getElementById('kpi-efec').innerText = kpis.efectividad.value + '%';
+}
+
+function renderTrend(id, trend) {
+  const el = document.getElementById(id);
+  const val = parseFloat(trend);
+  if (val > 0) {
+    el.innerHTML = `<span class="trend-up">↑ ${val}%</span> vs ayer`;
+  } else if (val < 0) {
+    el.innerHTML = `<span class="trend-down">↓ ${Math.abs(val)}%</span> vs ayer`;
+  } else {
+    el.innerHTML = `<span style="color: var(--text-muted)">--% vs ayer</span>`;
+  }
+}
+
+function renderInsights(insights) {
+  const area = document.getElementById('insights-area');
+  area.innerHTML = insights.map(i => `
+    <div class="insight-pill insight-${i.type} fade-in">
+      ${i.text}
+    </div>
+  `).join('');
+}
+
+function renderRanking(ranking) {
+  const body = document.getElementById('ranking-body');
+  body.innerHTML = ranking.map(a => `
+    <tr>
+      <td style="font-weight: 600;">${a.nombre}</td>
+      <td>${a.radicados}</td>
+      <td>${a.errores}</td>
+      <td><span class="badge ${a.errorRate > 5 ? 'badge-error' : 'badge-success'}">${a.errorRate}%</span></td>
+      <td><span class="badge badge-info">En línea</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderWorst(worst) {
+  const list = document.getElementById('worst-performers-list');
+  list.innerHTML = worst.map(a => `
+    <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 10px; min-width: 150px;">
+      <div style="font-size: 0.75rem; color: var(--text-muted);">${a.nombre}</div>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--error);">${a.errorRate}% Error</div>
+    </div>
+  `).join('');
+}
+
+function renderCharts(stats) {
+  const colors = ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'];
+
+  updateChart('chart-canales', 'doughnut', stats.canales, colors);
+  updateChart('chart-estados', 'pie', stats.estados, colors);
+}
+
+function updateChart(id, type, dataObj, colors) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
+
+  if (charts[id]) charts[id].destroy();
+
+  charts[id] = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: 'transparent',
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 10, weight: '500' }, padding: 20 }
         }
-    }).login(user, pass);
+      }
+    }
+  });
 }
 
-function initDashboard(username) {
-    document.getElementById('auth-container').style.display = 'none';
-    document.getElementById('dashboard-container').style.display = 'block';
-    document.getElementById('loader').style.display = 'flex';
-
-    refreshData();
-    dashboardPolling = setInterval(refreshData, 60000); // Polling every minute
-}
-
-function refreshData() {
-    google.script.run.withSuccessHandler(data => {
-        updateUI(data);
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('last-update').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
-    }).getDashboardData();
-
-    google.script.run.withSuccessHandler(turnos => {
-        updateTurnos(turnos);
-    }).getTurnosData();
-}
-
-function updateUI(data) {
-    // Stats
-    document.getElementById('stat-pqrs-hoy').innerText = data.metrics.pqrsHoy;
-    document.getElementById('stat-rad-hoy').innerText = data.metrics.radicadosHoy;
-    document.getElementById('stat-pendientes').innerText = data.metrics.pendientes;
-    document.getElementById('stat-errores').innerText = data.metrics.errores;
-    document.getElementById('stat-efectividad').innerText = data.metrics.efectividadPromedio.toFixed(1) + '%';
-
-    // Charts
-    initChart('chart-canales', 'doughnut', data.pqrsfStats.canales, 'Canales');
-    initChart('chart-estados', 'pie', data.pqrsfStats.estados, 'Estados');
-
-    // Ranking
-    const table = document.getElementById('table-ranking');
-    table.innerHTML = data.ranking.map(row => `
-        <tr>
-            <td>${row.nombre}</td>
-            <td>${row.radicados}</td>
-            <td>${row.errores}</td>
-            <td><span class="badge ${row.errorRate > 5 ? 'badge-error' : 'badge-success'}">${row.errorRate}%</span></td>
-        </tr>
-    `).join('');
-}
-
-function updateTurnos(turnos) {
-    const list = document.getElementById('list-turnos');
-    list.innerHTML = turnos.map(t => `
-        <div class="turno-item">
-            <span class="turno-name">${t.nombre}</span>
-            <div style="text-align: right">
-                <div class="turno-status ${getStatusClass(t.estado)}">${t.estado}</div>
-                <div style="font-size: 0.65rem; color: var(--text-muted)">${t.horario}</div>
-            </div>
-        </div>
-    `).join('');
-}
-
-function getStatusClass(status) {
-    if (status === 'En jornada') return 'badge badge-success';
-    if (status === 'En break' || status === 'En almuerzo') return 'badge badge-warning';
-    return 'badge badge-error';
-}
-
-function initChart(id, type, dataObj, label) {
-    const ctx = document.getElementById(id).getContext('2d');
-    const labels = Object.keys(dataObj);
-    const values = Object.values(dataObj);
-
-    if (charts[id]) charts[id].destroy();
-
-    charts[id] = new Chart(ctx, {
-        type: type,
-        data: {
-            labels: labels,
-            datasets: [{
-                data: values,
-                backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'],
-                borderWidth: 0
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
-            }
-        }
-    });
+function renderTurnos(turnos) {
+  const grid = document.getElementById('turnos-grid-area');
+  grid.innerHTML = turnos.map(t => `
+    <div class="turno-card fade-in">
+      <div class="turno-info">
+        <h4>${t.nombre}</h4>
+        <p>${t.horario}</p>
+      </div>
+      <div class="badge" style="background: ${t.color}20; color: ${t.color}; border: 1px solid ${t.color}40;">
+        ${t.status}
+      </div>
+    </div>
+  `).join('');
 }
 
 function showSection(section) {
-    ['general', 'ranking', 'turnos'].forEach(s => {
-        document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
-    });
+  ['overview', 'ranking', 'turnos'].forEach(s => {
+    document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+  });
 
-    document.querySelectorAll('.nav-item').forEach(nav => {
-        nav.classList.remove('active');
-        if (nav.innerText.toLowerCase().includes(section)) nav.classList.add('active');
-    });
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.innerText.toLowerCase().includes(section === 'overview' ? 'general' : section));
+  });
 }
 
 function handleSearch(e) {
-    if (e.key === 'Enter') {
-        const val = e.target.value;
-        if (!val) return;
+  if (e.key === 'Enter') {
+    const val = e.target.value;
+    if (!val) return;
 
-        document.getElementById('loader').style.display = 'flex';
+    const area = document.getElementById('search-result-area');
+    area.innerHTML = '<div style="margin-top: 10px; color: var(--text-muted);">Buscando...</div>';
+    area.style.display = 'block';
 
-        // Try Radicado first
-        google.script.run.withSuccessHandler(resRad => {
-            if (resRad) {
-                showModal('Radicado Encontrado', resRad);
-                document.getElementById('loader').style.display = 'none';
-            } else {
-                // Try PQRS
-                google.script.run.withSuccessHandler(resPqrs => {
-                    showModal(resPqrs ? 'PQRS Encontrado' : 'Sin Resultados', resPqrs);
-                    document.getElementById('loader').style.display = 'none';
-                }).searchPQRS(val);
-            }
-        }).searchRadicado(val);
-    }
+    google.script.run.withSuccessHandler(res => {
+      if (res) {
+        area.innerHTML = `
+          <div class="ficha-card fade-in">
+            <div style="grid-column: 1 / -1; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <span class="badge badge-info">${res.type}</span>
+              <span style="color: var(--text-muted); cursor: pointer;" onclick="closeSearch()">✕</span>
+            </div>
+            ${Object.entries(res.data).map(([k, v]) => `
+              <div class="ficha-item">
+                <label>${k}</label>
+                <span>${v}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        area.innerHTML = '<div style="margin-top: 10px; color: var(--error);">No se encontró información.</div>';
+      }
+    }).searchGlobal(val);
+  }
 }
 
-function showModal(title, data) {
-    document.getElementById('modal-title').innerText = title;
-    const body = document.getElementById('modal-body');
-
-    if (!data) {
-        body.innerHTML = '<p>No se encontró información para el número ingresado.</p>';
-    } else {
-        body.innerHTML = Object.entries(data).map(([key, val]) => `
-            <div><strong style="text-transform: capitalize">${key}:</strong> ${val}</div>
-        `).join('');
-    }
-
-    document.getElementById('search-modal').style.display = 'flex';
-}
-
-function closeModal() {
-    document.getElementById('search-modal').style.display = 'none';
+function closeSearch() {
+  const area = document.getElementById('search-result-area');
+  area.style.display = 'none';
+  document.getElementById('global-search-input').value = '';
 }
 
 function logout() {
-    localStorage.removeItem('admin_user');
-    clearInterval(dashboardPolling);
-    location.reload();
+  localStorage.removeItem('admin_session');
+  clearInterval(dashboardInterval);
+  location.reload();
 }
 </script>

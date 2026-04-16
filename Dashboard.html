@@ -1,139 +1,163 @@
-<div class="dashboard-layout fade-in">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div style="margin-bottom: 3rem; display: flex; align-items: center; gap: 0.75rem;">
-            <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 8px;"></div>
-            <h2 style="font-size: 1.25rem;">People BPO</h2>
+<div id="auth-view">
+  <div class="login-wrap">
+    <div class="login-box fade-in">
+      <h1>Admin Portal</h1>
+      <p>Inicia sesión para acceder a las métricas operativas</p>
+
+      <div id="login-error" style="display:none; color: var(--error); margin-bottom: 1rem; font-size: 0.85rem;">
+        Contraseña o usuario incorrectos. Intenta de nuevo.
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label>Usuario</label>
+          <input type="text" id="username" required placeholder="tu.usuario">
         </div>
-
-        <nav style="flex: 1;">
-            <div class="nav-item active" onclick="showSection('general')">
-                <span>📊</span> Panel General
-            </div>
-            <div class="nav-item" onclick="showSection('pqrsf')">
-                <span>📝</span> PQRSF Detail
-            </div>
-            <div class="nav-item" onclick="showSection('ranking')">
-                <span>🏆</span> Ranking
-            </div>
-            <div class="nav-item" onclick="showSection('turnos')">
-                <span>⏰</span> Turnos
-            </div>
-        </nav>
-
-        <div style="padding-top: 2rem; border-top: 1px solid var(--border);">
-            <div class="nav-item" onclick="logout()">
-                <span>🚪</span> Cerrar Sesión
-            </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" id="password" required placeholder="••••••••">
         </div>
-    </aside>
+        <button type="submit" class="btn-login" id="btn-login-action">Entrar al Sistema</button>
+      </form>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <header class="card-header" style="margin-bottom: 2rem;">
-            <div>
-                <h1 id="welcome-msg">Dashboard Ejecutivo</h1>
-                <p style="color: var(--text-muted);">Métricas operativas en tiempo real</p>
-            </div>
-            <div id="last-update" style="font-size: 0.75rem; color: var(--text-muted);">
-                Actualizado: --:--:--
-            </div>
-        </header>
-
-        <!-- Search Bar -->
-        <div class="search-box">
-            <span class="search-icon">🔍</span>
-            <input type="text" id="global-search" placeholder="Buscar radicado o PQRS (Enter para buscar)..." onkeypress="handleSearch(event)">
-        </div>
-
-        <!-- Sections -->
-        <div id="section-general">
-            <!-- Stats -->
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-label">PQRS Hoy</div>
-                    <div class="stat-value" id="stat-pqrs-hoy">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Radicados Hoy</div>
-                    <div class="stat-value" id="stat-rad-hoy">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Pendientes</div>
-                    <div class="stat-value" id="stat-pendientes" style="color: var(--warning);">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Errores</div>
-                    <div class="stat-value" id="stat-errores" style="color: var(--error);">0</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Efectividad</div>
-                    <div class="stat-value" id="stat-efectividad" style="color: var(--success);">0%</div>
-                </div>
-            </div>
-
-            <div class="grid-2">
-                <!-- Charts -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Canales de Contacto</h3>
-                    </div>
-                    <div style="height: 300px;">
-                        <canvas id="chart-canales"></canvas>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Estados PQRS</h3>
-                    </div>
-                    <div style="height: 300px;">
-                        <canvas id="chart-estados"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="section-ranking" style="display: none;">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Ranking de Desempeño Operativo</h3>
-                </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Asesor</th>
-                            <th>Radicados</th>
-                            <th>Errores</th>
-                            <th>% Error</th>
-                        </tr>
-                    </thead>
-                    <tbody id="table-ranking">
-                        <!-- Dynamic content -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div id="section-turnos" style="display: none;">
-             <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Estado de Turnos Real-Time</h3>
-                </div>
-                <div class="turnos-list" id="list-turnos">
-                    <!-- Dynamic content -->
-                </div>
-            </div>
-        </div>
-    </main>
+      <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.75rem;">
+        &copy; 2026 People BPO Admin. By Duvan Ramos.
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Modal Search Results -->
-<div id="search-modal" class="search-results-modal" onclick="closeModal()">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <h2 id="modal-title" style="margin-bottom: 1.5rem;">Resultado de Búsqueda</h2>
-        <div id="modal-body" style="line-height: 2;">
-            <!-- Dynamic content -->
+<div id="dashboard-view" style="display: none;">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div style="margin-bottom: 3rem; padding-left: 1rem;">
+        <h2 style="color: var(--accent); font-weight: 800; letter-spacing: -1px;">People BPO</h2>
+        <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Control Center</p>
+      </div>
+
+      <nav style="flex: 1;">
+        <div class="nav-item active" onclick="showSection('overview')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Panel General
         </div>
-        <button class="btn-primary" style="margin-top: 2rem;" onclick="closeModal()">Cerrar</button>
-    </div>
+        <div class="nav-item" onclick="showSection('ranking')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          Ranking & Errores
+        </div>
+        <div class="nav-item" onclick="showSection('turnos')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Gestión de Turnos
+        </div>
+      </nav>
+
+      <div style="padding: 1rem; border-top: 1px solid var(--border);">
+        <div class="nav-item" onclick="logout()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Cerrar Sesión
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 700;">Panel Ejecutivo</h1>
+          <p id="header-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Analizando desempeño operativo en tiempo real.</p>
+        </div>
+        <div id="sync-status" style="font-size: 0.75rem; color: var(--text-muted); background: var(--border); padding: 6px 12px; border-radius: 6px;">
+          Sincronizado: --:--:--
+        </div>
+      </header>
+
+      <!-- Global Search -->
+      <div class="search-container">
+        <svg class="search-icon-abs" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="global-search-input" class="search-input" placeholder="Buscar Radicado o PQRS (Enter)..." onkeypress="handleSearch(event)">
+        <div id="search-result-area" style="display:none"></div>
+      </div>
+
+      <!-- Section: Overview -->
+      <div id="section-overview" class="fade-in">
+        <!-- Insights Mandatory Block -->
+        <div id="insights-area" class="insights-container">
+          <!-- Insights pills here -->
+        </div>
+
+        <!-- KPIs Trend Block -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">PQRS Hoy</div>
+            <div id="kpi-pqrs" class="kpi-value">0</div>
+            <div id="trend-pqrs" class="kpi-trend">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Radicados Hoy</div>
+            <div id="kpi-rad" class="kpi-value">0</div>
+            <div id="trend-rad" class="kpi-trend">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">PQRS Pendientes</div>
+            <div id="kpi-pend" class="kpi-value" style="color: var(--warning);">0</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Requiere atención</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Errores Totales</div>
+            <div id="kpi-err" class="kpi-value" style="color: var(--error);">0</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Acumulado mes</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Efectividad Prom.</div>
+            <div id="kpi-efec" class="kpi-value" style="color: var(--success);">0%</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Meta: 90%+</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Distribución por Canal</div>
+              <div style="height: 250px;"><canvas id="chart-canales"></canvas></div>
+           </div>
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Estados de PQRS</div>
+              <div style="height: 250px;"><canvas id="chart-estados"></canvas></div>
+           </div>
+        </div>
+      </div>
+
+      <!-- Section: Ranking -->
+      <div id="section-ranking" style="display:none" class="fade-in">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Top Productividad (Asesores)</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Asesor</th>
+                <th>Radicados</th>
+                <th>Errores</th>
+                <th>Tasa Error</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+
+        <div class="table-card" style="border-color: var(--error);">
+           <div class="table-title" style="color: var(--error); margin-bottom: 20px;">Asesores con más errores</div>
+           <div id="worst-performers-list" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
+        </div>
+      </div>
+
+      <!-- Section: Turnos -->
+      <div id="section-turnos" style="display:none" class="fade-in">
+        <header style="margin-bottom: 24px;">
+           <h2 class="table-title">Estado de Turnos Real-Time</h2>
+           <p style="color: var(--text-muted); font-size: 0.8rem;">Monitoreo de disponibilidad del equipo.</p>
+        </header>
+        <div id="turnos-grid-area" class="turnos-grid"></div>
+      </div>
+    </main>
+  </div>
 </div>
