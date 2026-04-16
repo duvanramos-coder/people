@@ -1,0 +1,184 @@
+<script>
+let charts = {};
+let dashboardPolling;
+
+window.onload = () => {
+    const savedUser = localStorage.getItem('admin_user');
+    if (savedUser) {
+        initDashboard(savedUser);
+    } else {
+        document.getElementById('loader').style.display = 'none';
+    }
+};
+
+function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
+
+    btn.disabled = true;
+    btn.innerText = 'Verificando...';
+
+    google.script.run.withSuccessHandler(res => {
+        if (res.success) {
+            localStorage.setItem('admin_user', res.username);
+            initDashboard(res.username);
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Entrar al Sistema';
+        }
+    }).login(user, pass);
+}
+
+function initDashboard(username) {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('dashboard-container').style.display = 'block';
+    document.getElementById('loader').style.display = 'flex';
+
+    refreshData();
+    dashboardPolling = setInterval(refreshData, 60000); // Polling every minute
+}
+
+function refreshData() {
+    google.script.run.withSuccessHandler(data => {
+        updateUI(data);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('last-update').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
+    }).getDashboardData();
+
+    google.script.run.withSuccessHandler(turnos => {
+        updateTurnos(turnos);
+    }).getTurnosData();
+}
+
+function updateUI(data) {
+    // Stats
+    document.getElementById('stat-pqrs-hoy').innerText = data.metrics.pqrsHoy;
+    document.getElementById('stat-rad-hoy').innerText = data.metrics.radicadosHoy;
+    document.getElementById('stat-pendientes').innerText = data.metrics.pendientes;
+    document.getElementById('stat-errores').innerText = data.metrics.errores;
+    document.getElementById('stat-efectividad').innerText = data.metrics.efectividadPromedio.toFixed(1) + '%';
+
+    // Charts
+    initChart('chart-canales', 'doughnut', data.pqrsfStats.canales, 'Canales');
+    initChart('chart-estados', 'pie', data.pqrsfStats.estados, 'Estados');
+
+    // Ranking
+    const table = document.getElementById('table-ranking');
+    table.innerHTML = data.ranking.map(row => `
+        <tr>
+            <td>${row.nombre}</td>
+            <td>${row.radicados}</td>
+            <td>${row.errores}</td>
+            <td><span class="badge ${row.errorRate > 5 ? 'badge-error' : 'badge-success'}">${row.errorRate}%</span></td>
+        </tr>
+    `).join('');
+}
+
+function updateTurnos(turnos) {
+    const list = document.getElementById('list-turnos');
+    list.innerHTML = turnos.map(t => `
+        <div class="turno-item">
+            <span class="turno-name">${t.nombre}</span>
+            <div style="text-align: right">
+                <div class="turno-status ${getStatusClass(t.estado)}">${t.estado}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted)">${t.horario}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getStatusClass(status) {
+    if (status === 'En jornada') return 'badge badge-success';
+    if (status === 'En break' || status === 'En almuerzo') return 'badge badge-warning';
+    return 'badge badge-error';
+}
+
+function initChart(id, type, dataObj, label) {
+    const ctx = document.getElementById(id).getContext('2d');
+    const labels = Object.keys(dataObj);
+    const values = Object.values(dataObj);
+
+    if (charts[id]) charts[id].destroy();
+
+    charts[id] = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function showSection(section) {
+    ['general', 'ranking', 'turnos'].forEach(s => {
+        document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.remove('active');
+        if (nav.innerText.toLowerCase().includes(section)) nav.classList.add('active');
+    });
+}
+
+function handleSearch(e) {
+    if (e.key === 'Enter') {
+        const val = e.target.value;
+        if (!val) return;
+
+        document.getElementById('loader').style.display = 'flex';
+
+        // Try Radicado first
+        google.script.run.withSuccessHandler(resRad => {
+            if (resRad) {
+                showModal('Radicado Encontrado', resRad);
+                document.getElementById('loader').style.display = 'none';
+            } else {
+                // Try PQRS
+                google.script.run.withSuccessHandler(resPqrs => {
+                    showModal(resPqrs ? 'PQRS Encontrado' : 'Sin Resultados', resPqrs);
+                    document.getElementById('loader').style.display = 'none';
+                }).searchPQRS(val);
+            }
+        }).searchRadicado(val);
+    }
+}
+
+function showModal(title, data) {
+    document.getElementById('modal-title').innerText = title;
+    const body = document.getElementById('modal-body');
+
+    if (!data) {
+        body.innerHTML = '<p>No se encontró información para el número ingresado.</p>';
+    } else {
+        body.innerHTML = Object.entries(data).map(([key, val]) => `
+            <div><strong style="text-transform: capitalize">${key}:</strong> ${val}</div>
+        `).join('');
+    }
+
+    document.getElementById('search-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('search-modal').style.display = 'none';
+}
+
+function logout() {
+    localStorage.removeItem('admin_user');
+    clearInterval(dashboardPolling);
+    location.reload();
+}
+</script>

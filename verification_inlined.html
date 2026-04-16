@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style><style>
+:root {
+    --bg-dark: #0f172a;
+    --bg-card: rgba(30, 41, 59, 0.7);
+    --accent: #38bdf8;
+    --accent-hover: #0ea5e9;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --border: rgba(255, 255, 255, 0.1);
+    --glass: rgba(255, 255, 255, 0.03);
+    --success: #22c55e;
+    --error: #ef4444;
+    --warning: #f59e0b;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    line-height: 1.5;
+    overflow-x: hidden;
+}
+
+h1, h2, h3 {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* Loader */
+.loader-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: var(--bg-dark); display: flex; flex-direction: column;
+    justify-content: center; align-items: center; z-index: 9999;
+}
+.spinner {
+    width: 40px; height: 40px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 1s linear infinite; margin-bottom: 1rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Login */
+.login-screen {
+    height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at top right, #1e293b, #0f172a);
+}
+.login-card {
+    background: var(--bg-card); backdrop-filter: blur(12px);
+    padding: 3rem; border-radius: 1.5rem; border: 1px solid var(--border);
+    width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+    animation: fadeIn 0.6s ease-out;
+}
+.login-card h1 { font-size: 1.875rem; margin-bottom: 0.5rem; text-align: center; }
+.login-card p { color: var(--text-muted); text-align: center; margin-bottom: 2rem; font-size: 0.875rem; }
+
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.5rem; }
+.form-group input {
+    width: 100%; background: var(--glass); border: 1px solid var(--border);
+    border-radius: 0.75rem; padding: 0.75rem 1rem; color: white; outline: none;
+    transition: all 0.2s;
+}
+.form-group input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2); }
+
+.btn-primary {
+    width: 100%; background: var(--accent); color: var(--bg-dark); border: none;
+    padding: 0.75rem; border-radius: 0.75rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+/* Dashboard Layout */
+.dashboard-layout { display: flex; min-height: 100vh; }
+.sidebar {
+    width: 260px; background: rgba(15, 23, 42, 0.8); border-right: 1px solid var(--border);
+    padding: 2rem 1.5rem; display: flex; flex-direction: column;
+}
+.main-content { flex: 1; padding: 2rem 3rem; overflow-y: auto; }
+
+.nav-item {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem;
+    color: var(--text-muted); text-decoration: none; border-radius: 0.5rem;
+    margin-bottom: 0.5rem; transition: all 0.2s; cursor: pointer;
+}
+.nav-item:hover, .nav-item.active { background: var(--glass); color: white; }
+
+/* Grid & Cards */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+.stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem;
+    border-radius: 1rem; transition: transform 0.2s;
+}
+.stat-card:hover { transform: translateY(-4px); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; }
+.stat-value { font-size: 1.5rem; font-weight: 700; }
+
+.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 1rem; padding: 1.5rem; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+.card-title { font-size: 1.125rem; }
+
+/* Tables */
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); padding-bottom: 1rem; }
+td { padding: 0.75rem 0; border-top: 1px solid var(--border); font-size: 0.875rem; }
+
+/* Badge */
+.badge { padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; }
+.badge-success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.badge-error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+.badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+
+/* Search Results */
+.search-box { margin-bottom: 2rem; position: relative; }
+.search-box input {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 1rem; padding: 1rem 3rem; color: white; outline: none; font-size: 1rem;
+}
+.search-icon { position: absolute; left: 1.25rem; top: 1.15rem; color: var(--text-muted); }
+
+.search-results-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);
+    display: none; align-items: center; justify-content: center; z-index: 1000;
+}
+.modal-content {
+    background: var(--bg-dark); border: 1px solid var(--border); padding: 2.5rem;
+    border-radius: 1.5rem; width: 100%; max-width: 500px;
+}
+
+/* Turnos List */
+.turnos-list { display: flex; flex-direction: column; gap: 1rem; }
+.turno-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.turno-name { font-weight: 500; }
+.turno-status { font-size: 0.75rem; }
+
+@media (max-width: 1024px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+}
+</style>
+</style>
+</head>
+<body>
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p>Sincronizando datos...</p>
+    </div>
+
+    <div id="app">
+        <!-- Renderizado dinámico -->
+        <div id="auth-container">
+            <div class="login-screen">
+    <div class="login-card">
+        <h1>Admin Portal</h1>
+        <p>Inicia sesión para gestionar el dashboard corporativo</p>
+
+        <div id="login-error" style="color: var(--error); font-size: 0.875rem; text-align: center; margin-bottom: 1rem; display: none;">
+            Credenciales incorrectas. Intenta de nuevo.
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" required placeholder="tu.usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-primary" id="login-btn">
+                Entrar al Sistema
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+            &copy; 2026 People BPO Admin Portal. By Duvan Ramos.
+        </div>
+    </div>
+</div>
+
+        </div>
+
+        <div id="dashboard-container" style="display: none;">
+            <div class="dashboard-layout fade-in">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div style="margin-bottom: 3rem; display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 32px; height: 32px; background: var(--accent); border-radius: 8px;"></div>
+            <h2 style="font-size: 1.25rem;">People BPO</h2>
+        </div>
+
+        <nav style="flex: 1;">
+            <div class="nav-item active" onclick="showSection('general')">
+                <span>📊</span> Panel General
+            </div>
+            <div class="nav-item" onclick="showSection('pqrsf')">
+                <span>📝</span> PQRSF Detail
+            </div>
+            <div class="nav-item" onclick="showSection('ranking')">
+                <span>🏆</span> Ranking
+            </div>
+            <div class="nav-item" onclick="showSection('turnos')">
+                <span>⏰</span> Turnos
+            </div>
+        </nav>
+
+        <div style="padding-top: 2rem; border-top: 1px solid var(--border);">
+            <div class="nav-item" onclick="logout()">
+                <span>🚪</span> Cerrar Sesión
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="card-header" style="margin-bottom: 2rem;">
+            <div>
+                <h1 id="welcome-msg">Dashboard Ejecutivo</h1>
+                <p style="color: var(--text-muted);">Métricas operativas en tiempo real</p>
+            </div>
+            <div id="last-update" style="font-size: 0.75rem; color: var(--text-muted);">
+                Actualizado: --:--:--
+            </div>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="global-search" placeholder="Buscar radicado o PQRS (Enter para buscar)..." onkeypress="handleSearch(event)">
+        </div>
+
+        <!-- Sections -->
+        <div id="section-general">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-label">PQRS Hoy</div>
+                    <div class="stat-value" id="stat-pqrs-hoy">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Radicados Hoy</div>
+                    <div class="stat-value" id="stat-rad-hoy">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Pendientes</div>
+                    <div class="stat-value" id="stat-pendientes" style="color: var(--warning);">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Errores</div>
+                    <div class="stat-value" id="stat-errores" style="color: var(--error);">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Efectividad</div>
+                    <div class="stat-value" id="stat-efectividad" style="color: var(--success);">0%</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Charts -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Canales de Contacto</h3>
+                    </div>
+                    <div style="height: 300px;">
+                        <canvas id="chart-canales"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Estados PQRS</h3>
+                    </div>
+                    <div style="height: 300px;">
+                        <canvas id="chart-estados"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="section-ranking" style="display: none;">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Ranking de Desempeño Operativo</h3>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asesor</th>
+                            <th>Radicados</th>
+                            <th>Errores</th>
+                            <th>% Error</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-ranking">
+                        <!-- Dynamic content -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="section-turnos" style="display: none;">
+             <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Estado de Turnos Real-Time</h3>
+                </div>
+                <div class="turnos-list" id="list-turnos">
+                    <!-- Dynamic content -->
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Modal Search Results -->
+<div id="search-modal" class="search-results-modal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <h2 id="modal-title" style="margin-bottom: 1.5rem;">Resultado de Búsqueda</h2>
+        <div id="modal-body" style="line-height: 2;">
+            <!-- Dynamic content -->
+        </div>
+        <button class="btn-primary" style="margin-top: 2rem;" onclick="closeModal()">Cerrar</button>
+    </div>
+</div>
+
+        </div>
+    </div>
+
+    <script><script>
+let charts = {};
+let dashboardPolling;
+
+window.onload = () => {
+    const savedUser = localStorage.getItem('admin_user');
+    if (savedUser) {
+        initDashboard(savedUser);
+    } else {
+        document.getElementById('loader').style.display = 'none';
+    }
+};
+
+function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const btn = document.getElementById('login-btn');
+
+    btn.disabled = true;
+    btn.innerText = 'Verificando...';
+
+    google.script.run.withSuccessHandler(res => {
+        if (res.success) {
+            localStorage.setItem('admin_user', res.username);
+            initDashboard(res.username);
+        } else {
+            document.getElementById('login-error').style.display = 'block';
+            btn.disabled = false;
+            btn.innerText = 'Entrar al Sistema';
+        }
+    }).login(user, pass);
+}
+
+function initDashboard(username) {
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('dashboard-container').style.display = 'block';
+    document.getElementById('loader').style.display = 'flex';
+
+    refreshData();
+    dashboardPolling = setInterval(refreshData, 60000); // Polling every minute
+}
+
+function refreshData() {
+    google.script.run.withSuccessHandler(data => {
+        updateUI(data);
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('last-update').innerText = 'Actualizado: ' + new Date().toLocaleTimeString();
+    }).getDashboardData();
+
+    google.script.run.withSuccessHandler(turnos => {
+        updateTurnos(turnos);
+    }).getTurnosData();
+}
+
+function updateUI(data) {
+    // Stats
+    document.getElementById('stat-pqrs-hoy').innerText = data.metrics.pqrsHoy;
+    document.getElementById('stat-rad-hoy').innerText = data.metrics.radicadosHoy;
+    document.getElementById('stat-pendientes').innerText = data.metrics.pendientes;
+    document.getElementById('stat-errores').innerText = data.metrics.errores;
+    document.getElementById('stat-efectividad').innerText = data.metrics.efectividadPromedio.toFixed(1) + '%';
+
+    // Charts
+    initChart('chart-canales', 'doughnut', data.pqrsfStats.canales, 'Canales');
+    initChart('chart-estados', 'pie', data.pqrsfStats.estados, 'Estados');
+
+    // Ranking
+    const table = document.getElementById('table-ranking');
+    table.innerHTML = data.ranking.map(row => `
+        <tr>
+            <td>${row.nombre}</td>
+            <td>${row.radicados}</td>
+            <td>${row.errores}</td>
+            <td><span class="badge ${row.errorRate > 5 ? 'badge-error' : 'badge-success'}">${row.errorRate}%</span></td>
+        </tr>
+    `).join('');
+}
+
+function updateTurnos(turnos) {
+    const list = document.getElementById('list-turnos');
+    list.innerHTML = turnos.map(t => `
+        <div class="turno-item">
+            <span class="turno-name">${t.nombre}</span>
+            <div style="text-align: right">
+                <div class="turno-status ${getStatusClass(t.estado)}">${t.estado}</div>
+                <div style="font-size: 0.65rem; color: var(--text-muted)">${t.horario}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function getStatusClass(status) {
+    if (status === 'En jornada') return 'badge badge-success';
+    if (status === 'En break' || status === 'En almuerzo') return 'badge badge-warning';
+    return 'badge badge-error';
+}
+
+function initChart(id, type, dataObj, label) {
+    const ctx = document.getElementById(id).getContext('2d');
+    const labels = Object.keys(dataObj);
+    const values = Object.values(dataObj);
+
+    if (charts[id]) charts[id].destroy();
+
+    charts[id] = new Chart(ctx, {
+        type: type,
+        data: {
+            labels: labels,
+            datasets: [{
+                data: values,
+                backgroundColor: ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#94a3b8', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
+function showSection(section) {
+    ['general', 'ranking', 'turnos'].forEach(s => {
+        document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('.nav-item').forEach(nav => {
+        nav.classList.remove('active');
+        if (nav.innerText.toLowerCase().includes(section)) nav.classList.add('active');
+    });
+}
+
+function handleSearch(e) {
+    if (e.key === 'Enter') {
+        const val = e.target.value;
+        if (!val) return;
+
+        document.getElementById('loader').style.display = 'flex';
+
+        // Try Radicado first
+        google.script.run.withSuccessHandler(resRad => {
+            if (resRad) {
+                showModal('Radicado Encontrado', resRad);
+                document.getElementById('loader').style.display = 'none';
+            } else {
+                // Try PQRS
+                google.script.run.withSuccessHandler(resPqrs => {
+                    showModal(resPqrs ? 'PQRS Encontrado' : 'Sin Resultados', resPqrs);
+                    document.getElementById('loader').style.display = 'none';
+                }).searchPQRS(val);
+            }
+        }).searchRadicado(val);
+    }
+}
+
+function showModal(title, data) {
+    document.getElementById('modal-title').innerText = title;
+    const body = document.getElementById('modal-body');
+
+    if (!data) {
+        body.innerHTML = '<p>No se encontró información para el número ingresado.</p>';
+    } else {
+        body.innerHTML = Object.entries(data).map(([key, val]) => `
+            <div><strong style="text-transform: capitalize">${key}:</strong> ${val}</div>
+        `).join('');
+    }
+
+    document.getElementById('search-modal').style.display = 'flex';
+}
+
+function closeModal() {
+    document.getElementById('search-modal').style.display = 'none';
+}
+
+function logout() {
+    localStorage.removeItem('admin_user');
+    clearInterval(dashboardPolling);
+    location.reload();
+}
+</script>
+</script>
+
+    <script>
+    window.google = {
+      script: {
+        run: {
+          withSuccessHandler: function(handler) {
+            return {
+              login: function(u, p) {
+                setTimeout(() => handler({ success: true, username: u }), 500);
+              },
+              getDashboardData: function() {
+                setTimeout(() => handler({
+                  metrics: {
+                    pqrsHoy: 12,
+                    radicadosHoy: 45,
+                    pendientes: 3,
+                    errores: 2,
+                    efectividadPromedio: 94.5
+                  },
+                  pqrsfStats: {
+                    total: 15,
+                    comunicados: 12,
+                    pendientes: 3,
+                    canales: { 'Llamada': 10, 'Correo': 5 },
+                    estados: { 'Cerrado': 8, 'Abierto': 4 },
+                    requiereSolucion: 1
+                  },
+                  ranking: [
+                    { nombre: 'Asesor 1', radicados: 20, errores: 1, errorRate: 5.0 },
+                    { nombre: 'Asesor 2', radicados: 15, errores: 0, errorRate: 0.0 }
+                  ],
+                  motivosFrecuentes: { 'Falta info': 1, 'Error sistema': 1 }
+                }), 500);
+              },
+              getTurnosData: function() {
+                setTimeout(() => handler([
+                  { nombre: 'Asesor 1', estado: 'En jornada', horario: '08:00 - 17:00' },
+                  { nombre: 'Asesor 2', estado: 'En break', horario: '08:00 - 17:00' }
+                ]), 500);
+              },
+              searchRadicado: function(n) {
+                setTimeout(() => handler({ funcionaria: 'Asesor 1', fecha: '2026-05-10', estado: 'Exitoso' }), 500);
+              }
+            };
+          }
+        }
+      }
+    };
+    </script>
+    </body>
+</html>
