@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>:root {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --accent: #38bdf8;
+  --accent-hover: #7dd3fc;
+  --text: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: rgba(255,255,255,0.08);
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* Transitions */
+.fade-in { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Layout */
+.dashboard-container { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 260px;
+  background: rgba(15, 23, 42, 0.95);
+  border-right: 1px solid var(--border);
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 3rem 4rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Sidebar Nav */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.03); }
+.nav-item.active { color: var(--accent); background: rgba(56, 189, 248, 0.08); }
+
+/* KPI Grid */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.2s;
+}
+.kpi-card:hover { transform: translateY(-2px); border-color: rgba(56,189,248,0.3); }
+
+.kpi-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; }
+.kpi-value { font-size: 2rem; font-weight: 700; font-family: 'Inter', sans-serif; }
+.kpi-trend { font-size: 0.75rem; display: flex; align-items: center; gap: 4px; }
+.trend-up { color: var(--success); }
+.trend-down { color: var(--error); }
+
+/* Insights Block */
+.insights-container {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.insight-pill {
+  padding: 12px 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-left-width: 4px;
+}
+.insight-success { border-left-color: var(--success); }
+.insight-warning { border-left-color: var(--warning); }
+.insight-info { border-left-color: var(--info); }
+
+/* Search Ficha */
+.search-container { margin-bottom: 32px; position: relative; }
+.search-input {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 20px 14px 48px;
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.2s;
+}
+.search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+.search-icon-abs { position: absolute; left: 18px; top: 16px; color: var(--text-muted); }
+
+.ficha-card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+}
+.ficha-item label { display: block; font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+.ficha-item span { font-size: 1rem; font-weight: 500; }
+
+/* Tables & Lists */
+.table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 32px; }
+.table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.table-title { font-size: 1.1rem; font-weight: 600; }
+
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 12px 16px; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+td { padding: 12px 16px; border-top: 1px solid var(--border); font-size: 0.9rem; }
+tr:hover { background: rgba(255,255,255,0.01); }
+
+/* Badges */
+.badge { padding: 4px 10px; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; }
+.badge-success { background: rgba(34, 197, 94, 0.1); color: var(--success); }
+.badge-error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+.badge-warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+.badge-info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
+
+/* Turnos Grid */
+.turnos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.turno-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.turno-info h4 { font-size: 0.9rem; margin-bottom: 2px; }
+.turno-info p { font-size: 0.75rem; color: var(--text-muted); }
+
+/* Login Redesign */
+.login-wrap { height: 100vh; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at top right, #1e293b, #0f172a); }
+.login-box {
+  background: var(--bg-card);
+  padding: 3rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+}
+.login-box h1 { margin-bottom: 0.5rem; font-size: 1.75rem; }
+.login-box p { color: var(--text-muted); margin-bottom: 2rem; font-size: 0.9rem; }
+
+.input-group { text-align: left; margin-bottom: 1.5rem; }
+.input-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; font-weight: 600; }
+.input-group input {
+  width: 100%;
+  background: rgba(15,23,42,0.5);
+  border: 1px solid var(--border);
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: white;
+  outline: none;
+}
+.input-group input:focus { border-color: var(--accent); }
+
+.btn-login {
+  width: 100%;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-login:hover { background: var(--accent-hover); transform: translateY(-1px); }
+
+/* Loader */
+.loader-overlay {
+  position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column;
+  align-items: center; justify-content: center; z-index: 10000;
+}
+.spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .sidebar { display: none; }
+  .main-content { padding: 2rem; }
+}</style>
+</head>
+<body>
+    <div id="loader" class="loader-overlay">
+        <div class="spinner"></div>
+        <p>Sincronizando datos...</p>
+    </div>
+
+    <div id="app">
+        <!-- Renderizado dinámico -->
+        <div id="auth-container">
+            <div class="login-screen">
+    <div class="login-card">
+        <h1>Admin Portal</h1>
+        <p>Inicia sesión para gestionar el dashboard corporativo</p>
+
+        <div id="login-error" style="color: var(--error); font-size: 0.875rem; text-align: center; margin-bottom: 1rem; display: none;">
+            Credenciales incorrectas. Intenta de nuevo.
+        </div>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" required placeholder="tu.usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-primary" id="login-btn">
+                Entrar al Sistema
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+            &copy; 2026 People BPO Admin Portal. By Duvan Ramos.
+        </div>
+    </div>
+</div>
+        </div>
+
+        <div id="dashboard-container" style="display: none;">
+            <div id="auth-view">
+  <div class="login-wrap">
+    <div class="login-box fade-in">
+      <h1>Admin Portal</h1>
+      <p>Inicia sesión para acceder a las métricas operativas</p>
+
+      <div id="login-error" style="display:none; color: var(--error); margin-bottom: 1rem; font-size: 0.85rem;">
+        Contraseña o usuario incorrectos. Intenta de nuevo.
+      </div>
+
+      <form onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <label>Usuario</label>
+          <input type="text" id="username" required placeholder="tu.usuario">
+        </div>
+        <div class="input-group">
+          <label>Contraseña</label>
+          <input type="password" id="password" required placeholder="••••••••">
+        </div>
+        <button type="submit" class="btn-login" id="btn-login-action">Entrar al Sistema</button>
+      </form>
+
+      <div style="margin-top: 2rem; color: var(--text-muted); font-size: 0.75rem;">
+        &copy; 2026 People BPO Admin. By Duvan Ramos.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="dashboard-view" style="display: none;">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div style="margin-bottom: 3rem; padding-left: 1rem;">
+        <h2 style="color: var(--accent); font-weight: 800; letter-spacing: -1px;">People BPO</h2>
+        <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Control Center</p>
+      </div>
+
+      <nav style="flex: 1;">
+        <div class="nav-item active" onclick="showSection('overview')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Panel General
+        </div>
+        <div class="nav-item" onclick="showSection('ranking')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          Ranking & Errores
+        </div>
+        <div class="nav-item" onclick="showSection('turnos')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Gestión de Turnos
+        </div>
+      </nav>
+
+      <div style="padding: 1rem; border-top: 1px solid var(--border);">
+        <div class="nav-item" onclick="logout()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Cerrar Sesión
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 700;">Panel Ejecutivo</h1>
+          <p id="header-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Analizando desempeño operativo en tiempo real.</p>
+        </div>
+        <div id="sync-status" style="font-size: 0.75rem; color: var(--text-muted); background: var(--border); padding: 6px 12px; border-radius: 6px;">
+          Sincronizado: --:--:--
+        </div>
+      </header>
+
+      <!-- Global Search -->
+      <div class="search-container">
+        <svg class="search-icon-abs" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="global-search-input" class="search-input" placeholder="Buscar Radicado o PQRS (Enter)..." onkeypress="handleSearch(event)">
+        <div id="search-result-area" style="display:none"></div>
+      </div>
+
+      <!-- Section: Overview -->
+      <div id="section-overview" class="fade-in">
+        <!-- Insights Mandatory Block -->
+        <div id="insights-area" class="insights-container">
+          <!-- Insights pills here -->
+        </div>
+
+        <!-- KPIs Trend Block -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">PQRS Hoy</div>
+            <div id="kpi-pqrs" class="kpi-value">0</div>
+            <div id="trend-pqrs" class="kpi-trend">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Radicados Hoy</div>
+            <div id="kpi-rad" class="kpi-value">0</div>
+            <div id="trend-rad" class="kpi-trend">--</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">PQRS Pendientes</div>
+            <div id="kpi-pend" class="kpi-value" style="color: var(--warning);">0</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Requiere atención</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Errores Totales</div>
+            <div id="kpi-err" class="kpi-value" style="color: var(--error);">0</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Acumulado mes</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Efectividad Prom.</div>
+            <div id="kpi-efec" class="kpi-value" style="color: var(--success);">0%</div>
+            <div class="kpi-trend" style="color: var(--text-muted);">Meta: 90%+</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Distribución por Canal</div>
+              <div style="height: 250px;"><canvas id="chart-canales"></canvas></div>
+           </div>
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Estados de PQRS</div>
+              <div style="height: 250px;"><canvas id="chart-estados"></canvas></div>
+           </div>
+        </div>
+      </div>
+
+      <!-- Section: Ranking -->
+      <div id="section-ranking" style="display:none" class="fade-in">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Top Productividad (Asesores)</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Asesor</th>
+                <th>Radicados</th>
+                <th>Errores</th>
+                <th>Tasa Error</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+
+        <div class="table-card" style="border-color: var(--error);">
+           <div class="table-title" style="color: var(--error); margin-bottom: 20px;">Asesores con más errores</div>
+           <div id="worst-performers-list" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
+        </div>
+      </div>
+
+      <!-- Section: Turnos -->
+      <div id="section-turnos" style="display:none" class="fade-in">
+        <header style="margin-bottom: 24px;">
+           <h2 class="table-title">Estado de Turnos Real-Time</h2>
+           <p style="color: var(--text-muted); font-size: 0.8rem;">Monitoreo de disponibilidad del equipo.</p>
+        </header>
+        <div id="turnos-grid-area" class="turnos-grid"></div>
+      </div>
+    </main>
+  </div>
+</div>
+        </div>
+    </div>
+
+    <script>let charts = {};
+let dashboardInterval;
+
+window.onload = () => {
+  const user = localStorage.getItem('admin_session');
+  if (user) {
+    startDashboard(user);
+  } else {
+    document.getElementById('loader').style.display = 'none';
+  }
+};
+
+function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const btn = document.getElementById('btn-login-action');
+
+  btn.innerText = 'Autenticando...';
+  btn.disabled = true;
+
+  google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+      localStorage.setItem('admin_session', res.username);
+      startDashboard(res.username);
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      btn.innerText = 'Entrar al Sistema';
+      btn.disabled = false;
+    }
+  }).login(u, p);
+}
+
+function startDashboard(user) {
+  document.getElementById('auth-view').style.display = 'none';
+  document.getElementById('dashboard-view').style.display = 'block';
+  document.getElementById('loader').style.display = 'flex';
+
+  refreshDashboard();
+  dashboardInterval = setInterval(refreshDashboard, 60000); // Polling 1 min
+}
+
+function refreshDashboard() {
+  google.script.run.withSuccessHandler(data => {
+    renderKPIs(data.kpis);
+    renderInsights(data.insights);
+    renderRanking(data.ranking);
+    renderWorst(data.worstPerformers);
+    renderCharts(data.stats);
+
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('sync-status').innerText = 'Sincronizado: ' + new Date().toLocaleTimeString();
+  }).getDashboardData();
+
+  google.script.run.withSuccessHandler(turnos => {
+    renderTurnos(turnos);
+  }).getTurnosStatus();
+}
+
+function renderKPIs(kpis) {
+  document.getElementById('kpi-pqrs').innerText = kpis.pqrsHoy.value;
+  renderTrend('trend-pqrs', kpis.pqrsHoy.trend);
+
+  document.getElementById('kpi-rad').innerText = kpis.radicadosHoy.value;
+  renderTrend('trend-rad', kpis.radicadosHoy.trend);
+
+  document.getElementById('kpi-pend').innerText = kpis.pendientes.value;
+  document.getElementById('kpi-err').innerText = kpis.errores.value;
+  document.getElementById('kpi-efec').innerText = kpis.efectividad.value + '%';
+}
+
+function renderTrend(id, trend) {
+  const el = document.getElementById(id);
+  const val = parseFloat(trend);
+  if (val > 0) {
+    el.innerHTML = `<span class="trend-up">↑ ${val}%</span> vs ayer`;
+  } else if (val < 0) {
+    el.innerHTML = `<span class="trend-down">↓ ${Math.abs(val)}%</span> vs ayer`;
+  } else {
+    el.innerHTML = `<span style="color: var(--text-muted)">--% vs ayer</span>`;
+  }
+}
+
+function renderInsights(insights) {
+  const area = document.getElementById('insights-area');
+  area.innerHTML = insights.map(i => `
+    <div class="insight-pill insight-${i.type} fade-in">
+      ${i.text}
+    </div>
+  `).join('');
+}
+
+function renderRanking(ranking) {
+  const body = document.getElementById('ranking-body');
+  body.innerHTML = ranking.map(a => `
+    <tr>
+      <td style="font-weight: 600;">${a.nombre}</td>
+      <td>${a.radicados}</td>
+      <td>${a.errores}</td>
+      <td><span class="badge ${a.errorRate > 5 ? 'badge-error' : 'badge-success'}">${a.errorRate}%</span></td>
+      <td><span class="badge badge-info">En línea</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderWorst(worst) {
+  const list = document.getElementById('worst-performers-list');
+  list.innerHTML = worst.map(a => `
+    <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 10px; min-width: 150px;">
+      <div style="font-size: 0.75rem; color: var(--text-muted);">${a.nombre}</div>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--error);">${a.errorRate}% Error</div>
+    </div>
+  `).join('');
+}
+
+function renderCharts(stats) {
+  const colors = ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'];
+
+  updateChart('chart-canales', 'doughnut', stats.canales, colors);
+  updateChart('chart-estados', 'pie', stats.estados, colors);
+}
+
+function updateChart(id, type, dataObj, colors) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
+
+  if (charts[id]) charts[id].destroy();
+
+  charts[id] = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: 'transparent',
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 10, weight: '500' }, padding: 20 }
+        }
+      }
+    }
+  });
+}
+
+function renderTurnos(turnos) {
+  const grid = document.getElementById('turnos-grid-area');
+  grid.innerHTML = turnos.map(t => `
+    <div class="turno-card fade-in">
+      <div class="turno-info">
+        <h4>${t.nombre}</h4>
+        <p>${t.horario}</p>
+      </div>
+      <div class="badge" style="background: ${t.color}20; color: ${t.color}; border: 1px solid ${t.color}40;">
+        ${t.status}
+      </div>
+    </div>
+  `).join('');
+}
+
+function showSection(section) {
+  ['overview', 'ranking', 'turnos'].forEach(s => {
+    document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+  });
+
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.innerText.toLowerCase().includes(section === 'overview' ? 'general' : section));
+  });
+}
+
+function handleSearch(e) {
+  if (e.key === 'Enter') {
+    const val = e.target.value;
+    if (!val) return;
+
+    const area = document.getElementById('search-result-area');
+    area.innerHTML = '<div style="margin-top: 10px; color: var(--text-muted);">Buscando...</div>';
+    area.style.display = 'block';
+
+    google.script.run.withSuccessHandler(res => {
+      if (res) {
+        area.innerHTML = `
+          <div class="ficha-card fade-in">
+            <div style="grid-column: 1 / -1; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <span class="badge badge-info">${res.type}</span>
+              <span style="color: var(--text-muted); cursor: pointer;" onclick="closeSearch()">✕</span>
+            </div>
+            ${Object.entries(res.data).map(([k, v]) => `
+              <div class="ficha-item">
+                <label>${k}</label>
+                <span>${v}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        area.innerHTML = '<div style="margin-top: 10px; color: var(--error);">No se encontró información.</div>';
+      }
+    }).searchGlobal(val);
+  }
+}
+
+function closeSearch() {
+  const area = document.getElementById('search-result-area');
+  area.style.display = 'none';
+  document.getElementById('global-search-input').value = '';
+}
+
+function logout() {
+  localStorage.removeItem('admin_session');
+  clearInterval(dashboardInterval);
+  location.reload();
+}</script>
+
+    <script>
+    window.google = {
+      script: {
+        run: {
+          withSuccessHandler: function(handler) {
+            return {
+              login: function(u, p) {
+                setTimeout(() => handler({ success: true, username: u }), 500);
+              },
+              getDashboardData: function() {
+                setTimeout(() => handler({
+                  kpis: {
+                    pqrsHoy: { value: 142, trend: 12.5 },
+                    radicadosHoy: { value: 98, trend: -5.2 },
+                    pendientes: { value: 24 },
+                    errores: { value: 15 },
+                    efectividad: { value: 94.8 }
+                  },
+                  insights: [
+                    { type: 'warning', text: '⚠️ Alto volumen de PQRS pendientes (24)' },
+                    { type: 'success', text: '🔥 Laura es top performer hoy (42 radicados)' }
+                  ],
+                  ranking: [
+                    { nombre: 'Laura', radicados: 42, errores: 0, errorRate: 0.0 },
+                    { nombre: 'Andres', radicados: 30, errores: 2, errorRate: 6.7 }
+                  ],
+                  worstPerformers: [
+                    { nombre: 'Juan', errorRate: 15.4 }
+                  ],
+                  stats: {
+                    canales: { 'Llamada': 80, 'Correo': 20 },
+                    estados: { 'Cerrado': 60, 'Abierto': 40 }
+                  }
+                }), 500);
+              },
+              getTurnosStatus: function() {
+                setTimeout(() => handler([
+                  { nombre: 'Laura', status: '🟢 Activo', color: '#22c55e', horario: '08:00 - 17:00' },
+                  { nombre: 'Andres', status: '🟡 Break', color: '#eab308', horario: '08:00 - 17:00' }
+                ]), 500);
+              },
+              searchGlobal: function(n) {
+                setTimeout(() => handler({
+                  type: 'Radicado',
+                  data: { 'Número': n, 'Funcionaria': 'Laura', 'Fecha': '2026-05-10', 'Estado': 'Exitoso' }
+                }), 500);
+              }
+            };
+          }
+        }
+      }
+    };
+    </script>
+    </body>
+</html>
