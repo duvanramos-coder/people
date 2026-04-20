@@ -538,7 +538,7 @@
 
     function createCard(alert) {
       const tiempoFormatted = formatTiempo(alert.tiempo);
-      const mensaje = `Hola ${alert.agente}, ya son ${tiempoFormatted} en gestión de esta llamada o chat actual. Evitemos demoras, Por favor vez gestionando el cierre de la interacción con el usuario. 🔄 Mensaje automático 🤖`;
+      const mensaje = `Hola *${alert.agente}* 👋\n\n⏰ *Minutos en gestión* ${tiempoFormatted}\nDe esta llamada o chat actual, evitemos demoras, por favor vez gestionando el cierre de la interacción con el usuario.\n\n_Mensaje automático 🤖_`;
 
       return `
         <div class="card" id="alert-${alert.id}">
@@ -621,10 +621,8 @@
             currentIds.add(alertKey);
 
             if (!seenAlerts.has(alertKey)) {
-              if (!isInitialLoad) {
-                newAlertDetected = true;
-                lastAgent = alert.agente;
-              }
+              newAlertDetected = true;
+              lastAgent = alert.agente;
               seenAlerts.add(alertKey);
             }
 
