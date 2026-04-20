@@ -1,406 +1,679 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <meta charset="UTF-8">
+  <title>TMO Alertas - Real-Time Dashboard</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --primary: #22c55e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --danger: #ef4444;
+    }
 
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
-}
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
 
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
+    /* LOGIN STYLES */
+    #login-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
 
-.card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
-}
+    .login-card {
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
 
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-}
+    .login-card h2 {
+      color: var(--primary);
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
 
-.header-info { text-align: center; }
+    .login-card p {
+      color: var(--text-muted);
+      margin-bottom: 2rem;
+    }
 
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
+    .input-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+    }
 
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
-}
+    .input-group label {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
 
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-}
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      color: white;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
 
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
 
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
+    .btn-login {
+      width: 100%;
+      padding: 1rem;
+      background: var(--primary);
+      color: #052e16;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 800;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      animation: pulse-button 2s infinite;
+    }
 
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
+    @keyframes pulse-button {
+      0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { box-shadow: 0 0 0 20px rgba(34, 197, 94, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
 
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
+    .btn-login:hover {
+      background: #4ade80;
+      transform: translateY(-2px);
+    }
 
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
+    /* DASHBOARD STYLES */
+    header {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      padding: 1.5rem 2rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
 
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .header-content h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-}
+    .header-content p {
+      margin: 0;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
 
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      background: rgba(34, 197, 94, 0.1);
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      color: var(--primary);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
 
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
+    .pulse {
+      width: 8px;
+      height: 8px;
+      background: var(--primary);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+      animation: pulse 2s infinite;
+    }
 
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+    }
 
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
-}
+    main {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      flex: 1;
+    }
 
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-}
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
+    #contenedor {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
 
-.drive-icon { width: 14px; height: 14px; }
-</style>
+    .card {
+      background: var(--card-bg);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+      overflow: hidden;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(34, 197, 94, 0.3);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+
+    .agente-name {
+      font-weight: 700;
+      font-size: 1.125rem;
+      color: var(--text-main);
+    }
+
+    .badge-demora {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .info-row strong {
+      color: var(--primary);
+    }
+
+    .actions {
+      margin-top: 1.5rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.625rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+    }
+
+    .btn-msg {
+      background: var(--primary);
+      color: #052e16;
+    }
+
+    .btn-msg:hover {
+      background: #4ade80;
+    }
+
+    .btn-num {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-num:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 4rem 0;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .empty-state h2 {
+      font-weight: 400;
+      font-size: 1.25rem;
+    }
+
+    /* Toast notification styles */
+    #toast-container {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 10000;
+    }
+
+    .toast {
+      background: #1e293b;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      margin-top: 0.5rem;
+      border-left: 4px solid var(--primary);
+      animation: toastIn 0.3s ease-out;
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    /* Persistent Alert Modal */
+    #alert-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(239, 68, 68, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 9000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      color: white;
+      padding: 2rem;
+    }
+
+    .modal-content {
+      background: #1e293b;
+      padding: 3rem;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 4px solid var(--danger);
+      max-width: 600px;
+      animation: modalShake 0.5s infinite;
+    }
+
+    @keyframes modalShake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      10% { transform: translate(-1px, -2px) rotate(-1deg); }
+      20% { transform: translate(-3px, 0px) rotate(1deg); }
+      30% { transform: translate(3px, 2px) rotate(0deg); }
+      40% { transform: translate(1px, -1px) rotate(1deg); }
+      50% { transform: translate(-1px, 2px) rotate(-1deg); }
+      60% { transform: translate(-3px, 1px) rotate(0deg); }
+      70% { transform: translate(3px, 1px) rotate(-1deg); }
+      80% { transform: translate(-1px, -1px) rotate(1deg); }
+      90% { transform: translate(1px, 2px) rotate(0deg); }
+      100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+
+    .modal-content h2 {
+      font-size: 3rem;
+      margin: 0 0 1rem 0;
+      color: var(--danger);
+    }
+
+    .modal-content p {
+      font-size: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .btn-dismiss {
+      padding: 1.5rem 3rem;
+      font-size: 1.5rem;
+      background: var(--danger);
+      color: white;
+      border-radius: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s;
+    }
+
+    .btn-dismiss:hover {
+      transform: scale(1.1);
+      background: #ff0000;
+    }
+
+    /* LOADER */
+    #loader {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.8); display: none; flex-direction: column;
+      justify-content: center; align-items: center; z-index: 10001; color: white; backdrop-filter: blur(4px);
+    }
+    .spinner {
+      width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
+      border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  </style>
 </head>
-
 <body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-  </div>
+  <div id="loader"><div class="spinner"></div><div>Procesando...</div></div>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
-      </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
+  <!-- LOGIN SECTION -->
+  <div id="login-container">
+    <div class="login-card">
+      <h2>🚀 TMO Alertas</h2>
+      <p>People BPO Monitor</p>
+      <div class="input-group">
+        <label for="user">Usuario</label>
+        <input type="text" id="user" placeholder="Ingresa tu usuario">
       </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
-    </div>
-
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
+      <div class="input-group">
+        <label for="pass">Contraseña</label>
+        <input type="password" id="pass" placeholder="••••••••">
       </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
-
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
-      </div>
-    </div>
-
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
-
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
+      <button class="btn-login" onclick="login()">ACTIVAR MONITOR 🔔</button>
+      <p style="margin-top: 1.5rem; font-size: 0.75rem;">By Duvan Ramos</p>
     </div>
   </div>
-</div>
 
-<script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
+  <!-- DASHBOARD SECTION (Hidden initially) -->
+  <div id="dashboard-container" style="display: none;">
+    <header>
+      <div class="header-content">
+        <h1>🚨 TMO ALERTA</h1>
+        <p>People BPO Monitor • By Duvan Ramos</p>
+      </div>
+      <div class="status-indicator">
+        <div class="pulse"></div>
+        En vivo
+      </div>
+    </header>
 
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
-    });
-  }).obtenerUsuarios();
-}
-cargarUsuarios();
+    <main>
+      <div id="contenedor">
+        <div class="empty-state">
+          <h2>Iniciando monitoreo...</h2>
+        </div>
+      </div>
+    </main>
+  </div>
 
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
-  };
+  <div id="alert-modal">
+    <div class="modal-content">
+      <h2>🚨 ALERTA 🚨</h2>
+      <p id="modal-text">Hay una nueva demora detectada.</p>
+      <button class="btn-dismiss" onclick="dismissAlert()">ENTENDIDO / GESTIONAR ✅</button>
+    </div>
+  </div>
 
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
-  }
+  <div id="toast-container"></div>
 
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
-}
+  <!-- Sonido de notificación -->
+  <audio id="notif-sound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" preload="auto" loop></audio>
 
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
-}
+  <script>
+    let seenAlerts = new Set();
+    let isInitialLoad = true;
+    let audioEnabled = false;
+    let pollingInterval = null;
 
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
+    function login() {
+      const user = document.getElementById('user').value;
+      const pass = document.getElementById('pass').value;
 
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
+      if (!user || !pass) {
+        showToast("⚠️ Ingresa credenciales");
+        return;
+      }
 
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
+      document.getElementById('loader').style.display = 'flex';
 
-    let pec=res.pec*100; let penc=res.penc*100;
+      google.script.run
+        .withSuccessHandler(res => {
+          document.getElementById('loader').style.display = 'none';
+          if (res.success) {
+            // Prime audio
+            const sound = document.getElementById('notif-sound');
+            sound.play().then(() => {
+              sound.pause();
+              sound.currentTime = 0;
+              audioEnabled = true;
 
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
+              // Switch view
+              document.getElementById('login-container').style.display = 'none';
+              document.getElementById('dashboard-container').style.display = 'block';
 
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
-    }
-
-    let estado="", color="#B7D400", porcentaje = 0;
-
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
-
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
-    }
-
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
-
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
-
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
-
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
+              // Start monitoring
+              updateDashboard();
+              pollingInterval = setInterval(updateDashboard, 5000);
+              showToast("✅ Sesión iniciada con éxito");
+            }).catch(e => {
+                console.log("Audio priming failed", e);
+                // Fallback to allow login even if audio priming fails (some browsers are strict)
+                document.getElementById('login-container').style.display = 'none';
+                document.getElementById('dashboard-container').style.display = 'block';
+                updateDashboard();
+                pollingInterval = setInterval(updateDashboard, 5000);
+            });
           } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
+            showToast("❌ Credenciales incorrectas");
           }
-        }
+        })
+        .withFailureHandler(err => {
+          document.getElementById('loader').style.display = 'none';
+          showToast("❌ Error de conexión");
+        })
+        .validarLogin(user, pass);
+    }
 
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-          `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
+    function formatTiempo(tiempoStr) {
+      const match = tiempoStr.match(/(\d{2}):(\d{2}):(\d{2})/);
+      if (match) {
+        const hh = parseInt(match[1]);
+        const mm = parseInt(match[2]);
+        const ss = match[3];
+        let totalMinutes = hh * 60 + mm;
+        return `${totalMinutes}:${ss} Minutos`;
+      }
+      return tiempoStr;
+    }
 
-  }).login(usuario,password);
-}
-</script>
+    function createCard(alert) {
+      const tiempoFormatted = formatTiempo(alert.tiempo);
+      const mensaje = `Hola ${alert.agente}, ya son ${tiempoFormatted} en gestión de esta llamada o chat actual. Evitemos demoras, Por favor vez gestionando el cierre de la interacción con el usuario. 🔄 Mensaje automático 🤖`;
+
+      return `
+        <div class="card" id="alert-${alert.id}">
+          <div class="card-header">
+            <span class="agente-name">${alert.agente}</span>
+            <span class="badge-demora">DEMORA</span>
+          </div>
+          <div class="info-row">
+            <span>⏱️ Tiempo:</span>
+            <strong>${tiempoFormatted}</strong>
+          </div>
+          <div class="info-row">
+            <span>📱 WhatsApp:</span>
+            <span>${alert.whatsapp}</span>
+          </div>
+          <div class="actions">
+            <button class="btn-msg" onclick="copiarTexto(\`${mensaje.replace(/\n/g, '\\n')}\`, 'Mensaje')">
+              📋 Copiar Msg
+            </button>
+            <button class="btn-num" onclick="copiarTexto('${alert.whatsapp}', 'Número')">
+              📱 Copiar Núm
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+      }, 3000);
+    }
+
+    function copiarTexto(texto, tipo) {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(() => {
+          showToast(tipo + " copiado con éxito ✅");
+        }).catch(err => {
+          console.error('Error al copiar: ', err);
+        });
+      } else {
+        const textArea = document.createElement("textarea");
+        textArea.value = texto;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand('copy');
+          showToast(tipo + " copiado (fallback) ✅");
+        } catch (err) {
+          showToast("Error al copiar ❌");
+        }
+        document.body.removeChild(textArea);
+      }
+    }
+
+    function updateDashboard() {
+      google.script.run
+        .withSuccessHandler(data => {
+          const container = document.getElementById('contenedor');
+
+          if (!data || data.length === 0) {
+            container.innerHTML = '<div class="empty-state"><h2>No hay demoras activas en este momento.</h2><p>Todo está bajo control.</p></div>';
+            seenAlerts.clear();
+            return;
+          }
+
+          let newAlertDetected = false;
+          let lastAgent = "";
+          let currentIds = new Set();
+
+          let html = '';
+          data.forEach(alert => {
+            const alertKey = `${alert.agente}-${alert.id}`;
+            currentIds.add(alertKey);
+
+            if (!seenAlerts.has(alertKey)) {
+              if (!isInitialLoad) {
+                newAlertDetected = true;
+                lastAgent = alert.agente;
+              }
+              seenAlerts.add(alertKey);
+            }
+
+            html += createCard(alert);
+          });
+
+          container.innerHTML = html;
+
+          if (newAlertDetected) {
+            triggerAlert(lastAgent);
+          }
+
+          for (let key of seenAlerts) {
+            if (!currentIds.has(key)) {
+              seenAlerts.delete(key);
+            }
+          }
+
+          isInitialLoad = false;
+        })
+        .withFailureHandler(err => {
+          console.error("Error fetching data:", err);
+        })
+        .obtenerAlertas();
+    }
+
+    function triggerAlert(agente) {
+      const modal = document.getElementById('alert-modal');
+      const modalText = document.getElementById('modal-text');
+      const sound = document.getElementById('notif-sound');
+
+      modalText.textContent = `Nueva demora detectada: ${agente}`;
+      modal.style.display = 'flex';
+
+      if (audioEnabled) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Audio play deferred", e));
+      }
+      showToast("⚠️ Nueva alerta de demora detectada");
+    }
+
+    function dismissAlert() {
+      const modal = document.getElementById('alert-modal');
+      const sound = document.getElementById('notif-sound');
+
+      modal.style.display = 'none';
+      sound.pause();
+      sound.currentTime = 0;
+    }
+  </script>
 </body>
 </html>
