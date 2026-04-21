@@ -484,35 +484,37 @@
         return;
       }
 
+      // 🔊 PRIME AUDIO IMMEDIATELY (must be synchronous to user click)
+      const sound = document.getElementById('notif-sound');
+      sound.volume = 1.0;
+      const primePromise = sound.play();
+
+      if (primePromise !== undefined) {
+        primePromise.then(() => {
+          sound.pause();
+          sound.currentTime = 0;
+          audioEnabled = true;
+          console.log("Audio primed successfully");
+        }).catch(e => {
+          console.error("Audio priming failed:", e);
+          // We don't block login, but we mark it as potentially failed
+        });
+      }
+
       document.getElementById('loader').style.display = 'flex';
 
       google.script.run
         .withSuccessHandler(res => {
           document.getElementById('loader').style.display = 'none';
           if (res.success) {
-            // Prime audio
-            const sound = document.getElementById('notif-sound');
-            sound.play().then(() => {
-              sound.pause();
-              sound.currentTime = 0;
-              audioEnabled = true;
+            // Switch view
+            document.getElementById('login-container').style.display = 'none';
+            document.getElementById('dashboard-container').style.display = 'block';
 
-              // Switch view
-              document.getElementById('login-container').style.display = 'none';
-              document.getElementById('dashboard-container').style.display = 'block';
-
-              // Start monitoring
-              updateDashboard();
-              pollingInterval = setInterval(updateDashboard, 5000);
-              showToast("✅ Sesión iniciada con éxito");
-            }).catch(e => {
-                console.log("Audio priming failed", e);
-                // Fallback to allow login even if audio priming fails (some browsers are strict)
-                document.getElementById('login-container').style.display = 'none';
-                document.getElementById('dashboard-container').style.display = 'block';
-                updateDashboard();
-                pollingInterval = setInterval(updateDashboard, 5000);
-            });
+            // Start monitoring
+            updateDashboard();
+            pollingInterval = setInterval(updateDashboard, 5000);
+            showToast("✅ Sesión iniciada con éxito");
           } else {
             showToast("❌ Credenciales incorrectas");
           }
@@ -657,10 +659,18 @@
       modalText.textContent = `Nueva demora detectada: ${agente}`;
       modal.style.display = 'flex';
 
-      if (audioEnabled) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Audio play deferred", e));
+      // Attempt to play sound regardless of audioEnabled flag (as a fallback)
+      sound.currentTime = 0;
+      sound.volume = 1.0;
+      const playPromise = sound.play();
+
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          console.warn("Sound play blocked by browser:", e);
+          showToast("🔊 Haz clic en la pantalla para activar sonido");
+        });
       }
+
       showToast("⚠️ Nueva alerta de demora detectada");
     }
 
