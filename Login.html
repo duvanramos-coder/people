@@ -1,0 +1,38 @@
+<div id="loginView" class="view-container active">
+  <div class="login-card card">
+    <div class="brand-centered">
+      <div class="logo-icon-large">P</div>
+      <h2>PEOPLE BPO</h2>
+      <p>Gestión de PQRSF</p>
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="username">Usuario</label>
+        <div class="input-wrapper">
+          <i data-lucide="user"></i>
+          <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Contraseña</label>
+        <div class="input-wrapper">
+          <i data-lucide="lock"></i>
+          <input type="password" id="password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
+        <span>Ingresar al Sistema</span>
+        <i data-lucide="arrow-right"></i>
+      </button>
+    </form>
+
+    <div id="loginError" class="login-error" style="display: none;"></div>
+
+    <div class="login-footer">
+      <p>By Duvan Ramos — 2026</p>
+    </div>
+  </div>
+</div>

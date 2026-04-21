@@ -1,0 +1,144 @@
+<div class="agent-dashboard">
+  <header class="main-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-icon">P</div>
+        <div>
+          <h1>PORTAL AGENTE <span class="brand-company">(PQRSF)</span></h1>
+          <p class="subtitle">Bienvenido, <span id="agentName" class="signature">...</span></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="handleLogout()">
+          <i data-lucide="log-out"></i> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <div class="agent-grid">
+      <!-- Left: Management Area -->
+      <section class="management-section">
+        <div class="card" id="claimCaseCard">
+          <div class="card-header">
+            <h3><i data-lucide="user-plus"></i> Iniciar Gestión</h3>
+          </div>
+          <div class="claim-workflow">
+            <p class="text-muted">Presiona el botón para obtener el siguiente radicado pendiente de gestión.</p>
+            <button class="btn btn-primary btn-lg" onclick="claimNextCase()" id="btnClaim">
+              <i data-lucide="grab"></i> Solicitar Radicado
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="activeCaseCard" style="display: none;">
+          <div class="card-header">
+            <h3><i data-lucide="edit-3"></i> Gestión en Curso</h3>
+            <span class="badge badge-warning" id="activeRadicadoLabel">RAD-00000</span>
+          </div>
+
+          <div class="case-details-grid">
+            <div class="detail-item"><strong>Nombre:</strong> <span id="caseNombre">...</span></div>
+            <div class="detail-item"><strong>Teléfono:</strong> <span id="caseTelefono">...</span></div>
+            <div class="detail-item"><strong>Empresa:</strong> <span id="caseEmpresa">...</span></div>
+            <div class="detail-item"><strong>Fecha:</strong> <span id="caseFecha">...</span></div>
+          </div>
+
+          <form id="managementForm" onsubmit="saveManagement(event)" class="mgmt-form">
+            <div class="filter-grid">
+              <div class="filter-group">
+                <label>Estado de Gestión</label>
+                <select id="mgmtEstado" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Contactado">Contactado</option>
+                  <option value="No contesta">No contesta</option>
+                  <option value="Corte de llamada">Corte de llamada</option>
+                  <option value="Equivocado">Equivocado</option>
+                  <option value="Fuera de servicio">Fuera de servicio</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Canal de Contacto</label>
+                <select id="mgmtCanal" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Llamada">Llamada</option>
+                  <option value="Correo">Correo</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>¿Fue Efectivo?</label>
+                <select id="mgmtEfectividad" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Sí">Sí</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>¿Requiere otra solución?</label>
+                <select id="mgmtOtraSolucion" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Sí">Sí</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Observaciones / Solución</label>
+              <textarea id="mgmtObservacion" rows="3" placeholder="Describe brevemente la solución brindada..."></textarea>
+            </div>
+
+            <div class="mgmt-actions">
+              <button type="submit" class="btn btn-primary" id="btnSaveMgmt">
+                <i data-lucide="save"></i> Guardar Gestión
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Right: AI Tools & Performance -->
+      <section class="side-section">
+        <div class="card ai-card">
+          <div class="card-header">
+            <h3><i data-lucide="sparkles"></i> IA Response Converter</h3>
+          </div>
+          <div class="ai-workflow">
+            <textarea id="aiInput" rows="4" placeholder="Escribe aquí las notas rápidas de tu gestión..."></textarea>
+            <div class="ai-buttons">
+              <button class="btn btn-outline btn-sm" onclick="improveText('PQRSF-RES')">
+                <i data-lucide="check-check"></i> Formato Respuesta
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="improveText('PQRSF-NC')">
+                <i data-lucide="phone-off"></i> Formato No Contesta
+              </button>
+            </div>
+            <div id="aiOutputContainer" style="display: none; margin-top: 1rem;">
+              <div class="output-header">
+                <span>Resultado IA:</span>
+                <button class="btn btn-icon btn-sm" onclick="copyToClipboard()"><i data-lucide="copy"></i></button>
+              </div>
+              <div id="aiOutput" class="ai-output-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card stats-card">
+          <div class="card-header">
+            <h3><i data-lucide="bar-chart-2"></i> Mi Desempeño Hoy</h3>
+          </div>
+          <div class="agent-stats">
+            <div class="stat-circle">
+              <span id="agentCountToday" class="stat-num">0</span>
+              <span class="stat-label">Gestiones</span>
+            </div>
+            <p class="text-muted text-center" style="font-size: 0.8rem; margin-top: 1rem;">
+              Sigue así, cada caso cuenta para la meta del equipo.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>

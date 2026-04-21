@@ -12,7 +12,18 @@
     <?!= include('Styles'); ?>
   </head>
   <body>
-    <?!= include('Dashboard'); ?>
+    <div id="mainApp">
+      <?!= include('Login'); ?>
+
+      <div id="adminView" class="view-container" style="display: none;">
+        <?!= include('Dashboard'); ?>
+      </div>
+
+      <div id="agentView" class="view-container" style="display: none;">
+        <?!= include('AgentPortal'); ?>
+      </div>
+    </div>
+
     <?!= include('Scripts'); ?>
   </body>
 </html>

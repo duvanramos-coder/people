@@ -5,12 +5,224 @@
   let currentPage = 1;
   const rowsPerPage = 10;
   let currentSort = { column: null, direction: 'asc' };
+  let currentUser = null;
 
   // Page initialization
   document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
-    fetchData();
+    checkSession();
   });
+
+  function checkSession() {
+    const session = localStorage.getItem('pqrsf_session');
+    if (session) {
+      currentUser = JSON.parse(session);
+      showViewByRole(currentUser.role);
+    } else {
+      showView('loginView');
+    }
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('btnLogin');
+
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Ingresando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          currentUser = res;
+          localStorage.setItem('pqrsf_session', JSON.stringify(res));
+          showViewByRole(res.role);
+        } else {
+          errorDiv.textContent = res.message;
+          errorDiv.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+          lucide.createIcons();
+        }
+      })
+      .withFailureHandler(err => {
+        errorDiv.textContent = "Error de conexión: " + err.message;
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+      })
+      .validarLogin(user, pass);
+  }
+
+  function showViewByRole(role) {
+    if (role === 'admin') {
+      showView('adminView');
+      fetchData();
+    } else {
+      showView('agentView');
+      // Initialize Agent view if needed
+      if (typeof initAgentPortal === 'function') initAgentPortal();
+    }
+  }
+
+  function showView(viewId) {
+    document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
+    document.getElementById(viewId).style.display = 'block';
+    if (viewId === 'loginView') {
+      localStorage.removeItem('pqrsf_session');
+    }
+    lucide.createIcons();
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('pqrsf_session');
+    location.reload();
+  }
+
+  // --- Agent Portal Logic ---
+  let activeCase = null;
+  let gestionesHoy = 0;
+
+  function initAgentPortal() {
+    document.getElementById('agentName').textContent = currentUser.nombre;
+    updateAgentStats();
+  }
+
+  function updateAgentStats() {
+    // In a real app, fetch from server. For now, local counter.
+    document.getElementById('agentCountToday').textContent = gestionesHoy;
+  }
+
+  function claimNextCase() {
+    const btn = document.getElementById('btnClaim');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+
+        if (res.success) {
+          activeCase = res.data;
+          showActiveCase();
+        } else {
+          alert(res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+        alert("Error: " + err.message);
+      })
+      .claimNextCase(currentUser.username);
+  }
+
+  function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
+    document.getElementById('caseFecha').textContent = activeCase.fecha;
+
+    lucide.createIcons();
+  }
+
+  function saveManagement(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveMgmt');
+    const data = {
+      rowId: activeCase.rowId,
+      estado: document.getElementById('mgmtEstado').value,
+      canal: document.getElementById('mgmtCanal').value,
+      efectividad: document.getElementById('mgmtEfectividad').value,
+      otraSolucion: document.getElementById('mgmtOtraSolucion').value,
+      observacion: document.getElementById('mgmtObservacion').value
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Guardando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+        lucide.createIcons();
+
+        if (res.success) {
+          gestionesHoy++;
+          updateAgentStats();
+          resetManagement();
+          alert("Gestión guardada con éxito.");
+        } else {
+          alert("Error: " + res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+        lucide.createIcons();
+        alert("Error de conexión: " + err.message);
+      })
+      .saveManagement(data);
+  }
+
+  function resetManagement() {
+    activeCase = null;
+    document.getElementById('activeCaseCard').style.display = 'none';
+    document.getElementById('claimCaseCard').style.display = 'block';
+    document.getElementById('managementForm').reset();
+    document.getElementById('aiInput').value = '';
+    document.getElementById('aiOutputContainer').style.display = 'none';
+  }
+
+  function improveText(tipo) {
+    const prompt = document.getElementById('aiInput').value.trim();
+    if (!prompt) {
+      alert("Por favor ingresa algunas notas para mejorar.");
+      return;
+    }
+
+    if (!activeCase) {
+      alert("Debes tener un caso activo para generar una respuesta.");
+      return;
+    }
+
+    const outputContainer = document.getElementById('aiOutputContainer');
+    const outputBox = document.getElementById('aiOutput');
+
+    outputContainer.style.display = 'block';
+    outputBox.innerHTML = '<span class="spinner-sm" style="border-top-color:var(--primary)"></span> Procesando con IA...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          outputBox.textContent = res.text;
+        } else {
+          outputBox.textContent = "Error: " + res.message;
+        }
+      })
+      .withFailureHandler(err => {
+        outputBox.textContent = "Error de servidor: " + err.message;
+      })
+      .generarRespuestaIA(prompt, tipo, activeCase);
+  }
+
+  function copyToClipboard() {
+    const text = document.getElementById('aiOutput').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Copiado al portapapeles");
+    });
+  }
 
   function fetchData() {
     toggleLoader(true);
@@ -102,6 +314,9 @@
   }
 
   function renderKPIs() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+
     const total = filteredData.length;
     const managed = filteredData.filter(d => d.isManaged).length;
     const pending = total - managed;
@@ -110,6 +325,7 @@
       return val === 'sí' || val === 'si';
     }).length;
 
+    document.getElementById('kpiToday').textContent = gestionesHoy;
     document.getElementById('kpiTotal').textContent = total;
     document.getElementById('kpiManaged').textContent = managed;
     document.getElementById('kpiPending').textContent = pending;
