@@ -224,6 +224,7 @@
 
   function toggleMgmtFields() {
     const estado = document.getElementById('mgmtEstado').value;
+    const efectividad = document.getElementById('mgmtEfectividad').value;
     const emailGroup = document.getElementById('emailContactGroup');
     const obsLabel = document.getElementById('mgmtObservacionLabel');
     const obsTextarea = document.getElementById('mgmtObservacion');
@@ -231,10 +232,20 @@
     if (estado === 'No contesta') {
       emailGroup.style.display = 'block';
       obsLabel.textContent = 'Notas del Intento';
-      obsTextarea.placeholder = 'Ej: Se llamó 3 veces, buzón de voz...';
+
+      if (efectividad === 'No') {
+        obsTextarea.value = "Se intento comunicar, por medio de llamada y correo electronico pero no pero no fue posible por falta de informacion de contacto del usuario por lo que queda sin lograr comunicación exitosa.";
+      } else {
+        obsTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
+      }
+    } else if (estado === 'Contactado') {
+      emailGroup.style.display = 'none';
+      obsLabel.textContent = 'Observaciones / Solución';
+      obsTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud.";
     } else {
       emailGroup.style.display = 'none';
       obsLabel.textContent = 'Observaciones / Solución';
+      obsTextarea.value = "";
       obsTextarea.placeholder = 'Describe brevemente la solución brindada...';
     }
   }
