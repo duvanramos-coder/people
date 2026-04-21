@@ -110,6 +110,8 @@
       <div class="table-header-premium">
         <h3>Detalle de Registros</h3>
         <div class="table-utils">
+          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com" class="table-search-input" style="width:200px">
+          <button class="btn-table-action" onclick="handleSendReport()"><i data-lucide="mail"></i> Reporte</button>
           <input type="text" id="tableSearch" placeholder="Buscar en tabla..." onkeyup="filterTable()" class="table-search-input">
           <button class="btn-table-action" onclick="exportToCSV()"><i data-lucide="download"></i> CSV</button>
         </div>

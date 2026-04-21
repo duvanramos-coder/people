@@ -100,7 +100,8 @@
   function handleLogout() {
     localStorage.removeItem('pqrsf_session');
     currentUser = null;
-    location.reload();
+    activeCase = null;
+    showView('loginView');
   }
 
   // --- Agent Portal Logic ---
@@ -621,7 +622,49 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function refreshData() { fetchData(); }
-  function exportToCSV() { /* Logic simplified for UI */ alert("CSV Exportado"); }
+
+  function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
+
+    filteredData.forEach(row => {
+      let r = [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad];
+      csvContent += r.join(",") + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "pqrsf_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
   function exportToPDF() { window.print(); }
-  function sortTable(n) { /* Sort logic kept internal */ }
+
+  function sortTable(n) {
+    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
+    const key = columns[n];
+
+    if (currentSort.column === key) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = key;
+      currentSort.direction = 'asc';
+    }
+
+    filteredData.sort((a, b) => {
+      let valA = a[key] || "";
+      let valB = b[key] || "";
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    currentPage = 1;
+    renderTable();
+  }
 </script>
