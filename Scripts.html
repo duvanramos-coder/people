@@ -501,7 +501,10 @@ Línea gratuita nacional: 01 8000 111 879`
     // Secondary metrics
     const contacted = filteredData.filter(d => d.estado === 'Contactado').length;
     const noAnswer = filteredData.filter(d => d.estado === 'No contesta').length;
-    const requiresOther = filteredData.filter(d => d.requiereOtraSolucion === 'Sí').length;
+    const requiresOther = filteredData.filter(d => {
+      const val = (d.requiereOtraSolucion || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
 
     // These IDs are in Dashboard.html if used
     const valC = document.getElementById('valContacted');
