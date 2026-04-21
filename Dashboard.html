@@ -1,246 +1,141 @@
-<div id="loader" class="loader-overlay">
-  <div class="loader-content">
-    <div class="spinner"></div>
-    <p>Cargando Dashboard PQRSF...</p>
+<div id="loader" class="loader-overlay-premium">
+  <div class="loader-content-premium">
+    <div class="spinner-premium"></div>
+    <p>Sincronizando Inteligencia PQRSF...</p>
   </div>
 </div>
 
-<div class="app-container">
-  <!-- Sidebar / Header -->
-  <header class="main-header">
-    <div class="header-content">
-      <div class="brand">
-        <div class="logo-icon">P</div>
-        <div>
-          <h1>GESTIONES PQRSF <span class="brand-company">(People BPO)</span></h1>
-          <p class="subtitle">Intelligence Dashboard • <span class="signature">By Duvan Ramos</span></p>
+<div class="admin-dashboard-layout fade-in">
+  <header class="admin-header-premium">
+    <div class="header-main-content">
+      <div class="brand-group">
+        <div class="brand-symbol">P</div>
+        <div class="brand-info">
+          <h1>INTELIGENCIA PQRSF <span class="sub-brand">People BPO</span></h1>
+          <p class="brand-tagline">Data Strategy • <span class="author">By Duvan Ramos</span></p>
         </div>
       </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" onclick="refreshData()">
-          <i data-lucide="refresh-cw"></i> Actualizar Datos
+
+      <div class="header-cta-group">
+        <button class="btn-action-premium" onclick="refreshData()">
+          <i data-lucide="refresh-cw"></i> Actualizar
         </button>
-        <button class="btn btn-outline" onclick="exportToPDF()">
-          <i data-lucide="file-text"></i> Exportar PDF
+        <button class="btn-action-outline" onclick="exportToPDF()">
+          <i data-lucide="printer"></i> PDF
         </button>
-        <button class="btn btn-outline" onclick="handleLogout()">
-          <i data-lucide="log-out"></i>
+        <button class="btn-logout-icon" onclick="handleLogout()">
+          <i data-lucide="power"></i>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="dashboard-content">
+  <main class="admin-content-grid">
 
-    <!-- Smart Search & Quick Filters Row -->
-    <section class="controls-row">
-      <div class="search-card card">
-        <div class="card-header">
-          <h3><i data-lucide="search"></i> Buscador Inteligente</h3>
-        </div>
-        <div class="search-input-group">
-          <input type="text" id="smartSearch" placeholder="Buscar por RADICADO..." onkeyup="handleSearch(event)">
-          <button class="btn btn-icon" onclick="executeSearch()">
-            <i data-lucide="arrow-right"></i>
-          </button>
-        </div>
-        <div id="searchResult" class="search-result-container">
-          <!-- Smart Search result will appear here -->
-        </div>
-      </div>
-
-      <div class="filters-card card">
-        <div class="card-header">
-          <h3><i data-lucide="filter"></i> Filtros Dinámicos</h3>
-        </div>
-        <div class="filter-grid">
-          <div class="filter-group">
-            <label>Mes (Cofrem)</label>
-            <select id="filterMonth" onchange="applyFilters()">
-              <option value="">Todos los meses</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Empresa</label>
-            <select id="filterCompany" onchange="applyFilters()">
-              <option value="">Todas las empresas</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Canal</label>
-            <select id="filterChannel" onchange="applyFilters()">
-              <option value="">Todos los canales</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Estado</label>
-            <select id="filterStatus" onchange="applyFilters()">
-              <option value="">Todos los estados</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Tipo Gestión</label>
-            <select id="filterIsManaged" onchange="applyFilters()">
-              <option value="">Todos</option>
-              <option value="true">Gestionados</option>
-              <option value="false">Por Comunicar</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Recibido People (Desde)</label>
-            <input type="date" id="filterDatePeopleStart" onchange="applyFilters()">
-          </div>
-          <div class="filter-group">
-            <label>Recibido People (Hasta)</label>
-            <input type="date" id="filterDatePeopleEnd" onchange="applyFilters()">
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- KPI Row -->
-    <section class="kpi-grid">
-      <div class="kpi-card card">
-        <div class="kpi-header">
+    <!-- KPIs -->
+    <section class="kpi-dashboard-row">
+      <div class="kpi-card-premium glass">
+        <div class="kpi-icon-box blue"><i data-lucide="calendar-days"></i></div>
+        <div class="kpi-data">
           <span class="kpi-label">Gestiones Hoy</span>
-          <i data-lucide="calendar" class="text-blue"></i>
+          <h2 id="kpiToday" class="kpi-value">0</h2>
         </div>
-        <div class="kpi-value" id="kpiToday">0</div>
-        <div class="kpi-trend">Realizadas en la jornada</div>
       </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
+      <div class="kpi-card-premium glass">
+        <div class="kpi-icon-box purple"><i data-lucide="database"></i></div>
+        <div class="kpi-data">
           <span class="kpi-label">Total PQRSF</span>
-          <i data-lucide="list" class="text-blue"></i>
+          <h2 id="kpiTotal" class="kpi-value">0</h2>
         </div>
-        <div class="kpi-value" id="kpiTotal">0</div>
-        <div class="kpi-trend">Registros totales</div>
       </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
+      <div class="kpi-card-premium glass">
+        <div class="kpi-icon-box lime"><i data-lucide="check-circle-2"></i></div>
+        <div class="kpi-data">
           <span class="kpi-label">Gestionados</span>
-          <i data-lucide="check-circle" class="text-green"></i>
+          <h2 id="kpiManaged" class="kpi-value">0</h2>
+          <p id="kpiManagedPerc" class="kpi-subtext">0% del total</p>
         </div>
-        <div class="kpi-value" id="kpiManaged">0</div>
-        <div class="kpi-trend text-green" id="kpiManagedPerc">0% del total</div>
       </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
+      <div class="kpi-card-premium glass">
+        <div class="kpi-icon-box red"><i data-lucide="alert-triangle"></i></div>
+        <div class="kpi-data">
           <span class="kpi-label">Por Comunicar</span>
-          <i data-lucide="alert-circle" class="text-red"></i>
+          <h2 id="kpiPending" class="kpi-value">0</h2>
+          <p id="kpiPendingPerc" class="kpi-subtext">0% del total</p>
         </div>
-        <div class="kpi-value" id="kpiPending">0</div>
-        <div class="kpi-trend text-red" id="kpiPendingPerc">0% del total</div>
       </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
+      <div class="kpi-card-premium glass">
+        <div class="kpi-icon-box green"><i data-lucide="trending-up"></i></div>
+        <div class="kpi-data">
           <span class="kpi-label">Efectividad</span>
-          <i data-lucide="trending-up" class="text-lime"></i>
-        </div>
-        <div class="kpi-value" id="kpiEffectiveness">0%</div>
-        <div class="kpi-trend">Casos resueltos (Sí)</div>
-      </div>
-    </section>
-
-    <!-- Secondary KPIs / Insights -->
-    <section class="insights-row">
-      <div class="card insight-card">
-        <div class="card-header">
-           <h3><i data-lucide="award"></i> Ranking de Asesores</h3>
-        </div>
-        <div id="rankingContainer" class="ranking-list">
-           <!-- Ranking items injected here -->
-           <p class="text-muted text-center" style="padding:1rem">Sin datos de gestión</p>
+          <h2 id="kpiEffectiveness" class="kpi-value">0%</h2>
         </div>
       </div>
-      <div class="card dynamic-insight" id="autoInsight">
-        <!-- Automated insights will be generated here -->
-        Cargando insights automáticos...
-      </div>
     </section>
 
-    <!-- Charts Grid -->
-    <section class="charts-grid">
-      <div class="chart-container card">
-        <div class="card-header"><h3>Estado de Gestión</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartStatus"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Canal de Contacto</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartChannel"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Gestión vs Pendiente</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartManaged"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Efectividad</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartEffectiveness"></canvas></div>
-      </div>
-    </section>
+    <div class="dashboard-main-columns">
+      <section class="charts-column">
+        <div class="filters-panel-premium card-premium">
+          <div class="panel-header"><h3><i data-lucide="sliders-horizontal"></i> Filtros Estratégicos</h3></div>
+          <div class="filter-controls-grid">
+            <select id="filterMonth" onchange="applyFilters()" class="premium-select"></select>
+            <select id="filterCompany" onchange="applyFilters()" class="premium-select"></select>
+            <select id="filterChannel" onchange="applyFilters()" class="premium-select"></select>
+            <select id="filterStatus" onchange="applyFilters()" class="premium-select"></select>
+          </div>
+        </div>
 
-    <!-- Trend Chart -->
-    <section class="trend-section card">
-      <div class="card-header"><h3>Tendencia de Gestión (Histórico por Mes)</h3></div>
-      <div class="canvas-wrapper trend-wrapper"><canvas id="chartTrend"></canvas></div>
-    </section>
+        <div class="charts-container-grid">
+          <div class="chart-card glass"><canvas id="chartStatus"></canvas></div>
+          <div class="chart-card glass"><canvas id="chartChannel"></canvas></div>
+          <div class="chart-card glass"><canvas id="chartManaged"></canvas></div>
+          <div class="chart-card glass"><canvas id="chartEffectiveness"></canvas></div>
+        </div>
+      </section>
 
-    <!-- Detailed Table -->
-    <section class="table-section card">
-      <div class="card-header table-header">
+      <aside class="insights-column">
+        <div class="ranking-panel card-premium">
+          <div class="panel-header"><h3><i data-lucide="trophy"></i> Top Asesores</h3></div>
+          <div id="rankingContainer" class="ranking-content"></div>
+        </div>
+
+        <div class="smart-insights-panel card-premium">
+          <div class="panel-header"><h3><i data-lucide="zap"></i> Insights IA</h3></div>
+          <div id="autoInsight" class="insight-content-premium"></div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="table-full-width card-premium">
+      <div class="table-header-premium">
         <h3>Detalle de Registros</h3>
-        <div class="table-actions">
-           <input type="text" id="tableSearch" placeholder="Filtrar tabla..." onkeyup="filterTable()">
-           <button class="btn btn-outline btn-sm" onclick="exportToCSV()">
-             <i data-lucide="download"></i> CSV
-           </button>
+        <div class="table-utils">
+          <input type="text" id="tableSearch" placeholder="Buscar en tabla..." onkeyup="filterTable()" class="table-search-input">
+          <button class="btn-table-action" onclick="exportToCSV()"><i data-lucide="download"></i> CSV</button>
         </div>
       </div>
-      <div class="table-responsive">
+      <div class="table-responsive-premium">
         <table id="pqrsfTable">
           <thead>
             <tr>
-              <th onclick="sortTable(0)">Radicado <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(1)">Nombre <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(2)">Empresa <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(3)">Estado <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(4)">Canal <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(5)">Efectividad <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(0)">Radicado</th>
+              <th onclick="sortTable(1)">Nombre</th>
+              <th onclick="sortTable(2)">Empresa</th>
+              <th onclick="sortTable(3)">Estado</th>
+              <th onclick="sortTable(4)">Canal</th>
+              <th onclick="sortTable(5)">Efectividad</th>
             </tr>
           </thead>
-          <tbody id="tableBody">
-            <!-- Rows injected by JS -->
-          </tbody>
+          <tbody id="tableBody"></tbody>
         </table>
       </div>
-      <div class="table-pagination">
-        <div id="paginationInfo">Mostrando 0 de 0 registros</div>
-        <div class="pagination-controls">
-          <button class="btn btn-outline btn-sm" id="btnPrev" onclick="changePage(-1)">Anterior</button>
-          <button class="btn btn-outline btn-sm" id="btnNext" onclick="changePage(1)">Siguiente</button>
+      <div class="table-pagination-premium">
+        <p id="paginationInfo">Mostrando 0 registros</p>
+        <div class="page-btns">
+          <button id="btnPrev" onclick="changePage(-1)" class="btn-page">Anterior</button>
+          <button id="btnNext" onclick="changePage(1)" class="btn-page">Siguiente</button>
         </div>
       </div>
     </section>
-
-    <!-- Report Section (Moved to bottom) -->
-    <section class="report-row">
-      <div class="card report-card compact-report">
-        <div class="card-header">
-          <h3><i data-lucide="mail"></i> Enviar Reporte PDF</h3>
-        </div>
-        <div class="report-controls">
-          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com">
-          <button class="btn btn-primary" onclick="handleSendReport()">
-            <i data-lucide="send"></i> Enviar Reporte
-          </button>
-        </div>
-        <p class="report-hint">Se enviará un consolidado basado en los filtros actuales.</p>
-      </div>
-    </section>
-
   </main>
-
-  <footer class="main-footer">
-    <p>GESTIONES PQRSF — People BPO — By Duvan Ramos 2026</p>
-  </footer>
 </div>

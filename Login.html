@@ -1,41 +1,43 @@
 <div id="loginView" class="view-container active">
   <div class="login-wrapper">
-    <div class="login-card card">
-      <div class="brand-centered">
-        <div class="logo-icon-large">P</div>
-        <h2>¡Bienvenido!</h2>
-        <p class="welcome-text">Prepárate para gestionar comunicación PQRSF</p>
+    <div class="login-card premium-card">
+      <div class="login-brand">
+        <div class="logo-shield">
+          <i data-lucide="shield-check"></i>
+        </div>
+        <p class="brand-welcome">BIENVENIDO A</p>
+        <h2 class="brand-name">PEOPLE BPO</h2>
       </div>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
+      <form id="loginForm" onsubmit="handleLogin(event)" class="login-form">
         <div class="form-group">
-          <label for="agentSelect">Selecciona tu nombre</label>
+          <label class="input-label">SELECCIONAR PERFIL</label>
           <div class="input-wrapper">
-            <i data-lucide="users"></i>
-            <select id="agentSelect" required>
-              <option value="" disabled selected>Cargando agentes...</option>
+            <select id="agentSelect" required class="premium-select">
+              <option value="" disabled selected>Cargando perfiles...</option>
             </select>
+            <i data-lucide="user" class="input-icon"></i>
           </div>
         </div>
 
         <div class="form-group">
-          <label for="password">Contraseña</label>
+          <label class="input-label">CONTRASEÑA</label>
           <div class="input-wrapper">
-            <i data-lucide="lock"></i>
-            <input type="password" id="password" placeholder="••••••••" required>
+            <input type="password" id="password" placeholder="••••••••" required class="premium-input">
+            <i data-lucide="lock" class="input-icon"></i>
           </div>
         </div>
 
-        <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
-          <span>Ingresar al Sistema</span>
-          <i data-lucide="arrow-right"></i>
+        <button type="submit" class="btn-premium-login" id="btnLogin">
+          <span>Autenticar y Entrar</span>
+          <i data-lucide="log-in"></i>
         </button>
       </form>
 
-      <div id="loginError" class="login-error" style="display: none;"></div>
+      <div id="loginError" class="login-error-toast" style="display: none;"></div>
 
-      <div class="login-footer">
-        <p class="signature">By Duvan Ramos — 2026</p>
+      <div class="login-footer-premium">
+        <p>SYSTEM VERSION 4.0 — BY DUVAN RAMOS</p>
       </div>
     </div>
   </div>
