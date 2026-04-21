@@ -315,9 +315,13 @@ Cordial saludo,
 
 Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
-La información fue enviada al siguiente correo:
+En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, la misma ya fue debidamente respondida.
+
+La información asociada a su solicitud fue enviada al siguiente correo electrónico:
 
 📧 ${correo}
+
+Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio. En caso de requerir información adicional, puede comunicarse a través de nuestros canales de atención.
 
 Cordialmente,
 
