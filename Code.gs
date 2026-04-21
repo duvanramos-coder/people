@@ -230,9 +230,12 @@ function claimNextCase(agentName) {
 
     let targetRowIndex = -1;
     for (let i = 1; i < data.length; i++) {
-      const estado = data[i][9];
-      const radicado = data[i][2];
-      if (!estado && radicado) {
+      const asesor = data[i][0]; // Column A
+      const estado = data[i][9]; // Column J
+      const radicado = data[i][2]; // Column C
+
+      // Un caso es reclamable si no tiene asesor asignado Y no tiene estado gestionado
+      if (!asesor && !estado && radicado) {
         targetRowIndex = i + 1; // 1-based index
         break;
       }
