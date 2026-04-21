@@ -222,7 +222,7 @@ Eres un asistente de redacción para PQRSF de COFREM.
 Tu tarea es mejorar y formalizar el texto proporcionado por el agente.
 
 REGLAS:
-- Incluye un saludo breve con el nombre del usuario (ej: "Cordial saludo Sr(a). ${metadata.nombre},")
+- NO incluyas saludos (ni "Cordial saludo", ni nada similar)
 - NO incluyas firma
 - NO incluyas teléfonos
 - NO incluyas despedida larga
