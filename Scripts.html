@@ -231,10 +231,10 @@
 
     if (estado === 'No contesta') {
       emailGroup.style.display = 'block';
-      obsLabel.textContent = 'Notas del Intento';
+      obsLabel.textContent = 'Notas del intento';
 
       if (efectividad === 'No') {
-        obsTextarea.value = "Se intento comunicar, por medio de llamada y correo electronico pero no pero no fue posible por falta de informacion de contacto del usuario por lo que queda sin lograr comunicación exitosa.";
+        obsTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario; por lo cual, queda sin lograr comunicación exitosa.";
       } else {
         obsTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
       }
@@ -246,7 +246,7 @@
       emailGroup.style.display = 'none';
       obsLabel.textContent = 'Observaciones / Solución';
       obsTextarea.value = "";
-      obsTextarea.placeholder = 'Describe brevemente la solución brindada...';
+      obsTextarea.placeholder = 'Describa brevemente la solución brindada...';
     }
   }
 

@@ -288,10 +288,9 @@ function construirRespuestaFinal(tipo, data) {
   if (tipo === "PQRSF-RES") {
     return {
       header: `RESPUESTA A SU PQRSF - RADICADO N.° ${radicado}`,
-      body: `
-Cordial saludo,
+      body: `Cordial saludo,
 
-En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:
+En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, se obtuvo el siguiente resultado:
 
 ${cuerpoIA}
 
@@ -302,16 +301,14 @@ Cordialmente,
 ${agente}
 Asesora de Servicio al Cliente
 Teléfono: (608) 681 83 20
-Línea gratuita nacional: 01 8000 111 879
-`
+Línea gratuita nacional: 01 8000 111 879`
     };
   }
 
   if (tipo === "PQRSF-NC") {
     return {
       header: `RESPUESTA A SU PQRSF - RADICADO N.° ${radicado}`,
-      body: `
-Cordial saludo,
+      body: `Cordial saludo,
 
 Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
@@ -328,8 +325,7 @@ Cordialmente,
 ${agente}
 Asesora de Servicio al Cliente
 Teléfono: (608) 681 83 20
-Línea gratuita nacional: 01 8000 111 879
-`
+Línea gratuita nacional: 01 8000 111 879`
     };
   }
 }
