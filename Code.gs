@@ -182,12 +182,19 @@ function saveManagement(data) {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName('PQRSF');
 
+    // Col A (1): Asesor
+    sheet.getRange(data.rowId, 1).setValue(data.asesor || "Sistema");
+
     // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14
     sheet.getRange(data.rowId, 10).setValue(data.estado);
     sheet.getRange(data.rowId, 11).setValue(data.canal);
     sheet.getRange(data.rowId, 12).setValue(data.efectividad);
     sheet.getRange(data.rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(data.rowId, 14).setValue(data.seEncontro);
+
+    if (data.emailContacto) {
+      sheet.getRange(data.rowId, 8).setValue(data.emailContacto); // Col H
+    }
 
     return { success: true };
   } catch (e) {
@@ -219,13 +226,28 @@ function generarRespuestaIA(prompt, tipo, metadata) {
       Contexto: Respuesta de solución.
       Cliente: ${metadata.nombre}
       Radicado: ${metadata.radicado}
-      Instrucción: Redacta una respuesta formal basada en las notas del agente, saludando al cliente y confirmando la solución.`;
+      Asesor: ${metadata.asesorActual}
+
+      Estructura Obligatoria:
+      1. Saludo: "Cordial saludo Sr(a). ${metadata.nombre}, referente a su radicado ${metadata.radicado}..."
+      2. Cuerpo: Explicar detalladamente la solución basada en las notas del agente.
+      3. Cierre: "Agradecemos su comunicación. Quedamos atentos a cualquier solicitud adicional. Atentamente, ${metadata.asesorActual}, People BPO."
+
+      Instrucción: Genera el texto final combinando esta estructura con las notas del agente de forma fluida y profesional.`;
     } else {
       systemPrompt += `
-      Contexto: Nota de No Contacto.
+      Contexto: Notificación de No Contacto.
       Cliente: ${metadata.nombre}
       Radicado: ${metadata.radicado}
-      Instrucción: Genera un mensaje breve y profesional informando que se intentó contactar al cliente sin éxito.`;
+      Asesor: ${metadata.asesorActual}
+
+      Estructura Obligatoria:
+      1. Saludo: "Estimado(a) ${metadata.nombre},"
+      2. Cuerpo: "Le informamos que intentamos contactarlo telefónicamente en relación a su radicado ${metadata.radicado}, sin embargo, no fue posible establecer comunicación."
+      3. Acción: Mencionar que se intentará nuevamente o invitar a contactar por otros canales basándose en las notas.
+      4. Cierre: "Cordialmente, ${metadata.asesorActual}, People BPO."
+
+      Instrucción: Genera un mensaje breve y ejecutivo siguiendo esta estructura.`;
     }
 
     const payload = {

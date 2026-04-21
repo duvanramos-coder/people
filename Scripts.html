@@ -61,7 +61,7 @@
           errorDiv.textContent = res.message;
           errorDiv.style.display = 'block';
           btn.disabled = false;
-          btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+          btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
           lucide.createIcons();
         }
       })
@@ -69,7 +69,7 @@
         errorDiv.textContent = "Error de conexión: " + err.message;
         errorDiv.style.display = 'block';
         btn.disabled = false;
-        btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+        btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
         lucide.createIcons();
       })
       .validarLogin(user, pass);
@@ -87,17 +87,34 @@
   }
 
   function showView(viewId) {
-    document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
-    document.getElementById(viewId).style.display = 'block';
+    document.querySelectorAll('.view-container').forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('active');
+    });
+    const target = document.getElementById(viewId);
+    if (!target) return;
+    target.style.display = 'block';
+    target.classList.add('active');
+
     if (viewId === 'loginView') {
-      localStorage.removeItem('pqrsf_session');
+      const form = document.getElementById('loginForm');
+      if (form) form.reset();
+      const errorDiv = document.getElementById('loginError');
+      if (errorDiv) errorDiv.style.display = 'none';
+      const btn = document.getElementById('btnLogin');
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
+      }
     }
     lucide.createIcons();
   }
 
   function handleLogout() {
     localStorage.removeItem('pqrsf_session');
-    location.reload();
+    currentUser = null;
+    activeCase = null;
+    showView('loginView');
   }
 
   // --- Agent Portal Logic ---
@@ -159,12 +176,14 @@
     const btn = document.getElementById('btnSaveMgmt');
     const data = {
       rowId: activeCase.rowId,
+      asesor: currentUser.nombre,
       estado: document.getElementById('mgmtEstado').value,
       canal: document.getElementById('mgmtCanal').value,
       efectividad: document.getElementById('mgmtEfectividad').value,
       otraSolucion: document.getElementById('mgmtOtraSolucion').value,
       seEncontro: document.getElementById('mgmtSeEncontro').value,
-      observacion: document.getElementById('mgmtObservacion').value
+      observacion: document.getElementById('mgmtObservacion').value,
+      emailContacto: document.getElementById('mgmtEmailContact').value
     };
 
     btn.disabled = true;
@@ -203,6 +222,23 @@
     document.getElementById('aiOutputContainer').style.display = 'none';
   }
 
+  function toggleMgmtFields() {
+    const estado = document.getElementById('mgmtEstado').value;
+    const emailGroup = document.getElementById('emailContactGroup');
+    const obsLabel = document.getElementById('mgmtObservacionLabel');
+    const obsTextarea = document.getElementById('mgmtObservacion');
+
+    if (estado === 'No contesta') {
+      emailGroup.style.display = 'block';
+      obsLabel.textContent = 'Notas del Intento';
+      obsTextarea.placeholder = 'Ej: Se llamó 3 veces, buzón de voz...';
+    } else {
+      emailGroup.style.display = 'none';
+      obsLabel.textContent = 'Observaciones / Solución';
+      obsTextarea.placeholder = 'Describe brevemente la solución brindada...';
+    }
+  }
+
   function improveText(tipo) {
     const prompt = document.getElementById('aiInput').value.trim();
     if (!prompt) {
@@ -214,6 +250,9 @@
       alert("Debes tener un caso activo para generar una respuesta.");
       return;
     }
+
+    // Inject advisor name into metadata for AI context
+    const aiMetadata = { ...activeCase, asesorActual: currentUser.nombre };
 
     const outputContainer = document.getElementById('aiOutputContainer');
     const outputBox = document.getElementById('aiOutput');
@@ -232,7 +271,7 @@
       .withFailureHandler(err => {
         outputBox.textContent = "Error de servidor: " + err.message;
       })
-      .generarRespuestaIA(prompt, tipo, activeCase);
+      .generarRespuestaIA(prompt, tipo, aiMetadata);
   }
 
   function copyToClipboard() {
@@ -298,6 +337,7 @@
     const company = document.getElementById('filterCompany').value;
     const channel = document.getElementById('filterChannel').value;
     const status = document.getElementById('filterStatus').value;
+    const isManaged = document.getElementById('filterIsManaged').value;
 
     const peopleStart = document.getElementById('filterDatePeopleStart').value;
     const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
@@ -317,7 +357,8 @@
              peopleMatch &&
              (!company || d.empresa === company) &&
              (!channel || d.canal === channel) &&
-             (!status || d.estado === status);
+             (!status || d.estado === status) &&
+             (!isManaged || String(d.isManaged) === isManaged);
     });
 
     currentPage = 1;
@@ -329,6 +370,7 @@
     renderCharts();
     renderTable();
     generateInsights();
+    renderRanking();
   }
 
   function renderKPIs() {
@@ -361,34 +403,39 @@
     const noAnswer = filteredData.filter(d => d.estado === 'No contesta').length;
     const requiresOther = filteredData.filter(d => d.requiereOtraSolucion === 'Sí').length;
 
-    document.getElementById('valContacted').textContent = total > 0 ? ((contacted / total) * 100).toFixed(1) + '%' : '0%';
-    document.getElementById('valNoAnswer').textContent = total > 0 ? ((noAnswer / total) * 100).toFixed(1) + '%' : '0%';
-    document.getElementById('valRequiresOther').textContent = total > 0 ? ((requiresOther / total) * 100).toFixed(1) + '%' : '0%';
+    // These IDs are no longer in Dashboard.html but we keep them here to avoid JS errors if needed,
+    // though generateInsights handles it now.
+    const valC = document.getElementById('valContacted');
+    if(valC) valC.textContent = total > 0 ? ((contacted / total) * 100).toFixed(1) + '%' : '0%';
+    const valN = document.getElementById('valNoAnswer');
+    if(valN) valN.textContent = total > 0 ? ((noAnswer / total) * 100).toFixed(1) + '%' : '0%';
+    const valR = document.getElementById('valRequiresOther');
+    if(valR) valR.textContent = total > 0 ? ((requiresOther / total) * 100).toFixed(1) + '%' : '0%';
   }
 
   function renderCharts() {
     // 1. Status Chart
     const statusCounts = countBy(filteredData, 'estado');
-    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estados');
+    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#000000', '#ef4444', '#f59e0b', '#6b7280'], 'Estados');
 
     // 2. Channel Chart
     const channelCounts = countBy(filteredData, 'canal');
-    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canales');
+    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#3b82f6', '#b7d400'], 'Canales');
 
     // 3. Managed vs Pending
     const managedCounts = {
       'Gestionados': filteredData.filter(d => d.isManaged).length,
       'Por Comunicar': filteredData.filter(d => !d.isManaged).length
     };
-    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
+    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#10b981', '#ef4444'], 'Gestión');
 
     // 4. Effectiveness
     const effCounts = countBy(filteredData, 'efectividad');
-    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f1f5f9'], 'Casos');
+    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f3f4f6'], 'Casos');
 
     // 5. Trend (By month)
     const trendData = getTrendData(filteredData);
-    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#3b3561'], 'PQRSF Recibidos');
+    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#000000'], 'PQRSF Recibidos');
   }
 
   function updateChart(id, type, labels, data, colors, datasetLabel = '') {
@@ -419,7 +466,7 @@
           },
           datalabels: {
             display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
-            color: (ctx) => type === 'bar' ? '#3b3561' : '#fff',
+            color: (ctx) => type === 'bar' ? '#000000' : '#fff',
             anchor: (ctx) => type === 'bar' ? 'end' : 'center',
             align: (ctx) => type === 'bar' ? 'top' : 'center',
             offset: 4,
@@ -559,6 +606,32 @@
     }
   }
 
+  function renderRanking() {
+    const container = document.getElementById('rankingContainer');
+    if (!container) return;
+
+    const ranking = filteredData.reduce((acc, d) => {
+      if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1;
+      return acc;
+    }, {});
+
+    const sortedRanking = Object.entries(ranking)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    if (sortedRanking.length === 0) {
+      container.innerHTML = '<p class="text-muted text-center" style="padding:1rem">Sin datos de gestión</p>';
+      return;
+    }
+
+    container.innerHTML = sortedRanking.map(([name, count]) => `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding: 0.5rem 0; border-bottom:1px solid #f1f5f9">
+        <span style="font-weight:500; font-size:0.875rem">${name}</span>
+        <span class="badge badge-success">${count} casos</span>
+      </div>
+    `).join('');
+  }
+
   function generateInsights() {
     const total = filteredData.length;
     if (total === 0) {
@@ -570,17 +643,17 @@
     const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
 
     const channelCounts = countBy(filteredData, 'canal');
-    const topChannel = Object.keys(channelCounts).reduce((a, b) => channelCounts[a] > channelCounts[b] ? a : b);
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
 
     const statusCounts = countBy(filteredData, 'estado');
-    const topStatus = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
+    const topStatus = Object.keys(statusCounts).reduce((a, b) => (statusCounts[a] || 0) > (statusCounts[b] || 0) ? a : b) || 'Ninguno';
 
     let html = `
       <div style="display:flex; align-items:center; gap:10px">
         <i data-lucide="zap"></i>
         <div>
           <p>El <strong>${unmanagedPerc}%</strong> de los PQRSF no han sido gestionados.</p>
-          <p>El canal más utilizado es <strong>${topChannel}</strong> con ${channelCounts[topChannel]} casos.</p>
+          <p>El canal más utilizado es <strong>${topChannel}</strong> con ${channelCounts[topChannel] || 0} casos.</p>
           <p>El estado predominante es <strong>${topStatus}</strong>.</p>
         </div>
       </div>

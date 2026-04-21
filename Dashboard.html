@@ -79,6 +79,14 @@
             </select>
           </div>
           <div class="filter-group">
+            <label>Tipo Gestión</label>
+            <select id="filterIsManaged" onchange="applyFilters()">
+              <option value="">Todos</option>
+              <option value="true">Gestionados</option>
+              <option value="false">Por Comunicar</option>
+            </select>
+          </div>
+          <div class="filter-group">
             <label>Recibido People (Desde)</label>
             <input type="date" id="filterDatePeopleStart" onchange="applyFilters()">
           </div>
@@ -137,19 +145,12 @@
     <!-- Secondary KPIs / Insights -->
     <section class="insights-row">
       <div class="card insight-card">
-        <div class="insight-content">
-          <div class="insight-item">
-            <span class="label">Contactados:</span>
-            <span class="value" id="valContacted">0%</span>
-          </div>
-          <div class="insight-item">
-            <span class="label">No Contesta:</span>
-            <span class="value" id="valNoAnswer">0%</span>
-          </div>
-          <div class="insight-item">
-            <span class="label">Requiere Solución:</span>
-            <span class="value" id="valRequiresOther">0%</span>
-          </div>
+        <div class="card-header">
+           <h3><i data-lucide="award"></i> Ranking de Asesores</h3>
+        </div>
+        <div id="rankingContainer" class="ranking-list">
+           <!-- Ranking items injected here -->
+           <p class="text-muted text-center" style="padding:1rem">Sin datos de gestión</p>
         </div>
       </div>
       <div class="card dynamic-insight" id="autoInsight">

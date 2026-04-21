@@ -49,7 +49,7 @@
             <div class="filter-grid">
               <div class="filter-group">
                 <label>Estado de Gestión</label>
-                <select id="mgmtEstado" required>
+                <select id="mgmtEstado" required onchange="toggleMgmtFields()">
                   <option value="">Seleccionar...</option>
                   <option value="Contactado">Contactado</option>
                   <option value="No contesta">No contesta</option>
@@ -93,8 +93,14 @@
             </div>
 
             <div class="form-group" style="margin-top: 1rem;">
-              <label>Observaciones / Solución</label>
+              <label id="mgmtObservacionLabel">Observaciones / Solución</label>
               <textarea id="mgmtObservacion" rows="3" placeholder="Describe brevemente la solución brindada..."></textarea>
+            </div>
+
+            <div class="form-group" id="emailContactGroup" style="display: none; margin-top: 1rem;">
+              <label>Correo Electrónico de Contacto</label>
+              <input type="email" id="mgmtEmailContact" placeholder="usuario@ejemplo.com">
+              <p class="text-muted" style="font-size: 0.75rem; margin-top: 0.25rem;">Solicitado para envío de notificación de no contacto.</p>
             </div>
 
             <div class="mgmt-actions">
@@ -134,12 +140,12 @@
 
         <div class="card stats-card">
           <div class="card-header">
-            <h3><i data-lucide="bar-chart-2"></i> Mi Desempeño Hoy</h3>
+            <h3><i data-lucide="trending-up"></i> Tu Desempeño</h3>
           </div>
           <div class="agent-stats">
             <div class="stat-circle">
               <span id="agentCountToday" class="stat-num">0</span>
-              <span class="stat-label">Gestiones</span>
+              <span class="stat-label">Casos Hoy</span>
             </div>
             <p class="text-muted text-center" style="font-size: 0.8rem; margin-top: 1rem;">
               Sigue así, cada caso cuenta para la meta del equipo.
