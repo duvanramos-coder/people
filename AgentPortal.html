@@ -83,13 +83,13 @@
                   <option value="No">No</option>
                 </select>
               </div>
-                  <div class="form-group">
-                    <label>¿Se encontró PQRS?</label>
-                    <select id="mgmtSeEncontro" required>
-                      <option value="No">No</option>
-                      <option value="Sí">Sí</option>
-                    </select>
-                  </div>
+              <div class="filter-group">
+                <label>¿Se encontró PQRS?</label>
+                <select id="mgmtSeEncontro" required>
+                  <option value="No">No</option>
+                  <option value="Sí">Sí</option>
+                </select>
+              </div>
             </div>
 
             <div class="form-group" style="margin-top: 1rem;">
@@ -128,35 +128,27 @@
                 <i data-lucide="phone-off"></i> Formato No Contesta
               </button>
             </div>
-           <div id="aiOutputContainer" style="display: none; margin-top: 1rem;">
+            <div id="aiOutputContainer" style="display: none; margin-top: 1rem;">
+              <div class="output-header">
+                <span>Encabezado</span>
+                <button class="btn btn-icon btn-sm" onclick="copiarCampo('headerOutput')">
+                  <i data-lucide="copy"></i>
+                </button>
+              </div>
+              <textarea id="headerOutput" readonly class="ai-output-box" style="height:60px;"></textarea>
 
-  <div class="output-header">
-    <span>Encabezado</span>
-    <button class="btn btn-icon btn-sm" onclick="copiarCampo('headerOutput')">
-      <i data-lucide="copy"></i>
-    </button>
-  </div>
-  <textarea id="headerOutput" readonly class="ai-output-box" style="height:60px;"></textarea>
+              <div class="output-header" style="margin-top: 1rem;">
+                <span>Respuesta</span>
+                <button class="btn btn-icon btn-sm" onclick="copiarCampo('bodyOutput')">
+                  <i data-lucide="copy"></i>
+                </button>
+              </div>
+              <textarea id="bodyOutput" readonly class="ai-output-box" style="height:180px;"></textarea>
+            </div>
+          </div>
+        </div>
 
-  <br>
-
-  <div class="output-header">
-    <span>Respuesta</span>
-    <button class="btn btn-icon btn-sm" onclick="copiarCampo('bodyOutput')">
-      <i data-lucide="copy"></i>
-    </button>
-  </div>
-  <textarea id="bodyOutput" readonly class="ai-output-box" style="height:180px;"></textarea>
-
-</div>
-</div> <!-- aiOutputContainer -->
-
-</div> <!-- CIERRE ai-workflow -->
-</div> <!-- CIERRE card ai-card -->
-
-<div class="card stats-card">
-
-
+        <div class="card stats-card">
           <div class="card-header">
             <h3><i data-lucide="trending-up"></i> Tu Desempeño</h3>
           </div>

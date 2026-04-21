@@ -301,6 +301,8 @@ Cordialmente,
 
 ${agente}
 Asesora de Servicio al Cliente
+Teléfono: (608) 681 83 20
+Línea gratuita nacional: 01 8000 111 879
 `
     };
   }
@@ -321,6 +323,8 @@ Cordialmente,
 
 ${agente}
 Asesora de Servicio al Cliente
+Teléfono: (608) 681 83 20
+Línea gratuita nacional: 01 8000 111 879
 `
     };
   }
