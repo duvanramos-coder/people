@@ -22,6 +22,79 @@ function include(filename) {
  * -------------------------------------------------------------------------
  */
 
+function registrarSesion(nombre) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    let sheet = ss.getSheetByName('Sesiones');
+    if (!sheet) {
+      sheet = ss.insertSheet('Sesiones');
+      sheet.appendRow(['Agente', 'Ultima Actividad']);
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const now = new Date();
+    let found = false;
+
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === nombre) {
+        sheet.getRange(i + 1, 2).setValue(now);
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      sheet.appendRow([nombre, now]);
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function eliminarSesion(nombre) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('Sesiones');
+    if (!sheet) return { success: true };
+
+    const data = sheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === nombre) {
+        sheet.deleteRow(i + 1);
+        break;
+      }
+    }
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function obtenerAgentesConectados() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('Sesiones');
+    if (!sheet) return [];
+
+    const data = sheet.getDataRange().getValues();
+    const now = new Date().getTime();
+    const threshold = 10 * 60 * 1000; // 10 minutos
+
+    const conectados = [];
+    for (let i = 1; i < data.length; i++) {
+      const lastSeen = new Date(data[i][1]).getTime();
+      if (now - lastSeen < threshold) {
+        conectados.push(data[i][0]);
+      }
+    }
+    return conectados;
+  } catch (e) {
+    console.error("Error en obtenerAgentesConectados: " + e.message);
+    return [];
+  }
+}
+
 function obtenerUsuarios() {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);

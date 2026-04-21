@@ -6,6 +6,8 @@
   const rowsPerPage = 10;
   let currentSort = { column: null, direction: 'asc' };
   let currentUser = null;
+  let heartbeatInterval = null;
+  let onlineAgentsPolling = null;
 
   // Page initialization
   document.addEventListener('DOMContentLoaded', () => {
@@ -19,9 +21,23 @@
     if (session) {
       currentUser = JSON.parse(session);
       showViewByRole(currentUser.role);
+      startHeartbeat();
     } else {
       showView('loginView');
     }
+  }
+
+  function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (!currentUser) return;
+
+    // Registrar inmediatamente
+    google.script.run.registrarSesion(currentUser.nombre);
+
+    // Heartbeat cada 5 minutos
+    heartbeatInterval = setInterval(() => {
+      google.script.run.registrarSesion(currentUser.nombre);
+    }, 5 * 60 * 1000);
   }
 
   function loadLoginUsers() {
@@ -57,6 +73,7 @@
           currentUser = res;
           localStorage.setItem('pqrsf_session', JSON.stringify(res));
           showViewByRole(res.role);
+          startHeartbeat();
         } else {
           errorDiv.textContent = res.message;
           errorDiv.style.display = 'block';
@@ -79,6 +96,7 @@
     if (role === 'admin') {
       showView('adminView');
       fetchData();
+      startOnlineAgentsPolling();
     } else {
       showView('agentView');
       fetchAgentInitialData();
@@ -98,7 +116,12 @@
   }
 
   function handleLogout() {
+    if (currentUser) {
+      google.script.run.eliminarSesion(currentUser.nombre);
+    }
     localStorage.removeItem('pqrsf_session');
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
     currentUser = null;
     activeCase = null;
     showView('loginView');
@@ -449,6 +472,33 @@ Línea gratuita nacional: 01 8000 111 879`
     renderTable();
     generateInsights();
     renderRanking();
+  }
+
+  function startOnlineAgentsPolling() {
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    updateOnlineAgents();
+    onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000); // Cada 30 seg
+  }
+
+  function updateOnlineAgents() {
+    google.script.run
+      .withSuccessHandler(agents => {
+        const container = document.getElementById('onlineAgentsContainer');
+        if (!container) return;
+
+        if (agents.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center mt-1">No hay agentes en línea</p>';
+          return;
+        }
+
+        container.innerHTML = agents.map(name => `
+          <div class="rank-item">
+            <span class="rank-name">${name}</span>
+            <span class="status-pill green">En línea</span>
+          </div>
+        `).join('');
+      })
+      .obtenerAgentesConectados();
   }
 
   function renderKPIs() {
