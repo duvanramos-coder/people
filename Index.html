@@ -429,7 +429,7 @@
         <label for="pass">Contraseña</label>
         <input type="password" id="pass" placeholder="••••••••">
       </div>
-      <button class="btn-login" onclick="login()">ACTIVAR MONITOR 🔔</button>
+      <button class="btn-login" onclick="login()">INGRESAR AL DASHBOARD 🔔</button>
       <p style="margin-top: 1.5rem; font-size: 0.75rem;">By Duvan Ramos</p>
     </div>
   </div>
@@ -441,9 +441,12 @@
         <h1>🚨 TMO ALERTA</h1>
         <p>People BPO Monitor • By Duvan Ramos</p>
       </div>
-      <div class="status-indicator">
-        <div class="pulse"></div>
-        En vivo
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <button class="btn-num" onclick="logout()" style="padding: 0.5rem 1rem; font-size: 0.75rem;">Cerrar Sesión</button>
+        <div class="status-indicator">
+          <div class="pulse"></div>
+          En vivo
+        </div>
       </div>
     </header>
 
@@ -467,7 +470,7 @@
   <div id="toast-container"></div>
 
   <!-- Sonido de notificación -->
-  <audio id="notif-sound" src="https://www.soundjay.com/buttons/sounds/beep-01a.mp3" preload="auto" loop></audio>
+  <audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3" preload="auto" loop></audio>
 
   <script>
     let seenAlerts = new Set();
@@ -681,6 +684,16 @@
       modal.style.display = 'none';
       sound.pause();
       sound.currentTime = 0;
+    }
+
+    function logout() {
+      if (pollingInterval) clearInterval(pollingInterval);
+      seenAlerts.clear();
+      isInitialLoad = true;
+      document.getElementById('dashboard-container').style.display = 'none';
+      document.getElementById('login-container').style.display = 'flex';
+      document.getElementById('pass').value = '';
+      showToast("🚪 Sesión cerrada");
     }
   </script>
 </body>
