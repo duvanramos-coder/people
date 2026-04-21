@@ -1,0 +1,2015 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+  :root {
+    --primary: #3b3561;
+    --primary-light: #4e467d;
+    --secondary: #b7d400;
+    --accent: #6366f1;
+    --success: #22c55e;
+    --warning: #facc15;
+    --danger: #ef4444;
+    --background: #f8fafc;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background);
+    color: var(--text-main);
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* Loader */
+  .loader-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+
+  .loader-content {
+    text-align: center;
+  }
+
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 5px solid var(--border);
+    border-bottom-color: var(--secondary);
+    border-radius: 50%;
+    display: inline-block;
+    animation: rotation 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+
+  @keyframes rotation {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Layout */
+  .app-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  /* Header */
+  .main-header {
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2rem;
+  }
+
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .logo-icon {
+    background: var(--primary);
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .brand-company {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .signature {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--primary);
+    opacity: 0.8;
+  }
+
+  /* Login Styles Refined */
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #3b3561 0%, #1e1b33 100%);
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+  }
+
+  .login-card {
+    max-width: 420px;
+    width: 90%;
+    padding: 3rem 2.5rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .brand-centered {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .logo-icon-large {
+    background: var(--primary);
+    color: white;
+    width: 72px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 10px 20px rgba(59, 53, 97, 0.3);
+  }
+
+  .welcome-text {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-top: 0.5rem;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .input-wrapper i {
+    position: absolute;
+    left: 1rem;
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+  }
+
+  .input-wrapper input {
+    padding-left: 2.75rem;
+  }
+
+  .btn-block {
+    width: 100%;
+    justify-content: center;
+    padding: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .login-error {
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    text-align: center;
+  }
+
+  .login-footer {
+    margin-top: 2.5rem;
+    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 1.5rem;
+  }
+
+  .login-footer .signature {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  .spinner-sm {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: rotation 1s linear infinite;
+  }
+
+  /* Agent Portal Styles */
+  .agent-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .claim-workflow {
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+    margin-top: 1.5rem;
+  }
+
+  .case-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    background: #f1f5f9;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-size: 0.875rem;
+  }
+
+  .mgmt-form textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.875rem;
+    resize: vertical;
+  }
+
+  .mgmt-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .ai-workflow textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .ai-buttons {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .ai-output-box {
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    font-size: 0.875rem;
+    white-space: pre-wrap;
+    max-height: 200px;
+    overflow-y: auto;
+    color: var(--primary);
+  }
+
+  .output-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  .stat-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 8px solid var(--secondary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem auto;
+  }
+
+  .stat-num {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .text-center { text-align: center; }
+
+  .header-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+  }
+
+  .btn-primary {
+    background-color: var(--secondary);
+    color: var(--primary);
+  }
+
+  .btn-primary:hover {
+    filter: brightness(0.95);
+    transform: translateY(-1px);
+  }
+
+  .btn-outline {
+    background-color: white;
+    border-color: var(--border);
+    color: var(--text-main);
+  }
+
+  .btn-outline:hover {
+    background-color: var(--background);
+    border-color: var(--text-muted);
+  }
+
+  .btn-icon {
+    padding: 0.5rem;
+    border-radius: 6px;
+    background: var(--primary);
+    color: white;
+  }
+
+  /* Cards */
+  .card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+  }
+
+  .card-header {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Controls Row */
+  .controls-row {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  /* Search */
+  .search-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  input[type="text"], input[type="date"], input[type="email"], select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.875rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  .search-result-container {
+    margin-top: 1rem;
+    min-height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+
+  .search-card-premium {
+    width: 100%;
+    background: linear-gradient(135deg, #fefefe 0%, #f9f9f9 100%);
+    border-left: 4px solid var(--secondary);
+    padding: 1rem;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .search-card-premium h4 {
+    margin-bottom: 0.5rem;
+    color: var(--primary);
+  }
+
+  .search-card-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .search-card-grid div span {
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+
+  /* Filters */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .filter-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    color: var(--text-muted);
+  }
+
+  /* KPIs */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .kpi-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s;
+  }
+
+  .kpi-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .kpi-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .kpi-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  .kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 0.25rem;
+  }
+
+  .kpi-trend {
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .text-blue { color: var(--accent); }
+  .text-green { color: var(--success); }
+  .text-red { color: var(--danger); }
+  .text-lime { color: #84cc16; }
+
+  /* Report Section */
+  .report-row {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  .compact-report {
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .compact-report .card-header {
+    margin-bottom: 0.25rem;
+  }
+
+  .report-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .report-controls input {
+    max-width: 400px;
+  }
+
+  .report-hint {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  /* Insights */
+  .insights-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .insight-content {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 100%;
+  }
+
+  .insight-item {
+    text-align: center;
+  }
+
+  .insight-item .label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  .pagination-controls {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .pagination-controls button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .insight-item .value {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .dynamic-insight {
+    display: flex;
+    align-items: center;
+    padding: 1.25rem;
+    background-color: var(--primary);
+    color: white;
+    font-weight: 500;
+  }
+
+  /* Charts */
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .canvas-wrapper {
+    height: 200px;
+    width: 100%;
+    position: relative;
+  }
+
+  .trend-section {
+    margin-bottom: 2rem;
+  }
+
+  .trend-wrapper {
+    height: 300px;
+  }
+
+  /* Table */
+  .table-section {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .table-header {
+    padding: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .table-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  #tableSearch {
+    width: 250px;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: #f1f5f9;
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  th:hover {
+    background: #e2e8f0;
+  }
+
+  td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr:hover td {
+    background-color: #f8fafc;
+  }
+
+  .badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .badge-success { background: #dcfce7; color: #166534; }
+  .badge-danger { background: #fee2e2; color: #991b1b; }
+  .badge-warning { background: #fef9c3; color: #854d0e; }
+
+  .table-pagination {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+
+  /* Footer */
+  .main-footer {
+    padding: 2rem 0;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .charts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 900px) {
+    .controls-row, .kpi-grid, .insights-row {
+      grid-template-columns: 1fr;
+    }
+    .app-container {
+      padding: 0 1rem;
+    }
+  }
+
+  @media print {
+    .loader-overlay, .header-actions, .controls-row, .main-footer, .table-pagination, .table-actions {
+      display: none !important;
+    }
+    body {
+      background: white;
+    }
+    .app-container {
+      max-width: 100%;
+      padding: 0;
+    }
+    .card {
+      box-shadow: none;
+      border: 1px solid #eee;
+      page-break-inside: avoid;
+    }
+    .charts-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .trend-wrapper {
+      height: 250px;
+    }
+  }
+</style>
+
+
+    <script>
+      window.google = {
+        script: {
+          run: {
+            withSuccessHandler: function(callback) {
+              return {
+                withFailureHandler: function(fail) {
+                  return {
+                    validarLogin: function(u, p) {
+                      setTimeout(() => callback({success: true, nombre: 'Test User', role: 'admin'}), 500);
+                    },
+                    getPQRSFData: function() {
+                      setTimeout(() => callback([]), 500);
+                    },
+                    claimNextCase: function(u) {
+                      setTimeout(() => callback({success: true, data: {radicado: '12345', nombre: 'Mock', rowId: 1}}), 500);
+                    },
+                    obtenerUsuarios: function() {
+                      setTimeout(() => callback([{nombre: 'Duvan Ramos'}, {nombre: 'Angie Johana Banda'}]), 500);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      };
+    </script>
+    </head>
+  <body>
+    <div id="mainApp">
+      <div id="loginView" class="view-container active">
+  <div class="login-wrapper">
+    <div class="login-card card">
+      <div class="brand-centered">
+        <div class="logo-icon-large">P</div>
+        <h2>¡Bienvenido!</h2>
+        <p class="welcome-text">Prepárate para gestionar comunicación PQRSF</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="agentSelect">Selecciona tu nombre</label>
+          <div class="input-wrapper">
+            <i data-lucide="users"></i>
+            <select id="agentSelect" required>
+              <option value="" disabled selected>Cargando agentes...</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock"></i>
+            <input type="password" id="password" placeholder="••••••••" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
+          <span>Ingresar al Sistema</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+
+      <div id="loginError" class="login-error" style="display: none;"></div>
+
+      <div class="login-footer">
+        <p class="signature">By Duvan Ramos — 2026</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+      <div id="adminView" class="view-container" style="display: none;">
+        <div id="loader" class="loader-overlay">
+  <div class="loader-content">
+    <div class="spinner"></div>
+    <p>Cargando Dashboard PQRSF...</p>
+  </div>
+</div>
+
+<div class="app-container">
+  <!-- Sidebar / Header -->
+  <header class="main-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-icon">P</div>
+        <div>
+          <h1>GESTIONES PQRSF <span class="brand-company">(People BPO)</span></h1>
+          <p class="subtitle">Intelligence Dashboard • <span class="signature">By Duvan Ramos</span></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary" onclick="refreshData()">
+          <i data-lucide="refresh-cw"></i> Actualizar Datos
+        </button>
+        <button class="btn btn-outline" onclick="exportToPDF()">
+          <i data-lucide="file-text"></i> Exportar PDF
+        </button>
+        <button class="btn btn-outline" onclick="handleLogout()">
+          <i data-lucide="log-out"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+
+    <!-- Smart Search & Quick Filters Row -->
+    <section class="controls-row">
+      <div class="search-card card">
+        <div class="card-header">
+          <h3><i data-lucide="search"></i> Buscador Inteligente</h3>
+        </div>
+        <div class="search-input-group">
+          <input type="text" id="smartSearch" placeholder="Buscar por RADICADO..." onkeyup="handleSearch(event)">
+          <button class="btn btn-icon" onclick="executeSearch()">
+            <i data-lucide="arrow-right"></i>
+          </button>
+        </div>
+        <div id="searchResult" class="search-result-container">
+          <!-- Smart Search result will appear here -->
+        </div>
+      </div>
+
+      <div class="filters-card card">
+        <div class="card-header">
+          <h3><i data-lucide="filter"></i> Filtros Dinámicos</h3>
+        </div>
+        <div class="filter-grid">
+          <div class="filter-group">
+            <label>Mes (Cofrem)</label>
+            <select id="filterMonth" onchange="applyFilters()">
+              <option value="">Todos los meses</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Empresa</label>
+            <select id="filterCompany" onchange="applyFilters()">
+              <option value="">Todas las empresas</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Canal</label>
+            <select id="filterChannel" onchange="applyFilters()">
+              <option value="">Todos los canales</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Estado</label>
+            <select id="filterStatus" onchange="applyFilters()">
+              <option value="">Todos los estados</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Recibido People (Desde)</label>
+            <input type="date" id="filterDatePeopleStart" onchange="applyFilters()">
+          </div>
+          <div class="filter-group">
+            <label>Recibido People (Hasta)</label>
+            <input type="date" id="filterDatePeopleEnd" onchange="applyFilters()">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- KPI Row -->
+    <section class="kpi-grid">
+      <div class="kpi-card card">
+        <div class="kpi-header">
+          <span class="kpi-label">Gestiones Hoy</span>
+          <i data-lucide="calendar" class="text-blue"></i>
+        </div>
+        <div class="kpi-value" id="kpiToday">0</div>
+        <div class="kpi-trend">Realizadas en la jornada</div>
+      </div>
+      <div class="kpi-card card">
+        <div class="kpi-header">
+          <span class="kpi-label">Total PQRSF</span>
+          <i data-lucide="list" class="text-blue"></i>
+        </div>
+        <div class="kpi-value" id="kpiTotal">0</div>
+        <div class="kpi-trend">Registros totales</div>
+      </div>
+      <div class="kpi-card card">
+        <div class="kpi-header">
+          <span class="kpi-label">Gestionados</span>
+          <i data-lucide="check-circle" class="text-green"></i>
+        </div>
+        <div class="kpi-value" id="kpiManaged">0</div>
+        <div class="kpi-trend text-green" id="kpiManagedPerc">0% del total</div>
+      </div>
+      <div class="kpi-card card">
+        <div class="kpi-header">
+          <span class="kpi-label">Por Comunicar</span>
+          <i data-lucide="alert-circle" class="text-red"></i>
+        </div>
+        <div class="kpi-value" id="kpiPending">0</div>
+        <div class="kpi-trend text-red" id="kpiPendingPerc">0% del total</div>
+      </div>
+      <div class="kpi-card card">
+        <div class="kpi-header">
+          <span class="kpi-label">Efectividad</span>
+          <i data-lucide="trending-up" class="text-lime"></i>
+        </div>
+        <div class="kpi-value" id="kpiEffectiveness">0%</div>
+        <div class="kpi-trend">Casos resueltos (Sí)</div>
+      </div>
+    </section>
+
+    <!-- Secondary KPIs / Insights -->
+    <section class="insights-row">
+      <div class="card insight-card">
+        <div class="insight-content">
+          <div class="insight-item">
+            <span class="label">Contactados:</span>
+            <span class="value" id="valContacted">0%</span>
+          </div>
+          <div class="insight-item">
+            <span class="label">No Contesta:</span>
+            <span class="value" id="valNoAnswer">0%</span>
+          </div>
+          <div class="insight-item">
+            <span class="label">Requiere Solución:</span>
+            <span class="value" id="valRequiresOther">0%</span>
+          </div>
+        </div>
+      </div>
+      <div class="card dynamic-insight" id="autoInsight">
+        <!-- Automated insights will be generated here -->
+        Cargando insights automáticos...
+      </div>
+    </section>
+
+    <!-- Charts Grid -->
+    <section class="charts-grid">
+      <div class="chart-container card">
+        <div class="card-header"><h3>Estado de Gestión</h3></div>
+        <div class="canvas-wrapper"><canvas id="chartStatus"></canvas></div>
+      </div>
+      <div class="chart-container card">
+        <div class="card-header"><h3>Canal de Contacto</h3></div>
+        <div class="canvas-wrapper"><canvas id="chartChannel"></canvas></div>
+      </div>
+      <div class="chart-container card">
+        <div class="card-header"><h3>Gestión vs Pendiente</h3></div>
+        <div class="canvas-wrapper"><canvas id="chartManaged"></canvas></div>
+      </div>
+      <div class="chart-container card">
+        <div class="card-header"><h3>Efectividad</h3></div>
+        <div class="canvas-wrapper"><canvas id="chartEffectiveness"></canvas></div>
+      </div>
+    </section>
+
+    <!-- Trend Chart -->
+    <section class="trend-section card">
+      <div class="card-header"><h3>Tendencia de Gestión (Histórico por Mes)</h3></div>
+      <div class="canvas-wrapper trend-wrapper"><canvas id="chartTrend"></canvas></div>
+    </section>
+
+    <!-- Detailed Table -->
+    <section class="table-section card">
+      <div class="card-header table-header">
+        <h3>Detalle de Registros</h3>
+        <div class="table-actions">
+           <input type="text" id="tableSearch" placeholder="Filtrar tabla..." onkeyup="filterTable()">
+           <button class="btn btn-outline btn-sm" onclick="exportToCSV()">
+             <i data-lucide="download"></i> CSV
+           </button>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table id="pqrsfTable">
+          <thead>
+            <tr>
+              <th onclick="sortTable(0)">Radicado <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(1)">Nombre <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(2)">Empresa <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(3)">Estado <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(4)">Canal <i data-lucide="chevrons-up-down"></i></th>
+              <th onclick="sortTable(5)">Efectividad <i data-lucide="chevrons-up-down"></i></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div class="table-pagination">
+        <div id="paginationInfo">Mostrando 0 de 0 registros</div>
+        <div class="pagination-controls">
+          <button class="btn btn-outline btn-sm" id="btnPrev" onclick="changePage(-1)">Anterior</button>
+          <button class="btn btn-outline btn-sm" id="btnNext" onclick="changePage(1)">Siguiente</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Report Section (Moved to bottom) -->
+    <section class="report-row">
+      <div class="card report-card compact-report">
+        <div class="card-header">
+          <h3><i data-lucide="mail"></i> Enviar Reporte PDF</h3>
+        </div>
+        <div class="report-controls">
+          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com">
+          <button class="btn btn-primary" onclick="handleSendReport()">
+            <i data-lucide="send"></i> Enviar Reporte
+          </button>
+        </div>
+        <p class="report-hint">Se enviará un consolidado basado en los filtros actuales.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="main-footer">
+    <p>GESTIONES PQRSF — People BPO — By Duvan Ramos 2026</p>
+  </footer>
+</div>
+
+      </div>
+
+      <div id="agentView" class="view-container" style="display: none;">
+        <div class="agent-dashboard">
+  <header class="main-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="logo-icon">P</div>
+        <div>
+          <h1>PORTAL AGENTE <span class="brand-company">(PQRSF)</span></h1>
+          <p class="subtitle">Bienvenido, <span id="agentName" class="signature">...</span></p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="handleLogout()">
+          <i data-lucide="log-out"></i> Cerrar Sesión
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content">
+    <div class="agent-grid">
+      <!-- Left: Management Area -->
+      <section class="management-section">
+        <div class="card" id="claimCaseCard">
+          <div class="card-header">
+            <h3><i data-lucide="user-plus"></i> Iniciar Gestión</h3>
+          </div>
+          <div class="claim-workflow">
+            <p class="text-muted">Presiona el botón para obtener el siguiente radicado pendiente de gestión.</p>
+            <button class="btn btn-primary btn-lg" onclick="claimNextCase()" id="btnClaim">
+              <i data-lucide="grab"></i> Solicitar Radicado
+            </button>
+          </div>
+        </div>
+
+        <div class="card" id="activeCaseCard" style="display: none;">
+          <div class="card-header">
+            <h3><i data-lucide="edit-3"></i> Gestión en Curso</h3>
+            <span class="badge badge-warning" id="activeRadicadoLabel">RAD-00000</span>
+          </div>
+
+          <div class="case-details-grid">
+            <div class="detail-item"><strong>Nombre:</strong> <span id="caseNombre">...</span></div>
+            <div class="detail-item"><strong>Teléfono:</strong> <span id="caseTelefono">...</span></div>
+            <div class="detail-item"><strong>Empresa:</strong> <span id="caseEmpresa">...</span></div>
+            <div class="detail-item"><strong>Fecha:</strong> <span id="caseFecha">...</span></div>
+          </div>
+
+          <form id="managementForm" onsubmit="saveManagement(event)" class="mgmt-form">
+            <div class="filter-grid">
+              <div class="filter-group">
+                <label>Estado de Gestión</label>
+                <select id="mgmtEstado" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Contactado">Contactado</option>
+                  <option value="No contesta">No contesta</option>
+                  <option value="Corte de llamada">Corte de llamada</option>
+                  <option value="Equivocado">Equivocado</option>
+                  <option value="Fuera de servicio">Fuera de servicio</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Canal de Contacto</label>
+                <select id="mgmtCanal" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Llamada">Llamada</option>
+                  <option value="Correo">Correo</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>¿Fue Efectivo?</label>
+                <select id="mgmtEfectividad" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Sí">Sí</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>¿Requiere otra solución?</label>
+                <select id="mgmtOtraSolucion" required>
+                  <option value="">Seleccionar...</option>
+                  <option value="Sí">Sí</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
+              <label>Observaciones / Solución</label>
+              <textarea id="mgmtObservacion" rows="3" placeholder="Describe brevemente la solución brindada..."></textarea>
+            </div>
+
+            <div class="mgmt-actions">
+              <button type="submit" class="btn btn-primary" id="btnSaveMgmt">
+                <i data-lucide="save"></i> Guardar Gestión
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Right: AI Tools & Performance -->
+      <section class="side-section">
+        <div class="card ai-card">
+          <div class="card-header">
+            <h3><i data-lucide="sparkles"></i> IA Response Converter</h3>
+          </div>
+          <div class="ai-workflow">
+            <textarea id="aiInput" rows="4" placeholder="Escribe aquí las notas rápidas de tu gestión..."></textarea>
+            <div class="ai-buttons">
+              <button class="btn btn-outline btn-sm" onclick="improveText('PQRSF-RES')">
+                <i data-lucide="check-check"></i> Formato Respuesta
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="improveText('PQRSF-NC')">
+                <i data-lucide="phone-off"></i> Formato No Contesta
+              </button>
+            </div>
+            <div id="aiOutputContainer" style="display: none; margin-top: 1rem;">
+              <div class="output-header">
+                <span>Resultado IA:</span>
+                <button class="btn btn-icon btn-sm" onclick="copyToClipboard()"><i data-lucide="copy"></i></button>
+              </div>
+              <div id="aiOutput" class="ai-output-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card stats-card">
+          <div class="card-header">
+            <h3><i data-lucide="bar-chart-2"></i> Mi Desempeño Hoy</h3>
+          </div>
+          <div class="agent-stats">
+            <div class="stat-circle">
+              <span id="agentCountToday" class="stat-num">0</span>
+              <span class="stat-label">Gestiones</span>
+            </div>
+            <p class="text-muted text-center" style="font-size: 0.8rem; margin-top: 1rem;">
+              Sigue así, cada caso cuenta para la meta del equipo.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+  let allData = [];
+  let filteredData = [];
+  let charts = {};
+  let currentPage = 1;
+  const rowsPerPage = 10;
+  let currentSort = { column: null, direction: 'asc' };
+  let currentUser = null;
+
+  // Page initialization
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    checkSession();
+    loadLoginUsers();
+  });
+
+  function checkSession() {
+    const session = localStorage.getItem('pqrsf_session');
+    if (session) {
+      currentUser = JSON.parse(session);
+      showViewByRole(currentUser.role);
+    } else {
+      showView('loginView');
+    }
+  }
+
+  function loadLoginUsers() {
+    google.script.run
+      .withSuccessHandler(users => {
+        const select = document.getElementById('agentSelect');
+        if (!select) return;
+        select.innerHTML = '<option value="" disabled selected>Selecciona tu nombre...</option>';
+        users.forEach(u => {
+          const opt = document.createElement('option');
+          opt.value = u.nombre;
+          opt.textContent = u.nombre;
+          select.appendChild(opt);
+        });
+      })
+      .obtenerUsuarios();
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('agentSelect').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('btnLogin');
+
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Ingresando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          currentUser = res;
+          localStorage.setItem('pqrsf_session', JSON.stringify(res));
+          showViewByRole(res.role);
+        } else {
+          errorDiv.textContent = res.message;
+          errorDiv.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+          lucide.createIcons();
+        }
+      })
+      .withFailureHandler(err => {
+        errorDiv.textContent = "Error de conexión: " + err.message;
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Ingresar al Sistema</span> <i data-lucide="arrow-right"></i>';
+        lucide.createIcons();
+      })
+      .validarLogin(user, pass);
+  }
+
+  function showViewByRole(role) {
+    if (role === 'admin') {
+      showView('adminView');
+      fetchData();
+    } else {
+      showView('agentView');
+      // Initialize Agent view if needed
+      if (typeof initAgentPortal === 'function') initAgentPortal();
+    }
+  }
+
+  function showView(viewId) {
+    document.querySelectorAll('.view-container').forEach(v => v.style.display = 'none');
+    document.getElementById(viewId).style.display = 'block';
+    if (viewId === 'loginView') {
+      localStorage.removeItem('pqrsf_session');
+    }
+    lucide.createIcons();
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('pqrsf_session');
+    location.reload();
+  }
+
+  // --- Agent Portal Logic ---
+  let activeCase = null;
+  let gestionesHoy = 0;
+
+  function initAgentPortal() {
+    document.getElementById('agentName').textContent = currentUser.nombre;
+    updateAgentStats();
+  }
+
+  function updateAgentStats() {
+    // In a real app, fetch from server. For now, local counter.
+    document.getElementById('agentCountToday').textContent = gestionesHoy;
+  }
+
+  function claimNextCase() {
+    const btn = document.getElementById('btnClaim');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+
+        if (res.success) {
+          activeCase = res.data;
+          showActiveCase();
+        } else {
+          alert(res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+        alert("Error: " + err.message);
+      })
+      .claimNextCase(currentUser.username);
+  }
+
+  function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
+    document.getElementById('caseFecha').textContent = activeCase.fecha;
+
+    lucide.createIcons();
+  }
+
+  function saveManagement(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveMgmt');
+    const data = {
+      rowId: activeCase.rowId,
+      estado: document.getElementById('mgmtEstado').value,
+      canal: document.getElementById('mgmtCanal').value,
+      efectividad: document.getElementById('mgmtEfectividad').value,
+      otraSolucion: document.getElementById('mgmtOtraSolucion').value,
+      observacion: document.getElementById('mgmtObservacion').value
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Guardando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+        lucide.createIcons();
+
+        if (res.success) {
+          gestionesHoy++;
+          updateAgentStats();
+          resetManagement();
+          alert("Gestión guardada con éxito.");
+        } else {
+          alert("Error: " + res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+        lucide.createIcons();
+        alert("Error de conexión: " + err.message);
+      })
+      .saveManagement(data);
+  }
+
+  function resetManagement() {
+    activeCase = null;
+    document.getElementById('activeCaseCard').style.display = 'none';
+    document.getElementById('claimCaseCard').style.display = 'block';
+    document.getElementById('managementForm').reset();
+    document.getElementById('aiInput').value = '';
+    document.getElementById('aiOutputContainer').style.display = 'none';
+  }
+
+  function improveText(tipo) {
+    const prompt = document.getElementById('aiInput').value.trim();
+    if (!prompt) {
+      alert("Por favor ingresa algunas notas para mejorar.");
+      return;
+    }
+
+    if (!activeCase) {
+      alert("Debes tener un caso activo para generar una respuesta.");
+      return;
+    }
+
+    const outputContainer = document.getElementById('aiOutputContainer');
+    const outputBox = document.getElementById('aiOutput');
+
+    outputContainer.style.display = 'block';
+    outputBox.innerHTML = '<span class="spinner-sm" style="border-top-color:var(--primary)"></span> Procesando con IA...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          outputBox.textContent = res.text;
+        } else {
+          outputBox.textContent = "Error: " + res.message;
+        }
+      })
+      .withFailureHandler(err => {
+        outputBox.textContent = "Error de servidor: " + err.message;
+      })
+      .generarRespuestaIA(prompt, tipo, activeCase);
+  }
+
+  function copyToClipboard() {
+    const text = document.getElementById('aiOutput').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      alert("Copiado al portapapeles");
+    });
+  }
+
+  function fetchData() {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(data => {
+        allData = data;
+        filteredData = [...allData];
+        initializeFilters();
+        updateDashboard();
+        toggleLoader(false);
+      })
+      .withFailureHandler(err => {
+        alert("Error al cargar datos: " + err.message);
+        toggleLoader(false);
+      })
+      .getPQRSFData();
+  }
+
+  function toggleLoader(show) {
+    document.getElementById('loader').style.display = show ? 'flex' : 'none';
+  }
+
+  function initializeFilters() {
+    const months = [...new Set(allData.map(d => {
+      if(!d.fechaCofrem) return null;
+      const date = new Date(d.fechaCofrem);
+      return date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    }).filter(Boolean))].sort();
+
+    const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
+    const channels = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
+    const statuses = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
+
+    populateSelect('filterMonth', months);
+    populateSelect('filterCompany', companies);
+    populateSelect('filterChannel', channels);
+    populateSelect('filterStatus', statuses);
+  }
+
+  function populateSelect(id, values) {
+    const select = document.getElementById(id);
+    const currentValue = select.value;
+    select.innerHTML = `<option value="">Todos</option>`;
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v.charAt(0).toUpperCase() + v.slice(1);
+      select.appendChild(opt);
+    });
+    select.value = currentValue;
+  }
+
+  function applyFilters() {
+    const month = document.getElementById('filterMonth').value;
+    const company = document.getElementById('filterCompany').value;
+    const channel = document.getElementById('filterChannel').value;
+    const status = document.getElementById('filterStatus').value;
+
+    const peopleStart = document.getElementById('filterDatePeopleStart').value;
+    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
+
+    filteredData = allData.filter(d => {
+      const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
+
+      let peopleMatch = true;
+      if (d.recibidoPeople) {
+        if (peopleStart && d.recibidoPeople < peopleStart) peopleMatch = false;
+        if (peopleEnd && d.recibidoPeople > peopleEnd) peopleMatch = false;
+      } else if (peopleStart || peopleEnd) {
+        peopleMatch = false;
+      }
+
+      return (!month || dMonth === month) &&
+             peopleMatch &&
+             (!company || d.empresa === company) &&
+             (!channel || d.canal === channel) &&
+             (!status || d.estado === status);
+    });
+
+    currentPage = 1;
+    updateDashboard();
+  }
+
+  function updateDashboard() {
+    renderKPIs();
+    renderCharts();
+    renderTable();
+    generateInsights();
+  }
+
+  function renderKPIs() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
+
+    document.getElementById('kpiToday').textContent = gestionesHoy;
+    document.getElementById('kpiTotal').textContent = total;
+    document.getElementById('kpiManaged').textContent = managed;
+    document.getElementById('kpiPending').textContent = pending;
+
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+
+    document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
+    document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
+    document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
+
+    // Secondary metrics
+    const contacted = filteredData.filter(d => d.estado === 'Contactado').length;
+    const noAnswer = filteredData.filter(d => d.estado === 'No contesta').length;
+    const requiresOther = filteredData.filter(d => d.requiereOtraSolucion === 'Sí').length;
+
+    document.getElementById('valContacted').textContent = total > 0 ? ((contacted / total) * 100).toFixed(1) + '%' : '0%';
+    document.getElementById('valNoAnswer').textContent = total > 0 ? ((noAnswer / total) * 100).toFixed(1) + '%' : '0%';
+    document.getElementById('valRequiresOther').textContent = total > 0 ? ((requiresOther / total) * 100).toFixed(1) + '%' : '0%';
+  }
+
+  function renderCharts() {
+    // 1. Status Chart
+    const statusCounts = countBy(filteredData, 'estado');
+    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estados');
+
+    // 2. Channel Chart
+    const channelCounts = countBy(filteredData, 'canal');
+    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canales');
+
+    // 3. Managed vs Pending
+    const managedCounts = {
+      'Gestionados': filteredData.filter(d => d.isManaged).length,
+      'Por Comunicar': filteredData.filter(d => !d.isManaged).length
+    };
+    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
+
+    // 4. Effectiveness
+    const effCounts = countBy(filteredData, 'efectividad');
+    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f1f5f9'], 'Casos');
+
+    // 5. Trend (By month)
+    const trendData = getTrendData(filteredData);
+    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#3b3561'], 'PQRSF Recibidos');
+  }
+
+  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
+    if (charts[id]) charts[id].destroy();
+
+    const ctx = document.getElementById(id).getContext('2d');
+    charts[id] = new Chart(ctx, {
+      type: type,
+      data: {
+        labels: labels,
+        datasets: [{
+          label: datasetLabel,
+          data: data,
+          backgroundColor: colors,
+          borderColor: type === 'line' ? colors[0] : '#ffffff',
+          tension: 0.3,
+          fill: type === 'line' ? 'origin' : false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: type !== 'bar',
+            position: 'bottom',
+            labels: { boxWidth: 12, font: { size: 10 } }
+          },
+          datalabels: {
+            display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
+            color: (ctx) => type === 'bar' ? '#3b3561' : '#fff',
+            anchor: (ctx) => type === 'bar' ? 'end' : 'center',
+            align: (ctx) => type === 'bar' ? 'top' : 'center',
+            offset: 4,
+            font: { weight: 'bold', size: 10 },
+            formatter: (value, ctx) => {
+              let sum = 0;
+              let dataArr = ctx.chart.data.datasets[0].data;
+              dataArr.map(data => sum += data);
+              let percentage = (value * 100 / sum).toFixed(1) + "%";
+              return type === 'bar' ? value : percentage;
+            }
+          }
+        },
+        scales: type === 'bar' || type === 'line' ? {
+          y: {
+            beginAtZero: true,
+            grid: { display: false },
+            ticks: { font: { size: 10 } }
+          },
+          x: {
+            grid: { display: false },
+            ticks: {
+              font: { size: 10 },
+              maxRotation: 45,
+              minRotation: 45
+            }
+          }
+        } : {}
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  function countBy(arr, key) {
+    return arr.reduce((acc, obj) => {
+      const val = obj[key] || 'Sin definir';
+      acc[val] = (acc[val] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  function getTrendData(data) {
+    const sortedData = [...data].filter(d => d.fechaCofrem).sort((a, b) => new Date(a.fechaCofrem) - new Date(b.fechaCofrem));
+
+    const groups = sortedData.reduce((acc, obj) => {
+      const date = new Date(obj.fechaCofrem);
+      const m = date.toLocaleString('es-ES', { month: 'short', year: '2-digit' });
+      acc[m] = (acc[m] || 0) + 1;
+      return acc;
+    }, {});
+
+    return {
+      labels: Object.keys(groups),
+      values: Object.values(groups)
+    };
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = '';
+
+    // Calculate pagination
+    const totalRows = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const endIdx = startIdx + rowsPerPage;
+    const displayData = filteredData.slice(startIdx, endIdx);
+
+    displayData.forEach(row => {
+      const tr = document.createElement('tr');
+      const effVal = (row.efectividad || "").toLowerCase().trim();
+      const isEffective = effVal === 'sí' || effVal === 'si';
+
+      tr.innerHTML = `
+        <td><strong>${row.radicado}</strong></td>
+        <td>${row.nombre}</td>
+        <td>${row.empresa}</td>
+        <td><span class="badge ${getStatusBadge(row.estado)}">${row.estado || '---'}</span></td>
+        <td>${row.canal || '---'}</td>
+        <td><span class="badge ${isEffective ? 'badge-success' : 'badge-danger'}">${row.efectividad || 'No'}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Update pagination info
+    document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(endIdx, totalRows)} de ${totalRows} registros.`;
+    document.getElementById('btnPrev').disabled = currentPage === 1;
+    document.getElementById('btnNext').disabled = currentPage === totalPages;
+  }
+
+  function changePage(delta) {
+    currentPage += delta;
+    renderTable();
+  }
+
+  function getStatusBadge(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes('contactado')) return 'badge-success';
+    if (s.includes('no contesta') || s.includes('corte')) return 'badge-danger';
+    return 'badge-warning';
+  }
+
+  function handleSearch(e) {
+    if (e.key === 'Enter') executeSearch();
+  }
+
+  function executeSearch() {
+    const rad = document.getElementById('smartSearch').value.trim();
+    const resultDiv = document.getElementById('searchResult');
+
+    if (!rad) {
+      resultDiv.innerHTML = 'Ingrese un radicado';
+      return;
+    }
+
+    const found = allData.find(d => d.radicado === rad);
+
+    if (found) {
+      resultDiv.innerHTML = `
+        <div class="search-card-premium">
+          <h4>${found.nombre}</h4>
+          <div class="search-card-grid">
+            <div><span>Radicado:</span> ${found.radicado}</div>
+            <div><span>Asesor:</span> ${found.asesor || 'Sin asignar'}</div>
+            <div><span>Empresa:</span> ${found.empresa}</div>
+            <div><span>Estado:</span> ${found.estado}</div>
+            <div><span>Canal:</span> ${found.canal}</div>
+            <div><span>Efectividad:</span> ${found.efectividad}</div>
+            <div><span>Fecha:</span> ${found.fechaCofrem}</div>
+          </div>
+        </div>
+      `;
+    } else {
+      resultDiv.innerHTML = '<span class="text-red">Radicado no encontrado</span>';
+    }
+  }
+
+  function generateInsights() {
+    const total = filteredData.length;
+    if (total === 0) {
+      document.getElementById('autoInsight').textContent = "No hay datos suficientes para generar insights.";
+      return;
+    }
+
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => channelCounts[a] > channelCounts[b] ? a : b);
+
+    const statusCounts = countBy(filteredData, 'estado');
+    const topStatus = Object.keys(statusCounts).reduce((a, b) => statusCounts[a] > statusCounts[b] ? a : b);
+
+    let html = `
+      <div style="display:flex; align-items:center; gap:10px">
+        <i data-lucide="zap"></i>
+        <div>
+          <p>El <strong>${unmanagedPerc}%</strong> de los PQRSF no han sido gestionados.</p>
+          <p>El canal más utilizado es <strong>${topChannel}</strong> con ${channelCounts[topChannel]} casos.</p>
+          <p>El estado predominante es <strong>${topStatus}</strong>.</p>
+        </div>
+      </div>
+    `;
+    document.getElementById('autoInsight').innerHTML = html;
+    lucide.createIcons();
+  }
+
+  function filterTable() {
+    const query = document.getElementById('tableSearch').value.toLowerCase();
+    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+      const text = rows[i].textContent.toLowerCase();
+      rows[i].style.display = text.includes(query) ? "" : "none";
+    }
+  }
+
+  function refreshData() {
+    fetchData();
+  }
+
+  function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
+
+    filteredData.forEach(row => {
+      let r = [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad];
+      csvContent += r.join(",") + "\r\n";
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "pqrsf_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function exportToPDF() {
+    window.print();
+  }
+
+  function handleSendReport() {
+    const email = document.getElementById('reportEmail').value.trim();
+    if (!email || !email.includes('@')) {
+      alert("Por favor ingrese un correo válido.");
+      return;
+    }
+
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
+
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivenessPerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+
+    const reportData = {
+      total,
+      managed,
+      managedPerc,
+      pending,
+      pendingPerc,
+      effectivenessPerc,
+      channels: countBy(filteredData, 'canal'),
+      status: countBy(filteredData, 'estado')
+    };
+
+    const today = new Date().toLocaleDateString('es-ES');
+    const peopleStart = document.getElementById('filterDatePeopleStart').value;
+    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
+
+    let reportDate = today;
+    if (peopleStart && peopleEnd) {
+      reportDate = `${peopleStart} a ${peopleEnd}`;
+    } else if (peopleStart || peopleEnd) {
+      reportDate = peopleStart || peopleEnd;
+    }
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(() => {
+        toggleLoader(false);
+        alert("Reporte enviado con éxito.");
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        alert("Error al enviar reporte: " + err.message);
+      })
+      .sendEmailReport(email, reportData, reportDate);
+  }
+
+  function sortTable(n) {
+    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
+    const key = columns[n];
+
+    // Update sort state
+    if (currentSort.column === key) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column = key;
+      currentSort.direction = 'asc';
+    }
+
+    // Sort data
+    filteredData.sort((a, b) => {
+      let valA = a[key] || "";
+      let valB = b[key] || "";
+
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    // Update UI headers
+    const headers = document.querySelectorAll('th i');
+    headers.forEach((icon, idx) => {
+      if (idx === n) {
+        icon.setAttribute('data-lucide', currentSort.direction === 'asc' ? 'chevron-up' : 'chevron-down');
+      } else {
+        icon.setAttribute('data-lucide', 'chevrons-up-down');
+      }
+    });
+    lucide.createIcons();
+
+    currentPage = 1;
+    renderTable();
+  }
+</script>
+
+  </body>
+</html>

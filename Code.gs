@@ -19,10 +19,10 @@ function obtenerUsuarios() {
     if (!sheet) return [];
 
     const data = sheet.getDataRange().getValues();
+    // A: Nombre, B: Contraseña
     return data.slice(1).map(r => ({
-      username: r[0],
-      nombre: r[1]
-    }));
+      nombre: r[0]
+    })).filter(u => u.nombre);
   } catch (e) {
     return [];
   }
@@ -31,7 +31,7 @@ function obtenerUsuarios() {
 /**
  * Validates user login
  */
-function validarLogin(username, password) {
+function validarLogin(nombre, password) {
   try {
     const CONFIG = {
       SPREADSHEET_ID: '1zfjGtGb4H0ONasrAHNa1XdpnBNXfYVm-cPmUphjdOE4',
@@ -41,33 +41,25 @@ function validarLogin(username, password) {
     const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
     let sheet = ss.getSheetByName(CONFIG.SHEET_NAME);
 
-    // If sheet doesn't exist, use default Admin
     if (!sheet) {
-      if (username === 'admin' && password === 'admin2026') {
-        return { success: true, nombre: 'Administrador', role: 'admin' };
-      }
-      return { success: false, message: 'Usuario o contraseña incorrectos.' };
+      return { success: false, message: 'Error: Hoja "Agentes" no encontrada.' };
     }
 
     const data = sheet.getDataRange().getValues();
     const rows = data.slice(1); // Skip header
 
-    // Agentes sheet structure: A: Usuario, B: Nombre, C: Contraseña, D: Rol
-    const user = rows.find(r => r[0].toString().toLowerCase() === username.toLowerCase() && r[2].toString() === password);
+    // Sheet structure: A: Nombre, B: Contraseña, C: Rol
+    const user = rows.find(r => r[0].toString().trim() === nombre.trim() && r[1].toString().trim() === password.trim());
 
     if (user) {
+      const role = (user[2] || "").toString().toLowerCase() === 'admin' ? 'admin' : 'agent';
       return {
         success: true,
-        username: user[0],
-        nombre: user[1],
-        role: user[3] || 'agent'
+        nombre: user[0],
+        role: role
       };
     } else {
-      // Fallback for admin if not in sheet
-      if (username === 'admin' && password === 'admin2026') {
-        return { success: true, nombre: 'Administrador', role: 'admin' };
-      }
-      return { success: false, message: 'Usuario o contraseña incorrectos.' };
+      return { success: false, message: 'Contraseña incorrecta para ' + nombre };
     }
   } catch (e) {
     return { success: false, message: 'Error de servidor: ' + e.message };
@@ -227,7 +219,7 @@ function sendEmailReport(toEmail, reportData, reportDate) {
 /**
  * Claims the next available radicado for an agent
  */
-function claimNextCase(username) {
+function claimNextCase(agentName) {
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(10000); // 10 seconds lock
@@ -235,11 +227,6 @@ function claimNextCase(username) {
     const ss = SpreadsheetApp.openById('1zfjGtGb4H0ONasrAHNa1XdpnBNXfYVm-cPmUphjdOE4');
     const sheet = ss.getSheetByName('PQRSF');
     const data = sheet.getDataRange().getValues();
-
-    // Find first row where column J (Estado, index 9) is empty
-    // AND Column A (index 0) is either empty or not assigned to someone else
-    // Actually, based on business rule, J, K, or L empty means not managed.
-    // We look for row where Column J is empty.
 
     let targetRowIndex = -1;
     for (let i = 1; i < data.length; i++) {
@@ -253,17 +240,6 @@ function claimNextCase(username) {
 
     if (targetRowIndex === -1) {
       return { success: false, message: 'No hay casos pendientes de gestión.' };
-    }
-
-    // Assign agent name to Column A
-    const agentData = validarLogin(username, ""); // Hacky way to get name if we didn't pass it, better pass it.
-    // Let's assume we pass the agent name directly to be safer or fetch it here.
-    const agentsSheet = ss.getSheetByName('Agentes');
-    let agentName = username;
-    if (agentsSheet) {
-      const agents = agentsSheet.getDataRange().getValues();
-      const agentFound = agents.find(r => r[0].toString().toLowerCase() === username.toLowerCase());
-      if (agentFound) agentName = agentFound[1];
     }
 
     sheet.getRange(targetRowIndex, 1).setValue(agentName);
@@ -297,11 +273,12 @@ function saveManagement(data) {
     const ss = SpreadsheetApp.openById('1zfjGtGb4H0ONasrAHNa1XdpnBNXfYVm-cPmUphjdOE4');
     const sheet = ss.getSheetByName('PQRSF');
 
-    // Columns: J: 10, K: 11, L: 12, M: 13 (1-based for getRange)
+    // Columns: J: 10, K: 11, L: 12, M: 13, N: 14 (1-based for getRange)
     sheet.getRange(data.rowId, 10).setValue(data.estado);
     sheet.getRange(data.rowId, 11).setValue(data.canal);
     sheet.getRange(data.rowId, 12).setValue(data.efectividad);
     sheet.getRange(data.rowId, 13).setValue(data.otraSolucion);
+    sheet.getRange(data.rowId, 14).setValue(data.seEncontro);
 
     // If there's an observation, we might want to store it somewhere.
     // The structure doesn't have an observation column explicitly mentioned for PQRSF sheet in the prompt
@@ -326,9 +303,29 @@ function generarRespuestaIA(prompt, tipo, metadata) {
     let systemPrompt = "Eres un asistente de servicio al cliente experto en People BPO. Tu tarea es convertir notas rápidas en una respuesta profesional, empática y formal.";
 
     if (tipo === 'PQRSF-RES') {
-      systemPrompt += ` Genera una respuesta de resolución de caso. Incluye el radicado ${metadata.radicado} y el nombre del cliente ${metadata.nombre}. Saluda formalmente. Firma como el equipo de People BPO.`;
+      systemPrompt += ` Genera una respuesta de resolución de caso. Usa este formato:
+
+      Hola [CLIENTE],
+
+      Le informamos que respecto a su radicado [RADICADO], hemos verificado que: [SOLUCION]
+
+      Cordialmente,
+      Equipo People BPO.
+
+      Sustituye [CLIENTE] por ${metadata.nombre}, [RADICADO] por ${metadata.radicado} y [SOLUCION] por una versión profesional de las notas del usuario.`;
     } else {
-      systemPrompt += ` Genera un mensaje informando que no se pudo contactar al cliente para el radicado ${metadata.radicado}. Indica que se volverá a intentar.`;
+      systemPrompt += ` Genera un mensaje de 'No Contesta'. Usa este formato:
+
+      Estimado(a) [CLIENTE],
+
+      Intentamos comunicarnos con usted respecto al radicado [RADICADO], sin embargo no fue posible establecer contacto. [NOTAS]
+
+      Realizaremos un nuevo intento más adelante.
+
+      Atentamente,
+      People BPO.
+
+      Sustituye [CLIENTE] por ${metadata.nombre}, [RADICADO] por ${metadata.radicado} y [NOTAS] por una versión profesional de por qué no contestó.`;
     }
 
     const payload = {
