@@ -362,6 +362,7 @@ function construirRespuestaFinal(tipo, data) {
     return {
       header: `RESPUESTA A SU PQRSF - RADICADO N.° ${radicado}`,
       body: `Cordial saludo,
+Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
 En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, se obtuvo el siguiente resultado:
 
