@@ -140,8 +140,18 @@
       .getPQRSFData();
   }
 
+  function getBogotaDateStr() {
+    // Retorna YYYY-MM-DD en el timezone de Colombia
+    return new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'America/Bogota',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    }).format(new Date());
+  }
+
   function updateAgentStats() {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getBogotaDateStr();
     const managedToday = allData.filter(d => d.asesor === currentUser.nombre && d.isManaged && d.recibidoPeople === todayStr).length;
     const pendingToComm = allData.filter(d => !d.estado || d.estado.trim() === "").length;
 
@@ -503,7 +513,7 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function renderKPIs() {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = getBogotaDateStr();
     const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
 
     const total = filteredData.length;

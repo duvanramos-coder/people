@@ -258,6 +258,11 @@ function saveManagement(data) {
     // Col A (1): Asesor
     sheet.getRange(data.rowId, 1).setValue(data.asesor || "Sistema");
 
+    // Col B (2): Fecha de Gestión (Recibido People)
+    // Usamos el timezone de Colombia (GMT-5) para consistencia
+    const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
+    sheet.getRange(data.rowId, 2).setValue(hoy);
+
     // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14
     sheet.getRange(data.rowId, 10).setValue(data.estado);
     sheet.getRange(data.rowId, 11).setValue(data.canal);
