@@ -127,6 +127,26 @@
     showView('loginView');
   }
 
+  function showNotification(type, title, message, btnText = 'Continuar') {
+    const modal = document.getElementById('notificationModal');
+    const iconDiv = document.getElementById('notifIcon');
+    const titleEl = document.getElementById('notifTitle');
+    const msgEl = document.getElementById('notifMessage');
+    const btn = modal.querySelector('.btn-notif-action');
+
+    iconDiv.className = 'notif-icon ' + type;
+    iconDiv.innerHTML = type === 'success' ? '✔️' : '❌';
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    btn.textContent = btnText;
+
+    modal.style.display = 'flex';
+  }
+
+  function closeNotification() {
+    document.getElementById('notificationModal').style.display = 'none';
+  }
+
   // --- Agent Portal Logic ---
   let activeCase = null;
 
@@ -174,14 +194,14 @@
           activeCase = res.data;
           showActiveCase();
         } else {
-          alert(res.message);
+          showNotification('error', 'Sin radicados', res.message);
         }
       })
       .withFailureHandler(err => {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
         lucide.createIcons();
-        alert("Error: " + err.message);
+        showNotification('error', 'Error Técnico', err.message);
       })
       .claimNextCase(currentUser.nombre);
   }
@@ -228,20 +248,20 @@
             lucide.createIcons();
             fetchAgentInitialData();
             resetManagement();
-            alert("¡Gestión guardada con éxito!");
+            showNotification('success', 'Gestión Exitosa', '¡La gestión se ha guardado con éxito!');
           }, 600);
         } else {
           btn.disabled = false;
           btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
           lucide.createIcons();
-          alert("Error: " + res.message);
+          showNotification('error', 'Error al guardar', res.message);
         }
       })
       .withFailureHandler(err => {
         btn.disabled = false;
         btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
         lucide.createIcons();
-        alert("Error de conexión: " + err.message);
+        showNotification('error', 'Error de Conexión', err.message);
       })
       .saveManagement(data);
   }
@@ -285,7 +305,7 @@
 
   function improveText(tipo) {
   if (!activeCase) {
-    alert("Debes tener un caso activo.");
+    showNotification('error', 'Acción denegada', 'Debes tener un caso activo.');
     return;
   }
 
@@ -306,7 +326,7 @@
     const prompt = document.getElementById('aiInput').value.trim();
 
     if (!prompt) {
-      alert("Escribe la solución.");
+      showNotification('error', 'Campo Requerido', 'Por favor escribe la solución.');
       headerBox.value = "";
       bodyBox.value = "";
       return;
@@ -338,7 +358,7 @@
   // 🔴 NO CONTACTO (NO USA IA)
   else if (tipo === "PQRSF-NC") {
     if (!correo) {
-      alert("Debes ingresar el correo.");
+      showNotification('error', 'Correo Faltante', 'Debes ingresar el correo del usuario.');
       headerBox.value = "";
       bodyBox.value = "";
       return;
@@ -410,7 +430,7 @@ Línea gratuita nacional: 01 8000 111 879`
     const el = document.getElementById(id);
     el.select();
     document.execCommand('copy');
-    alert("Copiado al portapapeles");
+    showNotification('success', 'Copiado', 'Contenido copiado al portapapeles.');
   }
 
   function fetchData() {
@@ -424,7 +444,7 @@ Línea gratuita nacional: 01 8000 111 879`
         toggleLoader(false);
       })
       .withFailureHandler(err => {
-        alert("Error al cargar datos: " + err.message);
+        showNotification('error', 'Error de Carga', err.message);
         toggleLoader(false);
       })
       .getPQRSFData();
@@ -558,13 +578,13 @@ Línea gratuita nacional: 01 8000 111 879`
 
   function ejecutarBusquedaAdmin() {
     const numero = document.getElementById('adminSearchInput').value.trim();
-    if (!numero) { alert('Ingrese un radicado'); return; }
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
     buscarYMostrarEditor(numero);
   }
 
   function ejecutarBusquedaAgente() {
     const numero = document.getElementById('agentSearchInput').value.trim();
-    if (!numero) { alert('Ingrese un radicado'); return; }
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
     buscarYMostrarEditor(numero);
   }
 
@@ -595,7 +615,7 @@ Línea gratuita nacional: 01 8000 111 879`
         if (res.success) {
           mostrarEditorRadicado(res.data);
         } else {
-          alert(res.message);
+          showNotification('error', 'No encontrado', res.message);
         }
       })
       .buscarRadicadoAdmin(numero);
@@ -693,7 +713,7 @@ Línea gratuita nacional: 01 8000 111 879`
           if(modal) {
             modal.classList.add('animate-success');
             setTimeout(() => {
-              alert('¡Información actualizada correctamente!');
+              showNotification('success', 'Actualización Exitosa', '¡Información actualizada correctamente!');
               cerrarModalAdmin();
 
               const adminInput = document.getElementById('adminSearchInput');
@@ -709,7 +729,7 @@ Línea gratuita nacional: 01 8000 111 879`
             }, 600);
           }
         } else {
-          alert('Error: ' + res.message);
+          showNotification('error', 'Error de Actualización', res.message);
         }
       })
       .actualizarRadicadoAdmin(data);

@@ -402,4 +402,71 @@
     background: var(--primary);
     transform: scale(1.02);
   }
+
+  /* Notification Modal Styles */
+  .notification-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 3rem 2rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: var(--shadow-premium);
+    animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    70% { transform: scale(0.9); opacity: 0.9; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .notif-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 2.5rem;
+  }
+
+  .notif-icon.success { background: #dcfce7; color: #16a34a; }
+  .notif-icon.error { background: #fef2f2; color: #dc2626; }
+
+  .notif-title {
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 800;
+    font-size: 1.5rem;
+    color: var(--primary-dark);
+    margin-bottom: 0.75rem;
+  }
+
+  .notif-message {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .btn-notif-action {
+    background: var(--primary-dark);
+    color: var(--white);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+  }
+
+  .btn-notif-action:hover {
+    background: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(30, 27, 51, 0.2);
+  }
 </style>
