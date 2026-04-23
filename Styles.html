@@ -343,4 +343,63 @@
   .premium-table th { text-align: left; padding: 1rem; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid var(--bg-main); }
   .premium-table td { padding: 1rem; font-size: 0.9rem; border-bottom: 1px solid #f1f5f9; }
   .premium-table tr:hover { background: #f8fafc; }
+
+  /* New Header Search Styles */
+  .header-search-container {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 2rem;
+  }
+
+  .search-input-group-premium {
+    display: flex;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 0.25rem 0.25rem 0.25rem 1.25rem;
+    transition: all 0.3s;
+    box-shadow: var(--shadow);
+  }
+
+  .search-input-group-premium:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .search-icon-inside {
+    color: var(--text-muted);
+    width: 20px;
+    height: 20px;
+  }
+
+  .search-input-premium {
+    flex: 1;
+    border: none;
+    background: none;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: var(--primary-dark);
+    outline: none;
+    width: 100%;
+  }
+
+  .btn-search-premium {
+    background: var(--primary-dark);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-search-premium:hover {
+    background: var(--primary);
+    transform: scale(1.02);
+  }
 </style>

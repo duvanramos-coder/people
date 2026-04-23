@@ -13,13 +13,6 @@
       <div id="nav-historial" class="nav-item" onclick="showAgentSection('historial')"><i data-lucide="history"></i> Historial</div>
     </nav>
 
-    <div class="sidebar-search" style="padding: 0 1.5rem; margin-top: 2rem;">
-      <label class="badge-label" style="color: var(--white); opacity: 0.6; display: block; margin-bottom: 0.5rem;">BUSCAR RADICADO</label>
-      <input type="text" id="agentSearchInput" placeholder="RAD-..." class="premium-input" style="padding: 0.75rem; font-size: 0.8rem; background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: var(--white); margin-bottom: 0.5rem;">
-      <button class="btn-ai-outline" onclick="ejecutarBusquedaAgente()" style="width: 100%; font-size: 0.75rem; background: var(--secondary); color: var(--primary-dark); border: none;">
-        <i data-lucide="search"></i> BUSCAR Y EDITAR
-      </button>
-    </div>
 
     <div class="sidebar-footer">
       <button class="btn-logout-minimal" onclick="handleLogout()">
@@ -33,6 +26,16 @@
       <div class="welcome-banner">
         <h2>¡Hola, <span id="agentName">...</span>!</h2>
         <p>Tienes radicados pendientes por comunicar.</p>
+      </div>
+
+      <div class="header-search-container">
+        <div class="search-input-group-premium">
+          <i data-lucide="search" class="search-icon-inside"></i>
+          <input type="text" id="agentSearchInput" placeholder="Buscar radicado para editar..." class="search-input-premium">
+          <button class="btn-search-premium" onclick="ejecutarBusquedaAgente()">
+            <span>BUSCAR Y EDITAR</span>
+          </button>
+        </div>
       </div>
 
       <div class="quick-stats-row">
