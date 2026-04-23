@@ -703,6 +703,11 @@ Línea gratuita nacional: 01 8000 111 879`
         </div>
       </div>
 
+      <div class="form-group mt-1">
+        <label>Observaciones (Opcional)</label>
+        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacion || ""}</textarea>
+      </div>
+
       <div class="form-footer-actions mt-1">
         <button class="btn-save-premium" onclick="guardarEdicionAdmin(${data.rowId})" style="width: 100%; justify-content: center;">
           <i data-lucide="refresh-cw"></i> ACTUALIZAR COMUNICACIÓN
@@ -723,7 +728,8 @@ Línea gratuita nacional: 01 8000 111 879`
       canal: document.getElementById('editCanal').value,
       efectividad: document.getElementById('editEfectividad').value,
       otraSolucion: document.getElementById('editOtraSolucion').value,
-      seEncontro: document.getElementById('editSeEncontro').value
+      seEncontro: document.getElementById('editSeEncontro').value,
+      observacion: document.getElementById('editObservacion').value
     };
 
     toggleLoader(true);

@@ -205,7 +205,8 @@ function buscarRadicadoAdmin(numero) {
             canal: String(row[10]),
             efectividad: String(row[11]),
             otraSolucion: String(row[12]),
-            seEncontro: String(row[13])
+            seEncontro: String(row[13]),
+            observacion: String(row[14] || "")
           }
         };
       }
@@ -227,6 +228,7 @@ function actualizarRadicadoAdmin(data) {
     sheet.getRange(rowId, 12).setValue(data.efectividad);
     sheet.getRange(rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(rowId, 14).setValue(data.seEncontro);
+    sheet.getRange(rowId, 15).setValue(data.observacion); // Columna O
 
     // Actualizar también la fecha de gestión al editar
     const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
@@ -343,12 +345,13 @@ function saveManagement(data) {
     const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
     sheet.getRange(data.rowId, 2).setValue(hoy);
 
-    // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14
+    // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14, O=15
     sheet.getRange(data.rowId, 10).setValue(data.estado);
     sheet.getRange(data.rowId, 11).setValue(data.canal);
     sheet.getRange(data.rowId, 12).setValue(data.efectividad);
     sheet.getRange(data.rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(data.rowId, 14).setValue(data.seEncontro);
+    sheet.getRange(data.rowId, 15).setValue(data.observacion); // Columna O
 
     if (data.emailContacto) {
       sheet.getRange(data.rowId, 8).setValue(data.emailContacto); // Col H
