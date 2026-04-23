@@ -153,8 +153,13 @@
               </div>
 
               <div class="form-group mt-1">
-                <label id="mgmtObservacionLabel">Observaciones / Solución</label>
-                <textarea id="mgmtObservacion" rows="3" placeholder="Describa brevemente la solución brindada..." class="premium-textarea"></textarea>
+                <label id="mgmtNotasLabel">Notas del intento (Automático)</label>
+                <textarea id="mgmtNotas" rows="3" readonly class="premium-textarea" style="background-color: var(--bg-main); color: var(--text-muted); cursor: not-allowed;"></textarea>
+              </div>
+
+              <div class="form-group mt-1">
+                <label>Observación adicional (Opcional)</label>
+                <textarea id="mgmtObservacionManual" rows="2" placeholder="Escriba aquí cualquier detalle adicional de la gestión..." class="premium-textarea"></textarea>
               </div>
 
               <div class="form-group id-contact-group" id="emailContactGroup" style="display: none;">

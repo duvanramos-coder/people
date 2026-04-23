@@ -231,7 +231,8 @@
       efectividad: document.getElementById('mgmtEfectividad').value,
       otraSolucion: document.getElementById('mgmtOtraSolucion').value,
       seEncontro: document.getElementById('mgmtSeEncontro').value,
-      observacion: document.getElementById('mgmtObservacion').value,
+      notas: document.getElementById('mgmtNotas').value,
+      observacionManual: document.getElementById('mgmtObservacionManual').value,
       emailContacto: document.getElementById('mgmtEmailContact').value
     };
 
@@ -301,27 +302,26 @@
     const estado = document.getElementById('mgmtEstado').value;
     const efectividad = document.getElementById('mgmtEfectividad').value;
     const emailGroup = document.getElementById('emailContactGroup');
-    const obsLabel = document.getElementById('mgmtObservacionLabel');
-    const obsTextarea = document.getElementById('mgmtObservacion');
+    const notasLabel = document.getElementById('mgmtNotasLabel');
+    const notasTextarea = document.getElementById('mgmtNotas');
 
     if (estado === 'No contesta') {
       emailGroup.style.display = 'block';
-      obsLabel.textContent = 'Notas del intento';
+      notasLabel.textContent = 'Notas del intento (Automático)';
 
       if (efectividad === 'No') {
-        obsTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario; por lo cual, queda sin lograr comunicación exitosa.";
+        notasTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario; por lo cual, queda sin lograr comunicación exitosa.";
       } else {
-        obsTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
+        notasTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
       }
     } else if (estado === 'Contactado') {
       emailGroup.style.display = 'none';
-      obsLabel.textContent = 'Observaciones / Solución';
-      obsTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud.";
+      notasLabel.textContent = 'Notas del intento (Automático)';
+      notasTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud.";
     } else {
       emailGroup.style.display = 'none';
-      obsLabel.textContent = 'Observaciones / Solución';
-      obsTextarea.value = "";
-      obsTextarea.placeholder = 'Describa brevemente la solución brindada...';
+      notasLabel.textContent = 'Notas del intento (Automático)';
+      notasTextarea.value = "";
     }
   }
 
@@ -705,7 +705,7 @@ Línea gratuita nacional: 01 8000 111 879`
 
       <div class="form-group mt-1">
         <label>Observaciones (Opcional)</label>
-        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacion || ""}</textarea>
+        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
       </div>
 
       <div class="form-footer-actions mt-1">
@@ -729,7 +729,7 @@ Línea gratuita nacional: 01 8000 111 879`
       efectividad: document.getElementById('editEfectividad').value,
       otraSolucion: document.getElementById('editOtraSolucion').value,
       seEncontro: document.getElementById('editSeEncontro').value,
-      observacion: document.getElementById('editObservacion').value
+      observacionManual: document.getElementById('editObservacion').value
     };
 
     toggleLoader(true);

@@ -177,6 +177,8 @@ function getPQRSFData() {
         efectividad: efectividad,
         requiereOtraSolucion: String(row[12] || ""),
         seEncontroPqrs: String(row[13] || ""),
+        observacionManual: String(row[14] || ""),
+        notas: String(row[15] || ""),
         isManaged: !!(estado !== "" && canal !== "" && efectividad !== "")
       };
     }).filter(r => r.radicado !== "");
@@ -206,7 +208,7 @@ function buscarRadicadoAdmin(numero) {
             efectividad: String(row[11]),
             otraSolucion: String(row[12]),
             seEncontro: String(row[13]),
-            observacion: String(row[14] || "")
+            observacionManual: String(row[14] || "")
           }
         };
       }
@@ -228,7 +230,7 @@ function actualizarRadicadoAdmin(data) {
     sheet.getRange(rowId, 12).setValue(data.efectividad);
     sheet.getRange(rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(rowId, 14).setValue(data.seEncontro);
-    sheet.getRange(rowId, 15).setValue(data.observacion); // Columna O
+    sheet.getRange(rowId, 15).setValue(data.observacionManual); // Columna O
 
     // Actualizar también la fecha de gestión al editar
     const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
@@ -345,13 +347,14 @@ function saveManagement(data) {
     const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
     sheet.getRange(data.rowId, 2).setValue(hoy);
 
-    // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14, O=15
+    // Mapeo exacto de columnas: J=10, K=11, L=12, M=13, N=14, O=15, P=16
     sheet.getRange(data.rowId, 10).setValue(data.estado);
     sheet.getRange(data.rowId, 11).setValue(data.canal);
     sheet.getRange(data.rowId, 12).setValue(data.efectividad);
     sheet.getRange(data.rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(data.rowId, 14).setValue(data.seEncontro);
-    sheet.getRange(data.rowId, 15).setValue(data.observacion); // Columna O
+    sheet.getRange(data.rowId, 15).setValue(data.observacionManual); // Columna O
+    sheet.getRange(data.rowId, 16).setValue(data.notas);            // Columna P
 
     if (data.emailContacto) {
       sheet.getRange(data.rowId, 8).setValue(data.emailContacto); // Col H
@@ -374,25 +377,17 @@ function generarRespuestaIA(prompt, metadata) {
     const API_KEY = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
 
     if (!API_KEY) {
-      return { success: false, message: 'API KEY no configurada' };
+      return { success: false, message: 'API KEY no configurada en Propiedades del Script.' };
     }
 
-    let systemPrompt = `
-Eres un asistente de redacción para PQRSF de COFREM.
-
+    const systemPrompt = `Eres un asistente de redacción para PQRSF de COFREM.
 Tu tarea es mejorar y formalizar el texto proporcionado por el agente.
-
 REGLAS:
 - NO incluyas saludos (ni "Cordial saludo", ni nada similar)
-- NO incluyas firma
-- NO incluyas teléfonos
-- NO incluyas despedida larga
-- NO menciones el radicado
+- NO incluyas firma ni despedida
+- NO incluyas teléfonos ni menciones el radicado
 - Mantén un tono formal, claro y empático
-- Mantén la intención original del mensaje
-
-Devuelve únicamente el cuerpo del mensaje.
-`;
+Devuelve únicamente el cuerpo del mensaje mejorado.`;
 
     const payload = {
       model: "gpt-4o-mini",
@@ -413,33 +408,31 @@ Devuelve únicamente el cuerpo del mensaje.
 
     const response = UrlFetchApp.fetch("https://api.openai.com/v1/chat/completions", options);
     const responseCode = response.getResponseCode();
-const body = response.getContentText();
-const json = JSON.parse(body);
+    const body = response.getContentText();
 
-// 🔴 Si la API falla
-if (responseCode !== 200) {
-  return {
-    success: true,
-    text: prompt,
-    fuente: "fallback"
-  };
-}
+    let json;
+    try {
+      json = JSON.parse(body);
+    } catch (e) {
+      return { success: true, text: prompt, source: "error_parse" };
+    }
 
-// 🟢 Si responde bien
-if (json.choices && json.choices.length > 0) {
-  return {
-    success: true,
-    text: json.choices[0].message.content.trim()
-  };
-}
+    if (responseCode !== 200) {
+      console.error("OpenAI Error: " + body);
+      return { success: true, text: prompt, source: "fallback_api_error" };
+    }
 
-// 🟡 fallback final
-return {
-  success: true,
-  text: prompt
-};
+    if (json.choices && json.choices.length > 0 && json.choices[0].message) {
+      return {
+        success: true,
+        text: json.choices[0].message.content.trim()
+      };
+    }
+
+    return { success: true, text: prompt, source: "fallback_no_choices" };
 
   } catch (e) {
+    console.error("Error en generarRespuestaIA: " + e.message);
     return { success: false, message: e.message };
   }
 }
