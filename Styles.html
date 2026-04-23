@@ -67,6 +67,58 @@
     margin-top: 1rem;
   }
 
+  /* Modal Styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal-content {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    width: 90%;
+    max-width: 600px;
+    padding: 2rem;
+    box-shadow: var(--shadow-premium);
+    position: relative;
+    animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1rem;
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+    color: var(--primary-dark);
+    margin: 0;
+  }
+
+  .btn-close-modal {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1.25rem;
+    transition: color 0.2s;
+  }
+
+  .btn-close-modal:hover {
+    color: var(--error);
+  }
+
   .login-brand { margin-bottom: 2.5rem; }
   .logo-shield {
     background-color: var(--secondary);

@@ -75,19 +75,6 @@
 
     <div class="dashboard-main-columns">
       <section class="charts-column">
-        <div class="admin-search-panel card-premium" style="margin-bottom: 2rem;">
-          <div class="panel-header"><h3><i data-lucide="search"></i> Buscar y Editar Radicado</h3></div>
-          <div class="admin-search-input-group">
-            <input type="text" id="adminSearchInput" placeholder="Ingrese número de radicado..." class="premium-input" style="padding-left: 1rem;">
-            <button class="btn-action-premium" onclick="ejecutarBusquedaAdmin()">
-              <i data-lucide="search"></i> Buscar
-            </button>
-          </div>
-          <div id="adminEditContainer" class="admin-edit-form" style="display:none; margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-main); border-radius: 18px;">
-            <!-- Formulario de edición dinámico -->
-          </div>
-        </div>
-
         <div class="filters-panel-premium card-premium">
           <div class="panel-header"><h3><i data-lucide="sliders-horizontal"></i> Filtros Estratégicos</h3></div>
           <div class="filter-controls-grid">
@@ -107,6 +94,17 @@
       </section>
 
       <aside class="insights-column">
+        <div class="admin-search-panel card-premium" style="margin-bottom: 1.5rem;">
+          <div class="panel-header"><h3><i data-lucide="search"></i> Buscar Radicado</h3></div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Encuentre y edite gestiones por número de radicado.</p>
+          <div class="admin-search-input-group" style="flex-direction: column;">
+            <input type="text" id="adminSearchInput" placeholder="RAD-00000..." class="premium-input" style="padding-left: 1rem; margin-bottom: 0.5rem;">
+            <button class="btn-action-premium" onclick="ejecutarBusquedaAdmin()" style="width: 100%; justify-content: center;">
+              <i data-lucide="search"></i> BUSCAR Y EDITAR
+            </button>
+          </div>
+        </div>
+
         <div class="online-agents-panel card-premium" style="margin-bottom: 1.5rem;">
           <div class="panel-header"><h3><i data-lucide="users"></i> Agentes en Línea</h3></div>
           <div id="onlineAgentsContainer" class="ranking-content"></div>
@@ -158,4 +156,17 @@
       </div>
     </section>
   </main>
+
+  <!-- Modal de Edición de Radicado -->
+  <div id="adminEditModal" class="modal-overlay" style="display: none;">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3><i data-lucide="edit-3"></i> Editar Comunicación</h3>
+        <button class="btn-close-modal" onclick="cerrarModalAdmin()"><i data-lucide="x"></i></button>
+      </div>
+      <div id="adminEditModalBody" class="modal-body">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
 </div>
