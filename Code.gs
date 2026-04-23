@@ -185,6 +185,55 @@ function getPQRSFData() {
   }
 }
 
+function buscarRadicadoAdmin(numero) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][2]).trim() === String(numero).trim()) {
+        const row = data[i];
+        return {
+          success: true,
+          data: {
+            rowId: i + 1,
+            radicado: String(row[2]),
+            nombre: String(row[5]),
+            asesor: String(row[0]),
+            estado: String(row[9]),
+            canal: String(row[10]),
+            efectividad: String(row[11]),
+            otraSolucion: String(row[12]),
+            seEncontro: String(row[13])
+          }
+        };
+      }
+    }
+    return { success: false, message: 'Radicado no encontrado' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
+function actualizarRadicadoAdmin(data) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+
+    const rowId = data.rowId;
+    sheet.getRange(rowId, 10).setValue(data.estado);
+    sheet.getRange(rowId, 11).setValue(data.canal);
+    sheet.getRange(rowId, 12).setValue(data.efectividad);
+    sheet.getRange(rowId, 13).setValue(data.otraSolucion);
+    sheet.getRange(rowId, 14).setValue(data.seEncontro);
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
 /**
  * -------------------------------------------------------------------------
  * PORTAL DE AGENTE: RECLAMAR Y GUARDAR

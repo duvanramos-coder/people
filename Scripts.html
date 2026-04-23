@@ -512,6 +512,117 @@ Línea gratuita nacional: 01 8000 111 879`
       .obtenerAgentesConectados();
   }
 
+  function ejecutarBusquedaAdmin() {
+    const numero = document.getElementById('adminSearchInput').value.trim();
+    if (!numero) { alert('Ingrese un radicado'); return; }
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          mostrarEditorRadicado(res.data);
+        } else {
+          alert(res.message);
+          document.getElementById('adminEditContainer').style.display = 'none';
+        }
+      })
+      .buscarRadicadoAdmin(numero);
+  }
+
+  function mostrarEditorRadicado(data) {
+    const container = document.getElementById('adminEditContainer');
+    container.style.display = 'block';
+
+    container.innerHTML = `
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom: 1.5rem;">
+        <div>
+          <label style="font-size:0.7rem; font-weight:800; color:var(--text-muted);">USUARIO</label>
+          <p style="font-weight:700;">${data.nombre}</p>
+        </div>
+        <div>
+          <label style="font-size:0.7rem; font-weight:800; color:var(--text-muted);">ASESOR ORIGINAL</label>
+          <p style="font-weight:700;">${data.asesor || 'Sin asignar'}</p>
+        </div>
+      </div>
+
+      <div class="input-row-grid" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="form-group">
+          <label>Estado de Gestión</label>
+          <select id="editEstado" class="premium-select" style="padding-left: 1rem;">
+            <option value="Contactado" ${data.estado === 'Contactado' ? 'selected' : ''}>Contactado</option>
+            <option value="No contesta" ${data.estado === 'No contesta' ? 'selected' : ''}>No contesta</option>
+            <option value="Corte de llamada" ${data.estado === 'Corte de llamada' ? 'selected' : ''}>Corte de llamada</option>
+            <option value="Equivocado" ${data.estado === 'Equivocado' ? 'selected' : ''}>Equivocado</option>
+            <option value="Fuera de servicio" ${data.estado === 'Fuera de servicio' ? 'selected' : ''}>Fuera de servicio</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Canal</label>
+          <select id="editCanal" class="premium-select" style="padding-left: 1rem;">
+            <option value="Llamada" ${data.canal === 'Llamada' ? 'selected' : ''}>Llamada</option>
+            <option value="Correo" ${data.canal === 'Correo' ? 'selected' : ''}>Correo</option>
+            <option value="Solución incorrecta" ${data.canal === 'Solución incorrecta' ? 'selected' : ''}>Solución incorrecta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Fue efectivo?</label>
+          <select id="editEfectividad" class="premium-select" style="padding-left: 1rem;">
+            <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
+            <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Requiere otra solución?</label>
+          <select id="editOtraSolucion" class="premium-select" style="padding-left: 1rem;">
+            <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
+            <option value="No" ${data.otraSolucion === 'No' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Se encontró PQRS?</label>
+          <select id="editSeEncontro" class="premium-select" style="padding-left: 1rem;">
+            <option value="SI" ${data.seEncontro === 'SI' ? 'selected' : ''}>SI</option>
+            <option value="NO" ${data.seEncontro === 'NO' ? 'selected' : ''}>NO</option>
+          </select>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.5rem; text-align: right;">
+        <button class="btn-save-premium" onclick="guardarEdicionAdmin(${data.rowId})">
+          <i data-lucide="refresh-cw"></i> Actualizar Comunicación
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function guardarEdicionAdmin(rowId) {
+    const data = {
+      rowId: rowId,
+      estado: document.getElementById('editEstado').value,
+      canal: document.getElementById('editCanal').value,
+      efectividad: document.getElementById('editEfectividad').value,
+      otraSolucion: document.getElementById('editOtraSolucion').value,
+      seEncontro: document.getElementById('editSeEncontro').value
+    };
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          alert('Información actualizada correctamente');
+          document.getElementById('adminEditContainer').style.display = 'none';
+          document.getElementById('adminSearchInput').value = '';
+          fetchData(); // Recargar dashboard
+        } else {
+          alert('Error: ' + res.message);
+        }
+      })
+      .actualizarRadicadoAdmin(data);
+  }
+
   function renderKPIs() {
     const todayStr = getBogotaDateStr();
     const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;

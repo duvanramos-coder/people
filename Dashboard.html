@@ -75,6 +75,19 @@
 
     <div class="dashboard-main-columns">
       <section class="charts-column">
+        <div class="admin-search-panel card-premium" style="margin-bottom: 2rem;">
+          <div class="panel-header"><h3><i data-lucide="search"></i> Buscar y Editar Radicado</h3></div>
+          <div class="admin-search-input-group">
+            <input type="text" id="adminSearchInput" placeholder="Ingrese número de radicado..." class="premium-input" style="padding-left: 1rem;">
+            <button class="btn-action-premium" onclick="ejecutarBusquedaAdmin()">
+              <i data-lucide="search"></i> Buscar
+            </button>
+          </div>
+          <div id="adminEditContainer" class="admin-edit-form" style="display:none; margin-top: 1.5rem; padding: 1.5rem; background: var(--bg-main); border-radius: 18px;">
+            <!-- Formulario de edición dinámico -->
+          </div>
+        </div>
+
         <div class="filters-panel-premium card-premium">
           <div class="panel-header"><h3><i data-lucide="sliders-horizontal"></i> Filtros Estratégicos</h3></div>
           <div class="filter-controls-grid">
