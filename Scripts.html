@@ -305,7 +305,7 @@
     const notasLabel = document.getElementById('mgmtNotasLabel');
     const notasTextarea = document.getElementById('mgmtNotas');
 
-    if (estado === 'No contesta') {
+    if (estado === 'No contesta' || estado === 'Corte de llamada') {
       emailGroup.style.display = 'block';
       notasLabel.textContent = 'Notas del intento (Automático)';
 
