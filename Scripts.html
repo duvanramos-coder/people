@@ -515,7 +515,16 @@ Línea gratuita nacional: 01 8000 111 879`
   function ejecutarBusquedaAdmin() {
     const numero = document.getElementById('adminSearchInput').value.trim();
     if (!numero) { alert('Ingrese un radicado'); return; }
+    buscarYMostrarEditor(numero);
+  }
 
+  function ejecutarBusquedaAgente() {
+    const numero = document.getElementById('agentSearchInput').value.trim();
+    if (!numero) { alert('Ingrese un radicado'); return; }
+    buscarYMostrarEditor(numero);
+  }
+
+  function buscarYMostrarEditor(numero) {
     toggleLoader(true);
     google.script.run
       .withSuccessHandler(res => {
@@ -618,8 +627,19 @@ Línea gratuita nacional: 01 8000 111 879`
         if (res.success) {
           alert('Información actualizada correctamente');
           cerrarModalAdmin();
-          document.getElementById('adminSearchInput').value = '';
-          fetchData(); // Recargar dashboard
+
+          // Limpiar inputs de búsqueda
+          const adminInput = document.getElementById('adminSearchInput');
+          if (adminInput) adminInput.value = '';
+          const agentInput = document.getElementById('agentSearchInput');
+          if (agentInput) agentInput.value = '';
+
+          // Recargar datos según el rol
+          if (currentUser.role === 'admin') {
+            fetchData();
+          } else {
+            fetchAgentInitialData();
+          }
         } else {
           alert('Error: ' + res.message);
         }

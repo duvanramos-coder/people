@@ -24,6 +24,19 @@
       </div>
     </div>
 
+    <!-- Modal de Edición Global -->
+    <div id="adminEditModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content glass">
+        <div class="modal-header">
+          <h3><i data-lucide="edit-3"></i> Editar Comunicación</h3>
+          <button class="btn-close-modal" onclick="cerrarModalAdmin()"><i data-lucide="x"></i></button>
+        </div>
+        <div id="adminEditModalBody" class="modal-body">
+          <!-- Contenido dinámico -->
+        </div>
+      </div>
+    </div>
+
     <?!= include('Scripts'); ?>
   </body>
 </html>
