@@ -440,6 +440,18 @@ return {
     return { success: false, message: e.message };
   }
 }
+
+function liberarRadicado(rowId) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    // Limpiar asesor (Col A)
+    sheet.getRange(rowId, 1).clearContent();
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
 function construirRespuestaFinal(tipo, data) {
   const { radicado, agente, cuerpoIA, correo } = data;
 

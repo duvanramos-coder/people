@@ -275,6 +275,28 @@
     document.getElementById('aiOutputContainer').style.display = 'none';
   }
 
+  function liberarRadicadoActivo() {
+    if (!activeCase) return;
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showNotification('success', 'Radicado Liberado', 'El radicado ha sido liberado y está disponible para otros asesores.');
+          resetManagement();
+          fetchAgentInitialData(); // Actualizar stats
+        } else {
+          showNotification('error', 'Error al liberar', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        showNotification('error', 'Error de conexión', err.message);
+      })
+      .liberarRadicado(activeCase.rowId);
+  }
+
   function toggleMgmtFields() {
     const estado = document.getElementById('mgmtEstado').value;
     const efectividad = document.getElementById('mgmtEfectividad').value;
