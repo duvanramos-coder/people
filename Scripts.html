@@ -202,6 +202,7 @@
   function saveManagement(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSaveMgmt');
+    const card = document.querySelector('.active-case-view');
     const data = {
       rowId: activeCase.rowId,
       asesor: currentUser.nombre,
@@ -215,19 +216,24 @@
     };
 
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Guardando...';
+    btn.innerHTML = '<span class="spinner-sm"></span> PROCESANDO...';
 
     google.script.run
       .withSuccessHandler(res => {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-        lucide.createIcons();
-
         if (res.success) {
-          fetchAgentInitialData();
-          resetManagement();
-          alert("Gestión guardada con éxito.");
+          if(card) card.classList.add('animate-success');
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+            lucide.createIcons();
+            fetchAgentInitialData();
+            resetManagement();
+            alert("¡Gestión guardada con éxito!");
+          }, 600);
         } else {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+          lucide.createIcons();
           alert("Error: " + res.message);
         }
       })
@@ -512,6 +518,44 @@ Línea gratuita nacional: 01 8000 111 879`
       .obtenerAgentesConectados();
   }
 
+  function showAgentSection(section) {
+    document.querySelectorAll('.agent-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+
+    document.getElementById('agent-section-' + section).style.display = section === 'gestion' ? 'grid' : 'block';
+    document.getElementById('nav-' + section).classList.add('active');
+
+    if (section === 'historial') {
+      cargarHistorialAsesor();
+    }
+    lucide.createIcons();
+  }
+
+  function cargarHistorialAsesor() {
+    const tbody = document.getElementById('agentHistoryBody');
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Cargando historial...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(history => {
+        if (history.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">No has realizado gestiones aún.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = history.map(h => `
+          <tr class="fade-in">
+            <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
+            <td style="padding:1rem;">${h.nombre}</td>
+            <td style="padding:1rem;">${h.fecha}</td>
+            <td style="padding:1rem;"><span class="status-pill ${getStatusClass(h.estado)}">${h.estado}</span></td>
+            <td style="padding:1rem;">${h.canal}</td>
+            <td style="padding:1rem;"><span class="status-pill ${h.efectividad.toLowerCase() === 'si' ? 'green' : 'red'}">${h.efectividad}</span></td>
+          </tr>
+        `).join('');
+      })
+      .obtenerHistorialAsesor(currentUser.nombre);
+  }
+
   function ejecutarBusquedaAdmin() {
     const numero = document.getElementById('adminSearchInput').value.trim();
     if (!numero) { alert('Ingrese un radicado'); return; }
@@ -525,6 +569,25 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function buscarYMostrarEditor(numero) {
+    // Optimización: buscar primero en local si los datos están cargados
+    if (allData.length > 0) {
+      const found = allData.find(d => String(d.radicado).trim() === String(numero).trim());
+      if (found) {
+        mostrarEditorRadicado({
+          rowId: found.id,
+          radicado: found.radicado,
+          nombre: found.nombre,
+          asesor: found.asesor,
+          estado: found.estado,
+          canal: found.canal,
+          efectividad: found.efectividad,
+          otraSolucion: found.requiereOtraSolucion,
+          seEncontro: found.seEncontroPqrs
+        });
+        return;
+      }
+    }
+
     toggleLoader(true);
     google.script.run
       .withSuccessHandler(res => {
@@ -571,6 +634,7 @@ Línea gratuita nacional: 01 8000 111 879`
           <select id="editCanal" class="premium-select" style="padding-left: 1rem;">
             <option value="Llamada" ${data.canal === 'Llamada' ? 'selected' : ''}>Llamada</option>
             <option value="Correo" ${data.canal === 'Correo' ? 'selected' : ''}>Correo</option>
+            <option value="Web" ${data.canal === 'Web' ? 'selected' : ''}>Web</option>
             <option value="Solución incorrecta" ${data.canal === 'Solución incorrecta' ? 'selected' : ''}>Solución incorrecta</option>
           </select>
         </div>
@@ -625,20 +689,24 @@ Línea gratuita nacional: 01 8000 111 879`
       .withSuccessHandler(res => {
         toggleLoader(false);
         if (res.success) {
-          alert('Información actualizada correctamente');
-          cerrarModalAdmin();
+          const modal = document.querySelector('.modal-content');
+          if(modal) {
+            modal.classList.add('animate-success');
+            setTimeout(() => {
+              alert('¡Información actualizada correctamente!');
+              cerrarModalAdmin();
 
-          // Limpiar inputs de búsqueda
-          const adminInput = document.getElementById('adminSearchInput');
-          if (adminInput) adminInput.value = '';
-          const agentInput = document.getElementById('agentSearchInput');
-          if (agentInput) agentInput.value = '';
+              const adminInput = document.getElementById('adminSearchInput');
+              if (adminInput) adminInput.value = '';
+              const agentInput = document.getElementById('agentSearchInput');
+              if (agentInput) agentInput.value = '';
 
-          // Recargar datos según el rol
-          if (currentUser.role === 'admin') {
-            fetchData();
-          } else {
-            fetchAgentInitialData();
+              if (currentUser.role === 'admin') {
+                fetchData();
+              } else {
+                fetchAgentInitialData();
+              }
+            }, 600);
           }
         } else {
           alert('Error: ' + res.message);

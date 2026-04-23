@@ -228,9 +228,40 @@ function actualizarRadicadoAdmin(data) {
     sheet.getRange(rowId, 13).setValue(data.otraSolucion);
     sheet.getRange(rowId, 14).setValue(data.seEncontro);
 
+    // Actualizar también la fecha de gestión al editar
+    const hoy = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
+    sheet.getRange(rowId, 2).setValue(hoy);
+
     return { success: true };
   } catch (e) {
     return { success: false, message: e.message };
+  }
+}
+
+function obtenerHistorialAsesor(nombreAsesor) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    const data = sheet.getDataRange().getValues();
+
+    // Filtrar por asesor y que esté gestionado, devolver los últimos 20
+    const historial = data.slice(1)
+      .filter(r => String(r[0]).trim().toLowerCase() === nombreAsesor.trim().toLowerCase() && String(r[9]).trim() !== "")
+      .reverse()
+      .slice(0, 20)
+      .map(r => ({
+        radicado: String(r[2]),
+        nombre: String(r[5]),
+        fecha: r[1] instanceof Date ? Utilities.formatDate(r[1], "GMT-5", "dd/MM/yyyy") : String(r[1]),
+        estado: String(r[9]),
+        canal: String(r[10]),
+        efectividad: String(r[11])
+      }));
+
+    return historial;
+  } catch (e) {
+    console.error("Error en obtenerHistorialAsesor: " + e.message);
+    return [];
   }
 }
 
