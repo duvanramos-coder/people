@@ -242,6 +242,27 @@ function actualizarRadicadoAdmin(data) {
   }
 }
 
+function obtenerAsignadosAsesor(nombreAsesor) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    const data = sheet.getDataRange().getValues();
+
+    // Filtrar por asesor y que NO esté gestionado (Estado vacío en Col J / 9)
+    return data.slice(1)
+      .filter(r => String(r[0]).trim().toLowerCase() === nombreAsesor.trim().toLowerCase() && String(r[9]).trim() === "")
+      .map(r => ({
+        radicado: String(r[2]),
+        nombre: String(r[5]),
+        empresa: String(r[8]),
+        fecha: r[3] instanceof Date ? Utilities.formatDate(r[3], "GMT-5", "dd/MM/yyyy") : String(r[3])
+      }));
+  } catch (e) {
+    console.error("Error en obtenerAsignadosAsesor: " + e.message);
+    return [];
+  }
+}
+
 function obtenerHistorialAsesor(nombreAsesor) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);

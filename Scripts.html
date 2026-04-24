@@ -8,6 +8,8 @@
   let currentUser = null;
   let heartbeatInterval = null;
   let onlineAgentsPolling = null;
+  let assignedCheckInterval = null;
+  let lastAssignedCount = 0;
 
   // Page initialization
   document.addEventListener('DOMContentLoaded', () => {
@@ -111,10 +113,36 @@
       showView('adminView');
       fetchData();
       startOnlineAgentsPolling();
+      if(assignedCheckInterval) clearInterval(assignedCheckInterval);
     } else {
       showView('agentView');
       fetchAgentInitialData();
+      startAssignedPolling();
     }
+  }
+
+  function startAssignedPolling() {
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    assignedCheckInterval = setInterval(() => {
+      google.script.run
+        .withSuccessHandler(assigned => {
+          const badge = document.getElementById('assignedCountBadge');
+          const currentCount = assigned.length;
+
+          if (currentCount > 0) {
+            badge.textContent = currentCount;
+            badge.style.display = 'inline-block';
+
+            if (currentCount > lastAssignedCount) {
+               showNotification('success', 'Nuevo Radicado', `Se te ha asignado ${currentCount - lastAssignedCount} nuevo(s) radicado(s). Revisa la pestaña "Asignados".`);
+            }
+          } else {
+            badge.style.display = 'none';
+          }
+          lastAssignedCount = currentCount;
+        })
+        .obtenerAsignadosAsesor(currentUser.nombre);
+    }, 60000); // Revisar cada minuto
   }
 
   function showView(viewId) {
@@ -136,6 +164,7 @@
     localStorage.removeItem('pqrsf_session');
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
     currentUser = null;
     activeCase = null;
     showView('loginView');
@@ -170,6 +199,7 @@
       .withSuccessHandler(data => {
         allData = data;
         updateAgentStats();
+        cargarAsignadosAsesor(true); // Actualizar badge silenciosamente
       })
       .getPQRSFData();
   }
@@ -583,8 +613,61 @@ Línea gratuita nacional: 01 8000 111 879`
 
     if (section === 'historial') {
       cargarHistorialAsesor();
+    } else if (section === 'asignados') {
+      cargarAsignadosAsesor();
     }
     lucide.createIcons();
+  }
+
+  function cargarAsignadosAsesor(silent = false) {
+    const tbody = document.getElementById('agentAssignedBody');
+    const badge = document.getElementById('assignedCountBadge');
+    if(!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Buscando asignados...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(assigned => {
+        if (assigned.length === 0) {
+          if(!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center">No tienes radicados asignados pendientes.</td></tr>';
+          badge.style.display = 'none';
+          return;
+        }
+
+        badge.textContent = assigned.length;
+        badge.style.display = 'inline-block';
+
+        if(!silent) {
+          tbody.innerHTML = assigned.map(h => `
+            <tr class="fade-in">
+              <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
+              <td style="padding:1rem;">${h.nombre}</td>
+              <td style="padding:1rem;">${h.empresa}</td>
+              <td style="padding:1rem;">${h.fecha}</td>
+              <td style="padding:1rem;">
+                 <button class="btn-search-premium" onclick="gestionarAsignado('${h.radicado}')" style="padding: 0.4rem 0.8rem; font-size: 0.7rem;">
+                   GESTIONAR
+                 </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      })
+      .obtenerAsignadosAsesor(currentUser.nombre);
+  }
+
+  function gestionarAsignado(radicado) {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          activeCase = res.data;
+          showAgentSection('gestion');
+          showActiveCase();
+        } else {
+          showNotification('error', 'Error', res.message);
+        }
+      })
+      .buscarRadicadoAdmin(radicado); // Reutilizamos búsqueda para traer data completa
   }
 
   function cargarHistorialAsesor() {
