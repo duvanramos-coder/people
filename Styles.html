@@ -1,99 +1,110 @@
 <style>
   :root {
-    --primary: #2B234F;
+    --primary: #7C3AED; /* Purple from image */
     --accent: #CCFF00;
-    --bg-main: #F8FAFB;
-    --bg-card: rgba(255, 255, 255, 0.8);
-    --text-main: #1A1D23;
-    --text-muted: #64748B;
-    --glass-border: rgba(255, 255, 255, 0.3);
-    --shadow-soft: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --bg-sidebar: #FFFFFF;
+    --bg-main: #F8F9FB;
+    --text-main: #1F2937;
+    --text-muted: #6B7280;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
 
   body {
     font-family: 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
     background-color: var(--bg-main);
     color: var(--text-main);
+    margin: 0;
   }
 
-  /* Glassmorphism utility */
-  .glass {
-    background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-soft);
-  }
-
-  .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
+  /* Remove all italics */
+  h1, h2, h3, h4, h5, p, span, button, input, div { font-style: normal !important; }
+
+  /* Course Card Refinement */
   .course-card {
-    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: white;
+    border-radius: 1.5rem;
+    transition: all 0.3s ease;
+    border: 1px solid #F3F4F6;
   }
   .course-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 40px rgba(43, 35, 79, 0.1);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
   }
 
   /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: #E2E8F0;
-    border-radius: 20px;
-  }
-  ::-webkit-scrollbar-thumb:hover { background: #CBD5E1; }
-
-  /* Input & Button Refinements */
-  input {
-    transition: all 0.3s ease;
-    border: 2px solid transparent !important;
-  }
-  input:focus {
-    border-color: var(--primary) !important;
-    background: white !important;
-    box-shadow: 0 0 0 4px rgba(43, 35, 79, 0.05);
+    background: #E5E7EB;
+    border-radius: 10px;
   }
 
-  .btn-primary {
+  /* Banner Gradient */
+  .banner-gradient {
+    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+  }
+
+  /* Circular Progress */
+  .profile-ring {
     position: relative;
-    overflow: hidden;
-    transition: all 0.3s ease;
+    width: 100px;
+    height: 100px;
   }
-  .btn-primary:after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 300%;
-    height: 300%;
-    background: rgba(255,255,255,0.1);
-    transform: translate(-50%, -50%) rotate(45deg) translateY(100%);
-    transition: transform 0.6s ease;
+  .profile-ring svg {
+    transform: rotate(-90deg);
   }
-  .btn-primary:hover:after {
-    transform: translate(-50%, -50%) rotate(45deg) translateY(0);
+  .profile-ring circle {
+    fill: none;
+    stroke-width: 6;
+    stroke-linecap: round;
   }
-
-  /* Remove generic bold */
-  .font-black { font-weight: 800 !important; }
-  .font-extrabold { font-weight: 700 !important; }
-  .font-bold { font-weight: 600 !important; }
-  .font-medium { font-weight: 500 !important; }
-
-  /* Progress bar glow */
-  #barraProgreso {
-    box-shadow: 0 0 15px rgba(204, 255, 0, 0.4);
+  .profile-ring .bg { stroke: #F3F4F6; }
+  .profile-ring .progress {
+    stroke: var(--primary);
+    stroke-dasharray: 283;
+    stroke-dashoffset: 70; /* Example */
+    transition: stroke-dashoffset 1s ease-out;
   }
 
-  /* Selection style */
-  ::selection {
-    background: var(--accent);
+  /* Sidebar Links */
+  .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    color: #9CA3AF;
+    font-weight: 600;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .nav-link:hover {
+    background: #F5F3FF;
     color: var(--primary);
+  }
+  .nav-link.active {
+    background: #F5F3FF;
+    color: var(--primary);
+  }
+
+  /* Buttons */
+  .btn-primary {
+    background: var(--primary);
+    color: white;
+    font-weight: 700;
+    transition: all 0.2s;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: scale(1.02);
   }
 </style>
