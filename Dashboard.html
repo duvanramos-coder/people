@@ -105,6 +105,18 @@
           </div>
         </div>
 
+        <div class="assignment-panel card-premium" style="margin-bottom: 1.5rem;">
+          <div class="panel-header"><h3><i data-lucide="user-plus"></i> Asignar Radicado</h3></div>
+          <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">Asigne un radicado específico a un asesor.</p>
+          <div class="admin-search-input-group" style="flex-direction: column;">
+            <select id="assignAgentSelect" class="premium-select" style="margin-bottom: 0.5rem;"></select>
+            <input type="text" id="assignRadicadoInput" placeholder="Número de radicado..." class="premium-input" style="padding-left: 1rem; margin-bottom: 0.5rem;">
+            <button class="btn-action-premium" onclick="ejecutarAsignacion()" style="width: 100%; justify-content: center;">
+              <i data-lucide="check-circle"></i> ASIGNAR AHORA
+            </button>
+          </div>
+        </div>
+
         <div class="online-agents-panel card-premium" style="margin-bottom: 1.5rem;">
           <div class="panel-header"><h3><i data-lucide="users"></i> Agentes en Línea</h3></div>
           <div id="onlineAgentsContainer" class="ranking-content"></div>

@@ -43,15 +43,29 @@
   function loadLoginUsers() {
     google.script.run
       .withSuccessHandler(users => {
-        const select = document.getElementById('agentSelect');
-        if (!select) return;
-        select.innerHTML = '<option value="" disabled selected>Selecciona tu perfil...</option>';
-        users.forEach(u => {
-          const opt = document.createElement('option');
-          opt.value = u.nombre;
-          opt.textContent = u.nombre;
-          select.appendChild(opt);
-        });
+        // 1. Dropdown de login
+        const selectLogin = document.getElementById('agentSelect');
+        if (selectLogin) {
+          selectLogin.innerHTML = '<option value="" disabled selected>Selecciona tu perfil...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectLogin.appendChild(opt);
+          });
+        }
+
+        // 2. Dropdown de asignación (Admin)
+        const selectAssign = document.getElementById('assignAgentSelect');
+        if (selectAssign) {
+          selectAssign.innerHTML = '<option value="" disabled selected>Seleccionar asesor...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectAssign.appendChild(opt);
+          });
+        }
       })
       .obtenerUsuarios();
   }
@@ -602,6 +616,32 @@ Línea gratuita nacional: 01 8000 111 879`
     const numero = document.getElementById('adminSearchInput').value.trim();
     if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
     buscarYMostrarEditor(numero);
+  }
+
+  function ejecutarAsignacion() {
+    const agente = document.getElementById('assignAgentSelect').value;
+    const radicado = document.getElementById('assignRadicadoInput').value.trim();
+
+    if (!agente) { showNotification('error', 'Falta Asesor', 'Seleccione un asesor para asignar.'); return; }
+    if (!radicado) { showNotification('error', 'Falta Radicado', 'Ingrese el número de radicado.'); return; }
+
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showNotification('success', 'Asignación Exitosa', res.message);
+          document.getElementById('assignRadicadoInput').value = '';
+          fetchData(); // Refrescar dashboard
+        } else {
+          showNotification('error', 'Error de Asignación', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        showNotification('error', 'Error de Conexión', err.message);
+      })
+      .asignarRadicado(radicado, agente);
   }
 
   function ejecutarBusquedaAgente() {

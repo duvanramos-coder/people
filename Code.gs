@@ -127,7 +127,7 @@ function validarLogin(nombre, password) {
       return {
         success: true,
         nombre: String(user[0]),
-        role: (user[2] || "").toString().toLowerCase() === "admin" ? "admin" : "agent"
+        role: (user[2] || "").toString().trim().toLowerCase() === "admin" ? "admin" : "agent"
       };
     }
     return { success: false, message: 'Credenciales incorrectas.' };
@@ -275,10 +275,32 @@ function obtenerHistorialAsesor(nombreAsesor) {
  * -------------------------------------------------------------------------
  */
 
+function asignarRadicado(radicado, agente) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    const data = sheet.getDataRange().getValues();
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][2]).trim() === String(radicado).trim()) {
+        // Solo asignar si no ha sido gestionado (Estado vacío en Col J / 9)
+        if (String(data[i][9]).trim() === "") {
+          sheet.getRange(i + 1, 1).setValue(agente);
+          return { success: true, message: `Radicado ${radicado} asignado a ${agente}` };
+        } else {
+          return { success: false, message: 'El radicado ya ha sido gestionado.' };
+        }
+      }
+    }
+    return { success: false, message: 'Radicado no encontrado.' };
+  } catch (e) {
+    return { success: false, message: e.message };
+  }
+}
+
 function claimNextCase(agentName) {
   const lock = LockService.getScriptLock();
   try {
-    // Esperar hasta 20 segundos para obtener el bloqueo (evita colisiones)
     if (!lock.tryLock(20000)) {
       return { success: false, message: 'El sistema está congestionado. Reintente en unos segundos.' };
     }
@@ -289,19 +311,38 @@ function claimNextCase(agentName) {
 
     if (lastRow < 2) return { success: false, message: 'No hay registros en la base de datos.' };
 
-    // Leemos solo las columnas necesarias para optimizar velocidad (A a J)
     const data = sheet.getRange(1, 1, lastRow, 10).getValues();
 
+    // PRIORIDAD 1: Buscar casos ya asignados a este asesor pero no gestionados
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
-      // Col A (0): Asesor, Col J (9): Estado, Col C (2): Radicado
-      // Si el asesor está vacío Y el estado está vacío Y tiene radicado, es reclamable.
+      if (String(row[0]).trim() === agentName && !String(row[9]).trim() && String(row[2]).trim() !== "") {
+        const fullRow = sheet.getRange(i + 1, 1, 1, 14).getValues()[0];
+        let fechaDisplay = "N/A";
+        if (fullRow[3]) {
+          fechaDisplay = (fullRow[3] instanceof Date)
+            ? Utilities.formatDate(fullRow[3], "GMT-5", "dd/MM/yyyy")
+            : String(fullRow[3]);
+        }
+        return {
+          success: true,
+          data: {
+            rowId: i + 1,
+            radicado: String(fullRow[2]),
+            nombre: String(fullRow[5] || "N/A"),
+            telefono: String(fullRow[6] || "N/A"),
+            empresa: String(fullRow[8] || "N/A"),
+            fecha: fechaDisplay
+          }
+        };
+      }
+    }
+
+    // PRIORIDAD 2: Buscar el siguiente caso libre
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
       if (!String(row[0]).trim() && !String(row[9]).trim() && String(row[2]).trim() !== "") {
-
-        // Marcamos inmediatamente el asesor en la hoja para "apartar" el caso
         sheet.getRange(i + 1, 1).setValue(agentName);
-
-        // Obtenemos los datos restantes de la fila
         const fullRow = sheet.getRange(i + 1, 1, 1, 14).getValues()[0];
 
         // Formatear fecha para evitar errores de serialización en el cliente
