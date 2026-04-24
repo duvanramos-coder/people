@@ -349,7 +349,7 @@
     const notasLabel = document.getElementById('mgmtNotasLabel');
     const notasTextarea = document.getElementById('mgmtNotas');
 
-    if (estado === 'No contesta' || estado === 'Corte de llamada') {
+    if (estado === 'No contesta' || estado === 'Corta llamada') {
       emailGroup.style.display = 'block';
       notasLabel.textContent = 'Notas del intento (Automático)';
 
@@ -789,9 +789,8 @@ Línea gratuita nacional: 01 8000 111 879`
           <select id="editEstado" class="premium-select" style="padding-left: 1rem;">
             <option value="Contactado" ${data.estado === 'Contactado' ? 'selected' : ''}>Contactado</option>
             <option value="No contesta" ${data.estado === 'No contesta' ? 'selected' : ''}>No contesta</option>
-            <option value="Corte de llamada" ${data.estado === 'Corte de llamada' ? 'selected' : ''}>Corte de llamada</option>
-            <option value="Equivocado" ${data.estado === 'Equivocado' ? 'selected' : ''}>Equivocado</option>
-            <option value="Fuera de servicio" ${data.estado === 'Fuera de servicio' ? 'selected' : ''}>Fuera de servicio</option>
+            <option value="Corta llamada" ${data.estado === 'Corta llamada' ? 'selected' : ''}>Corta llamada</option>
+            <option value="Solucion Incorrecta" ${data.estado === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
           </select>
         </div>
         <div class="form-group">
@@ -800,7 +799,7 @@ Línea gratuita nacional: 01 8000 111 879`
             <option value="Llamada" ${data.canal === 'Llamada' ? 'selected' : ''}>Llamada</option>
             <option value="Correo" ${data.canal === 'Correo' ? 'selected' : ''}>Correo</option>
             <option value="Web" ${data.canal === 'Web' ? 'selected' : ''}>Web</option>
-            <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
+            <option value="Solucion Incorrecta" ${data.canal === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
           </select>
         </div>
         <div class="form-group">

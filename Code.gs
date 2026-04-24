@@ -484,10 +484,11 @@ Devuelve únicamente el cuerpo del mensaje mejorado.`;
       return { success: true, text: prompt, source: "fallback_api_error" };
     }
 
-    if (json.choices && json.choices.length > 0 && json.choices[0].message) {
+    if (json.choices && json.choices.length > 0 && json.choices[0].message && json.choices[0].message.content) {
+      const resText = json.choices[0].message.content.trim();
       return {
         success: true,
-        text: json.choices[0].message.content.trim()
+        text: resText || prompt
       };
     }
 
