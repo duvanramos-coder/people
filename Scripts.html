@@ -27,7 +27,7 @@
     document.getElementById('loginEmail').value = "";
     document.getElementById('loginPass').value = "";
     emailActivo = "";
-    userData = {};
+    userData = { todosLosCursos: [], asignadosCursos: [], historial: [] };
   }
 
   function cargarDashboard() {
@@ -52,28 +52,27 @@
       const notaVisual = notaObj ? Math.round(notaObj.nota * 100) : 0;
 
       return `
-      <div onclick="abrirModulo('${c.ID_MODULO}')" class="course-card group glass p-8 rounded-[3rem] relative cursor-pointer overflow-hidden">
-        ${realizado ? `
-          <div class="absolute top-6 right-6 ${completado ? 'bg-[#CCFF00] text-[#2B234F]' : 'bg-slate-200 text-slate-500'} text-[9px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest z-10 shadow-sm">
-            ${completado ? 'Completado ✓' : 'Realizado'}
-          </div>` : ''}
-
-        <div class="relative h-44 mb-8 overflow-hidden rounded-[2rem] shadow-inner">
+      <div onclick="abrirModulo('${c.ID_MODULO}')" class="course-card group glass p-5 rounded-[2rem] relative cursor-pointer overflow-hidden flex items-center gap-6">
+        <div class="relative w-32 h-32 shrink-0 overflow-hidden rounded-2xl shadow-md">
           <img src="${c.URL_IMAGEN}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${realizado ? '' : 'grayscale'}">
-          <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+          ${realizado ? `
+            <div class="absolute top-2 left-2 ${completado ? 'bg-[#CCFF00] text-[#2B234F]' : 'bg-white/90 text-slate-600'} text-[7px] font-bold px-2 py-1 rounded-md uppercase tracking-wider shadow-sm">
+              ${completado ? '✓' : '•'}
+            </div>` : ''}
         </div>
 
-        <h4 class="font-black text-slate-800 text-lg italic group-hover:text-indigo-600 transition-colors leading-tight mb-6">${c.TITULO}</h4>
-
-        <div class="flex items-center justify-between pt-6 border-t border-slate-100/50">
-           <div class="flex flex-col">
-             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">ID Módulo</span>
-             <span class="text-xs font-black text-slate-800 uppercase tracking-tighter">${c.ID_MODULO}</span>
-           </div>
-           <div class="text-right">
-             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 block">Calificación</span>
-             <span class="text-base font-black ${notaVisual >= 70 ? 'text-indigo-600' : 'text-slate-400'}">${notaObj ? notaVisual + '%' : 'PENDIENTE'}</span>
-           </div>
+        <div class="flex-grow">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[8px] font-bold text-indigo-500 uppercase tracking-widest">${c.ID_MODULO}</span>
+            ${realizado ? `<span class="text-[10px] font-bold ${completado ? 'text-indigo-600' : 'text-slate-400'}">${notaVisual}%</span>` : ''}
+          </div>
+          <h4 class="font-bold text-slate-800 text-sm group-hover:text-indigo-600 transition-colors leading-tight mb-3">${c.TITULO}</h4>
+          <div class="flex items-center gap-2">
+            <div class="h-1 flex-grow bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 transition-all duration-1000" style="width: ${realizado ? '100%' : '0%'}"></div>
+            </div>
+            <span class="text-[8px] font-bold text-slate-300 uppercase">${realizado ? 'Completado' : 'Disponible'}</span>
+          </div>
         </div>
       </div>`;
     }).join('');
@@ -92,7 +91,7 @@
             </div>
           </div>
           <div class="flex-grow text-left overflow-hidden">
-            <h5 class="text-[11px] font-black text-slate-700 leading-tight mb-1 uppercase tracking-tighter truncate">${info.TITULO}</h5>
+            <h5 class="text-[11px] font-bold text-slate-700 leading-tight mb-1 uppercase tracking-tighter truncate">${info.TITULO}</h5>
             <div class="flex items-center gap-2">
               <span class="text-[10px] font-bold ${isAproved ? 'text-indigo-600' : 'text-rose-500'} uppercase tracking-widest">${notaHistorial}%</span>
               <span class="text-[8px] font-bold text-slate-300 uppercase tracking-widest">${h.fecha.split(' ')[0]}</span>
@@ -143,7 +142,7 @@
     document.getElementById('preguntaActualContenedor').innerHTML = `
       <div class="mb-12">
         <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4 block">Pregunta ${indicePregunta + 1}</span>
-        <h3 class="text-4xl font-black text-[#2B234F] italic leading-tight tracking-tighter">${p.PREGUNTA}</h3>
+        <h3 class="text-4xl font-bold text-[#2B234F] leading-tight tracking-tighter">${p.PREGUNTA}</h3>
       </div>
       <div class="grid gap-5">
         ${['A','B','C','D'].map(l => {
@@ -151,7 +150,7 @@
           return `
           <label class="flex items-center gap-6 p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] cursor-pointer hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all has-[:checked]:border-[#2B234F] has-[:checked]:bg-white group relative overflow-hidden">
             <input type="radio" name="pregunta" value="${l}" class="w-6 h-6 accent-[#2B234F] opacity-0 absolute">
-            <div class="w-8 h-8 rounded-xl border-2 border-slate-200 flex items-center justify-center font-black text-xs text-slate-400 group-has-[:checked]:bg-[#2B234F] group-has-[:checked]:border-[#2B234F] group-has-[:checked]:text-[#CCFF00] transition-all">
+            <div class="w-8 h-8 rounded-xl border-2 border-slate-200 flex items-center justify-center font-bold text-xs text-slate-400 group-has-[:checked]:bg-[#2B234F] group-has-[:checked]:border-[#2B234F] group-has-[:checked]:text-[#CCFF00] transition-all">
               ${l}
             </div>
             <span class="text-xl font-bold text-slate-600 group-has-[:checked]:text-[#2B234F] transition-colors">${p['OPCION_'+l]}</span>
