@@ -153,8 +153,15 @@
 
     // Lógica de "Una sola evaluación"
     const btnEval = document.getElementById('btnRealizarEvaluacion');
+    const badge = document.getElementById('statusBadgeModulo');
+    const notaSpan = document.getElementById('notaPreviaModulo');
+
     if(yaRealizo) {
       btnEval.classList.add('hidden');
+      badge.classList.remove('hidden');
+      const pct = Math.round(yaRealizo.nota * 100);
+      notaSpan.innerText = pct + "%";
+
       if(yaAprobo) {
         setTimeout(() => showNotification("Módulo aprobado. Puedes repasar el contenido.", "success"), 300);
       } else {
@@ -162,6 +169,7 @@
       }
     } else {
       btnEval.classList.remove('hidden');
+      badge.classList.add('hidden');
     }
 
     document.getElementById('vistaDashboard').classList.add('hidden');
