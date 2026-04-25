@@ -6,6 +6,7 @@
   let indicePregunta = 0;
   let respuestasUsuario = [];
 
+  let notifTimeout;
   function showNotification(msg, type = 'info') {
     const notif = document.getElementById('notification');
     const icon = document.getElementById('notifIcon');
@@ -17,9 +18,10 @@
     icon.style.color = type === 'error' ? 'white' : '#2B234F';
 
     notif.classList.remove('translate-y-32', 'opacity-0');
-    setTimeout(() => {
+    if(notifTimeout) clearTimeout(notifTimeout);
+    notifTimeout = setTimeout(() => {
       notif.classList.add('translate-y-32', 'opacity-0');
-    }, 4000);
+    }, 2000);
   }
 
   function intentarLogin() {
@@ -86,23 +88,23 @@
     grC.innerHTML = misCursos.map(c => {
       const notaObj = userData.historial.find(h => h.idItem === c.ID_MODULO);
       const realizado = !!notaObj;
-      const completado = realizado && (notaObj.nota * 100) >= 70;
+      const aprobado = realizado && (notaObj.nota * 100) >= 70;
       const notaVisual = notaObj ? Math.round(notaObj.nota * 100) : 0;
 
       return `
       <div onclick="abrirModulo('${c.ID_MODULO}')" class="course-card group glass p-5 rounded-[2.5rem] relative cursor-pointer overflow-hidden flex items-center gap-6">
         <div class="relative w-32 h-32 shrink-0 overflow-hidden rounded-3xl shadow-lg">
           <img src="${c.URL_IMAGEN}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
-          ${completado ? `
-            <div class="absolute inset-0 bg-[#CCFF00]/10 flex items-center justify-center backdrop-blur-[2px]">
-              <div class="bg-[#CCFF00] text-[#2B234F] text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter shadow-xl">Completado</div>
+          ${realizado ? `
+            <div class="absolute inset-0 ${aprobado ? 'bg-[#CCFF00]/10' : 'bg-rose-500/10'} flex items-center justify-center backdrop-blur-[2px]">
+              <div class="${aprobado ? 'bg-[#CCFF00] text-[#2B234F]' : 'bg-rose-500 text-white'} text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter shadow-xl">Completado</div>
             </div>` : ''}
         </div>
 
         <div class="flex-grow pr-4">
           <div class="flex items-center justify-between mb-2">
             <span class="text-[9px] font-bold text-indigo-500/50 uppercase tracking-widest">${c.ID_MODULO}</span>
-            ${realizado ? `<span class="text-[11px] font-bold ${completado ? 'text-indigo-600' : 'text-rose-500'} bg-white px-2 py-0.5 rounded-lg shadow-sm">${notaVisual}%</span>` : ''}
+            ${realizado ? `<span class="text-[11px] font-bold ${aprobado ? 'text-indigo-600' : 'text-rose-500'} bg-white px-2 py-0.5 rounded-lg shadow-sm">${notaVisual}%</span>` : ''}
           </div>
           <h4 class="font-bold text-slate-800 text-base group-hover:text-indigo-600 transition-colors leading-snug mb-4 tracking-tight">${c.TITULO}</h4>
           <div class="flex items-center gap-3">
@@ -154,9 +156,9 @@
     if(yaRealizo) {
       btnEval.classList.add('hidden');
       if(yaAprobo) {
-        showNotification("Módulo aprobado. Puedes repasar el contenido.");
+        setTimeout(() => showNotification("Módulo aprobado. Puedes repasar el contenido.", "success"), 300);
       } else {
-        showNotification("Ya realizaste este examen. Nota persistida.");
+        setTimeout(() => showNotification("Ya realizaste este examen. Nota persistida.", "info"), 300);
       }
     } else {
       btnEval.classList.remove('hidden');
@@ -184,20 +186,20 @@
     document.getElementById('contadorPreguntas').innerText = `${indicePregunta + 1} / ${preguntas.length}`;
 
     document.getElementById('preguntaActualContenedor').innerHTML = `
-      <div class="mb-12">
-        <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-4 block">Pregunta ${indicePregunta + 1}</span>
-        <h3 class="text-4xl font-bold text-[#2B234F] leading-tight tracking-tighter">${p.PREGUNTA}</h3>
+      <div class="mb-8">
+        <span class="text-[9px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-2 block">Pregunta ${indicePregunta + 1}</span>
+        <h3 class="text-xl md:text-2xl font-bold text-[#2B234F] leading-tight tracking-tight">${p.PREGUNTA}</h3>
       </div>
-      <div class="grid gap-5">
+      <div class="grid gap-3">
         ${['A','B','C','D'].map(l => {
           if(!p['OPCION_'+l]) return '';
           return `
-          <label class="flex items-center gap-6 p-8 bg-slate-50 border-2 border-transparent rounded-[2.5rem] cursor-pointer hover:bg-white hover:border-indigo-100 hover:shadow-xl transition-all has-[:checked]:border-[#2B234F] has-[:checked]:bg-white group relative overflow-hidden">
+          <label class="flex items-center gap-4 p-4 bg-slate-50/50 border-2 border-transparent rounded-[1.5rem] cursor-pointer hover:bg-white hover:border-indigo-100 hover:shadow-md transition-all has-[:checked]:border-[#2B234F] has-[:checked]:bg-white group relative overflow-hidden">
             <input type="radio" name="pregunta" value="${l}" class="w-6 h-6 accent-[#2B234F] opacity-0 absolute">
-            <div class="w-8 h-8 rounded-xl border-2 border-slate-200 flex items-center justify-center font-bold text-xs text-slate-400 group-has-[:checked]:bg-[#2B234F] group-has-[:checked]:border-[#2B234F] group-has-[:checked]:text-[#CCFF00] transition-all">
+            <div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center font-bold text-[9px] text-slate-400 group-has-[:checked]:bg-[#2B234F] group-has-[:checked]:border-[#2B234F] group-has-[:checked]:text-[#CCFF00] transition-all shrink-0">
               ${l}
             </div>
-            <span class="text-xl font-bold text-slate-600 group-has-[:checked]:text-[#2B234F] transition-colors">${p['OPCION_'+l]}</span>
+            <span class="text-sm font-bold text-slate-600 group-has-[:checked]:text-[#2B234F] transition-colors leading-snug">${p['OPCION_'+l]}</span>
           </label>
         `}).join('')}
       </div>
@@ -228,10 +230,12 @@
             document.getElementById('cardResultado').style.borderColor = "#CCFF00";
             document.getElementById('iconResultado').innerHTML = "🏆";
             document.getElementById('textoResultado').innerText = "¡Aprobado!";
+            showNotification("Módulo completado con éxito", "success");
         } else {
             document.getElementById('cardResultado').style.borderColor = "#F43F5E";
             document.getElementById('iconResultado').innerHTML = "⚡";
             document.getElementById('textoResultado').innerText = "No Aprobado";
+            showNotification("Examen realizado. Sigue practicando", "info");
         }
 
         google.script.run.withSuccessHandler(() => cargarDashboard()).guardarResultado(emailActivo, cursoActualId, n);
