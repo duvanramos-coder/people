@@ -196,12 +196,20 @@ function buscarRadicadoAdmin(numero) {
     for (let i = 1; i < data.length; i++) {
       if (String(data[i][2]).trim() === String(numero).trim()) {
         const row = data[i];
+        const fechaVal = row[3];
+        const fechaDisplay = (fechaVal instanceof Date)
+          ? Utilities.formatDate(fechaVal, "GMT-5", "dd/MM/yyyy")
+          : String(fechaVal || "N/A");
+
         return {
           success: true,
           data: {
             rowId: i + 1,
             radicado: String(row[2]),
-            nombre: String(row[5]),
+            nombre: String(row[5] || "N/A"),
+            telefono: String(row[6] || "N/A"),
+            empresa: String(row[8] || "N/A"),
+            fecha: fechaDisplay,
             asesor: String(row[0]),
             estado: String(row[9]),
             canal: String(row[10]),
@@ -520,7 +528,7 @@ function construirRespuestaFinal(tipo, data) {
       body: `Cordial saludo,
 Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
-En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, se obtuvo el siguiente resultado:
+En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:
 
 ${cuerpoIA}
 
@@ -542,7 +550,7 @@ Línea gratuita nacional: 01 8000 111 879`
 
 Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
-En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, la misma ya fue debidamente respondida.
+En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.
 
 La información asociada a su solicitud fue enviada al siguiente correo electrónico:
 

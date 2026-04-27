@@ -474,7 +474,7 @@ Línea gratuita nacional: 01 8000 111 879`
 
 Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
 
-En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y la validación correspondiente de su caso, la misma ya fue debidamente respondida.
+En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.
 
 La información asociada a su solicitud fue enviada al siguiente correo electrónico:
 
@@ -799,7 +799,8 @@ Línea gratuita nacional: 01 8000 111 879`
             <option value="Llamada" ${data.canal === 'Llamada' ? 'selected' : ''}>Llamada</option>
             <option value="Correo" ${data.canal === 'Correo' ? 'selected' : ''}>Correo</option>
             <option value="Web" ${data.canal === 'Web' ? 'selected' : ''}>Web</option>
-            <option value="Solucion Incorrecta" ${data.canal === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
+            <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
+            <option value="Por gestionar" ${data.canal === 'Por gestionar' ? 'selected' : ''}>Por gestionar</option>
           </select>
         </div>
         <div class="form-group">
@@ -819,8 +820,8 @@ Línea gratuita nacional: 01 8000 111 879`
         <div class="form-group">
           <label>¿Se encontró PQRS?</label>
           <select id="editSeEncontro" class="premium-select" style="padding-left: 1rem;">
-            <option value="SI" ${data.seEncontro === 'SI' ? 'selected' : ''}>SI</option>
-            <option value="NO" ${data.seEncontro === 'NO' ? 'selected' : ''}>NO</option>
+            <option value="Si" ${data.seEncontro === 'Si' ? 'selected' : ''}>Si</option>
+            <option value="No" ${data.seEncontro === 'No' ? 'selected' : ''}>No</option>
           </select>
         </div>
       </div>
@@ -1003,7 +1004,7 @@ Línea gratuita nacional: 01 8000 111 879`
   function getStatusClass(status) {
     const s = (status || "").toLowerCase();
     if (s.includes('contactado')) return 'green';
-    if (s.includes('no contesta') || s.includes('corte')) return 'red';
+    if (s.includes('no contesta') || s.includes('corte') || s.includes('corta')) return 'red';
     return 'warning';
   }
 
