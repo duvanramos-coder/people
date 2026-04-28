@@ -170,6 +170,18 @@
     showView('loginView');
   }
 
+  function togglePassword() {
+    const passInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      toggleBtn.textContent = 'HIDE';
+    } else {
+      passInput.type = 'password';
+      toggleBtn.textContent = 'SHOW';
+    }
+  }
+
   function showNotification(type, title, message, btnText = 'Continuar') {
     const modal = document.getElementById('notificationModal');
     const iconDiv = document.getElementById('notifIcon');
