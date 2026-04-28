@@ -5,14 +5,14 @@
 
 <style>
   :root {
-    --brand-indigo: #4318FF;
-    --brand-indigo-dark: #3207E0;
+    --brand-indigo: #342D50;
+    --brand-indigo-dark: #1E1B33;
     --bg-gray: #F4F7FE;
     --card-shadow: 0px 20px 40px rgba(112, 144, 176, 0.06);
     --text-navy: #1B2559;
     --text-gray: #A3AED0;
     --border-light: #E9EDF7;
-    --success: #05CD99;
+    --success: #B7D400;
     --danger: #EE5D50;
     --warning: #FFB800;
   }
@@ -659,19 +659,32 @@
 
   function renderAdminCharts() {
     const statusCounts = countBy(filteredData, 'estado');
-    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), ['#4318FF', '#39B8FF', '#582CFF', '#05CD99', '#A3AED0'], 'Casos', true);
+    // Colores: Morado (#342D50), Lima (#B7D400), Rojo (#EE5D50)
+    const statusColors = Object.keys(statusCounts).map(key => {
+      const s = key.toLowerCase();
+      if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50';
+      if (s.includes('contactado')) return '#B7D400';
+      return '#342D50';
+    });
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos', true);
 
     const channelCounts = countBy(filteredData, 'canal');
-    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#582CFF', '#39B8FF', '#4318FF', '#05CD99'], 'Casos', false);
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#342D50', '#B7D400', '#1E1B33', '#A2BC00'], 'Casos', false);
 
     const managedCounts = {
       'Gestionados': filteredData.filter(d => d.isManaged).length,
       'Pendientes': filteredData.filter(d => !d.isManaged).length
     };
-    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#05CD99', '#EE5D50'], 'Casos', true);
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#B7D400', '#342D50'], 'Casos', true);
 
     const effCounts = countBy(filteredData, 'efectividad');
-    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), ['#05CD99', '#E9EDF7'], 'Casos', false);
+    const effColors = Object.keys(effCounts).map(key => {
+      const e = key.toLowerCase();
+      if (e.includes('si')) return '#B7D400';
+      if (e.includes('no')) return '#EE5D50';
+      return '#342D50';
+    });
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos', false);
   }
 
   function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
