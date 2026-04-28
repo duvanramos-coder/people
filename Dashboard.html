@@ -177,7 +177,7 @@
   /* Charts */
   .chart-container {
     position: relative;
-    height: 250px;
+    height: 220px;
   }
 
   /* Table Style */
@@ -498,8 +498,8 @@
     <!-- Main Content (9 cols) -->
     <div class="col-lg-9">
       <div class="row g-4 mb-4">
-        <!-- Status Chart (Horizontal Bar) -->
-        <div class="col-md-7">
+        <!-- Status Chart -->
+        <div class="col-md-6">
           <div class="glass-card h-100">
             <h3 class="card-title"><i data-lucide="bar-chart-2"></i> Estado de Gestión</h3>
             <div class="chart-container">
@@ -507,12 +507,33 @@
             </div>
           </div>
         </div>
-        <!-- Channel Chart (Doughnut) -->
-        <div class="col-md-5">
+        <!-- Channel Chart -->
+        <div class="col-md-6">
           <div class="glass-card h-100">
-            <h3 class="card-title"><i data-lucide="pie-chart"></i> Canal de Contacto</h3>
+            <h3 class="card-title"><i data-lucide="bar-chart-horizontal"></i> Canal de Contacto</h3>
             <div class="chart-container">
               <canvas id="chartChannel"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Managed Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="check-square"></i> Gestión vs Pendientes</h3>
+            <div class="chart-container">
+              <canvas id="chartManaged"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Effectiveness Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="trending-up"></i> Efectividad (Sí/No)</h3>
+            <div class="chart-container">
+              <canvas id="chartEffectiveness"></canvas>
             </div>
           </div>
         </div>
@@ -601,14 +622,14 @@
   // OVERRIDE GLOBAL FUNCTIONS FOR CUSTOM UI
 
   function updateAdminDashboard() {
-    renderKPIs();
-    renderCharts();
-    renderTable();
-    generateInsights();
-    renderRanking();
+    renderAdminKPIs();
+    renderAdminCharts();
+    renderAdminTable();
+    generateAdminInsights();
+    renderAdminRanking();
   }
 
-  function renderKPIs() {
+  function renderAdminKPIs() {
     const todayStr = getBogotaDateStr();
     const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
 
@@ -636,15 +657,24 @@
     lucide.createIcons();
   }
 
-  function renderCharts() {
+  function renderAdminCharts() {
     const statusCounts = countBy(filteredData, 'estado');
-    updateChart('chartStatus', 'bar', Object.keys(statusCounts), Object.values(statusCounts), ['#4318FF', '#39B8FF', '#582CFF', '#05CD99', '#A3AED0'], 'Estado', true);
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), ['#4318FF', '#39B8FF', '#582CFF', '#05CD99', '#A3AED0'], 'Casos', true);
 
     const channelCounts = countBy(filteredData, 'canal');
-    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#4318FF', '#39B8FF', '#582CFF', '#05CD99'], 'Canal');
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#582CFF', '#39B8FF', '#4318FF', '#05CD99'], 'Casos', false);
+
+    const managedCounts = {
+      'Gestionados': filteredData.filter(d => d.isManaged).length,
+      'Pendientes': filteredData.filter(d => !d.isManaged).length
+    };
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#05CD99', '#EE5D50'], 'Casos', true);
+
+    const effCounts = countBy(filteredData, 'efectividad');
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), ['#05CD99', '#E9EDF7'], 'Casos', false);
   }
 
-  function updateChart(id, type, labels, data, colors, datasetLabel = '', isHorizontal = false) {
+  function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
     if (charts[id]) charts[id].destroy();
     const canvas = document.getElementById(id);
     if(!canvas) return;
@@ -656,14 +686,7 @@
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: type === 'doughnut',
-          position: 'right',
-          labels: {
-            usePointStyle: true,
-            padding: 20,
-            font: { size: 11, weight: '700', family: 'Inter' },
-            color: '#A3AED0'
-          }
+          display: false, // For bar charts, legend is usually redundant if bars have labels
         },
         tooltip: {
           backgroundColor: '#1B2559',
@@ -674,43 +697,50 @@
           displayColors: false
         },
         datalabels: {
-          display: type !== 'doughnut',
           anchor: 'end',
           align: 'end',
           color: '#1B2559',
-          font: { weight: '800', family: 'Inter', size: 10 },
-          formatter: (v) => v
+          offset: 4,
+          font: { weight: '800', family: 'Inter', size: 11 },
+          formatter: (value, context) => {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1) + '%';
+            return `${value} (${percentage})`;
+          }
         }
       },
-      scales: type === 'bar' ? {
+      scales: {
         x: {
-          grid: { display: false, drawBorder: false },
-          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } }
+          grid: { display: isHorizontal, color: '#E9EDF7', drawBorder: false },
+          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } },
+          beginAtZero: true
         },
         y: {
-          grid: { color: '#E9EDF7', drawBorder: false },
+          grid: { display: !isHorizontal, color: '#E9EDF7', drawBorder: false },
           ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } }
         }
-      } : {}
+      },
+      layout: {
+        padding: {
+          right: isHorizontal ? 60 : 0, // Extra space for datalabels on horizontal bars
+          top: !isHorizontal ? 30 : 0
+        }
+      }
     };
 
-    if (isHorizontal && type === 'bar') {
-      options.scales.x.grid.display = true;
-      options.scales.y.grid.display = false;
-    }
-
     charts[id] = new Chart(ctx, {
-      type: type,
+      type: 'bar', // Always bar now
       data: {
         labels: labels,
         datasets: [{
           label: datasetLabel,
           data: data,
           backgroundColor: colors,
-          borderColor: '#FFFFFF',
-          borderWidth: type === 'doughnut' ? 4 : 0,
-          borderRadius: type === 'bar' ? 10 : 0,
-          barThickness: isHorizontal ? 20 : 'flex'
+          hoverBackgroundColor: colors.map(c => c + 'CC'), // Slightly transparent on hover
+          borderRadius: 10,
+          borderWidth: 0,
+          barThickness: 24,
+          maxBarThickness: 30
         }]
       },
       options: options,
@@ -718,7 +748,7 @@
     });
   }
 
-  function renderTable() {
+  function renderAdminTable() {
     const tbody = document.getElementById('tableBody');
     if(!tbody) return;
     tbody.innerHTML = '';
@@ -758,7 +788,7 @@
     return 'bg-info-pastel';
   }
 
-  function renderRanking() {
+  function renderAdminRanking() {
     const container = document.getElementById('rankingContainer');
     if (!container) return;
     const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
@@ -779,7 +809,7 @@
     `).join('');
   }
 
-  function generateInsights() {
+  function generateAdminInsights() {
     const insightDiv = document.getElementById('autoInsight');
     if(!insightDiv) return;
     const total = filteredData.length;
