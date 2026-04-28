@@ -570,11 +570,15 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function updateDashboard() {
-    renderKPIs();
-    renderCharts();
-    renderTable();
-    generateInsights();
-    renderRanking();
+    if (currentUser && currentUser.role === 'admin' && typeof updateAdminDashboard === 'function') {
+      updateAdminDashboard();
+    } else {
+      renderKPIs();
+      renderCharts();
+      renderTable();
+      generateInsights();
+      renderRanking();
+    }
   }
 
   function startOnlineAgentsPolling() {
@@ -820,8 +824,8 @@ Línea gratuita nacional: 01 8000 111 879`
         <div class="form-group">
           <label>¿Se encontró PQRS?</label>
           <select id="editSeEncontro" class="premium-select" style="padding-left: 1rem;">
-            <option value="Si" ${data.seEncontro === 'Si' ? 'selected' : ''}>Si</option>
-            <option value="No" ${data.seEncontro === 'No' ? 'selected' : ''}>No</option>
+            <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
+            <option value="NO" ${data.seEncontro && data.seEncontro.toUpperCase() === 'NO' ? 'selected' : ''}>No</option>
           </select>
         </div>
       </div>
@@ -1056,7 +1060,13 @@ Línea gratuita nacional: 01 8000 111 879`
     }
   }
 
-  function refreshData() { fetchData(); }
+  function refreshData() {
+    if (currentUser && currentUser.role === 'admin' && typeof refreshAdminData === 'function') {
+      refreshAdminData();
+    } else {
+      fetchData();
+    }
+  }
 
   function exportToCSV() {
     let csvContent = "data:text/csv;charset=utf-8,";
