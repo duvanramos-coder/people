@@ -1,0 +1,528 @@
+<script>
+  /* ═══════════════════════════════════════════
+     DuAcademy Pro — Enhanced Logic (Admin + Asesor)
+     ═══════════════════════════════════════════ */
+
+  let userData = { todosLosCursos: [], todasLasSims: [], asignadosCursos: [], asignadosSims: [], historial: [] };
+  let cursoActualId = "";
+  let emailActivo = "";
+  let userRol = "";
+  let preguntas = [];
+  let indicePregunta = 0;
+  let respuestasUsuario = [];
+  let chatHistorial = [];
+  let simActualId = "";
+  let heartbeatInterval;
+
+  // ── Notification System ──
+  let notifTimeout;
+  function showNotification(msg, type = 'info') {
+    const notif = document.getElementById('notification');
+    const icon = document.getElementById('notifIcon');
+    const text = document.getElementById('notifMessage');
+    text.innerText = msg;
+    icon.innerText = type === 'error' ? '✕' : '✓';
+    icon.style.backgroundColor = type === 'error' ? '#F43F5E' : '#CCFF00';
+    icon.style.color = type === 'error' ? 'white' : '#2B234F';
+    notif.classList.add('show');
+    if (notifTimeout) clearTimeout(notifTimeout);
+    notifTimeout = setTimeout(() => notif.classList.remove('show'), 2500);
+  }
+
+  // ── Login & Session ──
+  function intentarLogin() {
+    const e = document.getElementById('loginEmail').value.trim();
+    const p = document.getElementById('loginPass').value.trim();
+    if (!e || !p) { showNotification("Completa todos los campos", "error"); return; }
+
+    document.getElementById('loadingScreen').classList.remove('hidden');
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      if (res.success) {
+        emailActivo = res.email;
+        userRol = res.rol;
+        document.getElementById('profileNombre').innerText = res.nombre;
+        document.getElementById('avatarContainer').innerText = res.nombre.substring(0,1).toUpperCase();
+
+        document.getElementById('vistaLogin').classList.add('hidden');
+        document.getElementById('interfazPrincipal').classList.remove('hidden');
+
+        configurarVistasPorRol();
+        startHeartbeat();
+      } else {
+        showNotification(res.message, "error");
+      }
+    }).withFailureHandler(() => {
+      document.getElementById('loadingScreen').classList.add('hidden');
+      showNotification("Error de conexión", "error");
+    }).iniciarSesion(e, p);
+  }
+
+  function configurarVistasPorRol() {
+    const sidebarHistorial = document.getElementById('historySidebar');
+    const rol = (userRol || "").toString().trim().toLowerCase();
+
+    if (rol === "admin") {
+      document.getElementById('menuAdmin').classList.remove('hidden');
+      document.getElementById('menuAsesor').classList.add('hidden');
+      if (sidebarHistorial) sidebarHistorial.classList.add('hidden');
+
+      cambiarVista('vistaAdmin');
+      cargarDatosAdmin();
+    } else {
+      document.getElementById('menuAdmin').classList.add('hidden');
+      document.getElementById('menuAsesor').classList.remove('hidden');
+      if (sidebarHistorial) sidebarHistorial.classList.remove('hidden');
+
+      cambiarVista('vistaDashboard');
+      cargarDashboard();
+    }
+  }
+
+  function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    google.script.run.actualizarPingConexion(emailActivo);
+    heartbeatInterval = setInterval(() => {
+      google.script.run.actualizarPingConexion(emailActivo);
+    }, 5 * 60 * 1000);
+  }
+
+  // ── Asesor Dashboard ──
+  function cargarDashboard() {
+    document.getElementById('skeletonGrid').classList.remove('hidden');
+    document.getElementById('gridCursos').classList.add('hidden');
+
+    google.script.run.withSuccessHandler(data => {
+      userData = data;
+      renderDashboard();
+      renderHistorial();
+    }).obtenerDatosCompletos(emailActivo);
+  }
+
+  function renderDashboard() {
+    const grid = document.getElementById('gridCursos');
+    grid.innerHTML = "";
+
+    const asignadosCursosSet = new Set(userData.asignadosCursos.map(id => id.toString().trim()));
+    const asignadosSimsSet = new Set(userData.asignadosSims.map(id => id.toString().trim()));
+
+    // 1. Render Cursos
+    userData.todosLosCursos.filter(c => asignadosCursosSet.has((c.ID_CURSO || "").toString().trim())).forEach(curso => {
+      const cursoId = (curso.ID_CURSO || "").toString().trim();
+      const notaData = userData.historial.find(h => (h.idItem || "").toString().trim() === cursoId);
+      const completado = !!notaData;
+      const notaPct = notaData ? (notaData.nota * 100) : 0;
+      const aprobado = notaPct >= 70;
+
+      grid.innerHTML += `
+        <div onclick="abrirModulo('${curso.ID_CURSO}')" class="course-card p-6 flex gap-6 cursor-pointer group">
+          <div class="w-32 h-32 rounded-[1.5rem] overflow-hidden shrink-0 bg-slate-100 shadow-inner">
+            <img src="${curso.IMAGEN || 'https://via.placeholder.com/150'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+          </div>
+          <div class="flex-grow py-1">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[8px] font-extrabold text-indigo-500 uppercase tracking-widest">${curso.ID_CURSO}</span>
+              ${completado ? `<span class="${aprobado ? 'badge-aprobado' : 'badge-reprobado'} text-[7px] font-bold px-2 py-0.5 rounded-md uppercase tracking-widest">${aprobado ? 'Aprobado' : 'No Aprobado'}</span>` : ''}
+            </div>
+            <h4 class="font-extrabold text-slate-800 text-sm mb-2 leading-snug group-hover:text-indigo-600 transition-colors">${curso.TITULO}</h4>
+            <div class="flex items-center gap-3 mt-4">
+              <div class="flex-grow h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full ${aprobado ? 'bg-indigo-500' : 'bg-rose-500'} transition-all duration-1000" style="width:${completado ? '100%' : '0%'}"></div>
+              </div>
+              <span class="text-[10px] font-bold text-slate-400">${notaPct.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    // 2. Render Simulaciones
+    userData.todasLasSims.filter(s => asignadosSimsSet.has((s.ID_SIMULACION || "").toString().trim())).forEach(sim => {
+      const simId = (sim.ID_SIMULACION || "").toString().trim();
+      const notaData = userData.historial.find(h => (h.idItem || "").toString().trim() === simId);
+      const completado = !!notaData;
+      const notaPct = notaData ? (notaData.nota * 100) : 0;
+      const aprobado = notaPct >= 70;
+
+      grid.innerHTML += `
+        <div onclick="abrirSimulacion('${sim.ID_SIMULACION}')" class="course-card p-6 flex gap-6 cursor-pointer group">
+          <div class="w-32 h-32 rounded-[1.5rem] overflow-hidden shrink-0 bg-indigo-50 flex items-center justify-center text-4xl">
+            🎧
+          </div>
+          <div class="flex-grow py-1">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-[8px] font-extrabold text-indigo-500 uppercase tracking-widest">${sim.ID_SIMULACION}</span>
+              ${completado ? `<span class="${aprobado ? 'badge-aprobado' : 'badge-reprobado'} text-[7px] font-bold px-2 py-0.5 rounded-md uppercase tracking-widest">${aprobado ? 'Aprobado' : 'No Aprobado'}</span>` : ''}
+            </div>
+            <h4 class="font-extrabold text-slate-800 text-sm mb-2 leading-snug group-hover:text-indigo-600 transition-colors">${sim.TITULO}</h4>
+            <div class="flex items-center gap-3 mt-4">
+              <div class="flex-grow h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full ${aprobado ? 'bg-indigo-500' : 'bg-rose-500'} transition-all duration-1000" style="width:${completado ? '100%' : '0%'}"></div>
+              </div>
+              <span class="text-[10px] font-bold text-slate-400">${notaPct.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById('skeletonGrid').classList.add('hidden');
+    grid.classList.remove('hidden');
+
+    // Stats
+    document.getElementById('statModulos').innerText = userData.asignadosCursos.length + userData.asignadosSims.length;
+    document.getElementById('statCompletados').innerText = userData.historial.length;
+    let prom = 0;
+    if(userData.historial.length > 0) prom = userData.historial.reduce((a,b) => a + b.nota, 0) / userData.historial.length;
+    document.getElementById('statPromedio').innerText = (prom * 100).toFixed(0) + "%";
+  }
+
+  function renderHistorial() {
+    const grid = document.getElementById('gridCompletados');
+    grid.innerHTML = "";
+    userData.historial.slice(-5).reverse().forEach(h => {
+      const hId = (h.idItem || "").toString().trim();
+      const item = userData.todosLosCursos.find(c => (c.ID_CURSO || "").toString().trim() === hId) ||
+                   userData.todasLasSims.find(s => (s.ID_SIMULACION || "").toString().trim() === hId);
+      if(!item) return;
+      const aprobado = (h.nota * 100) >= 70;
+
+      grid.innerHTML += `
+        <div class="p-4 rounded-2xl border border-slate-100 hover:shadow-md transition-all bg-white/50">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg ${aprobado ? 'bg-lime-100 text-lime-700' : 'bg-rose-100 text-rose-700'} flex items-center justify-center font-bold text-[10px]">${(h.nota * 100).toFixed(0)}%</div>
+            <div class="overflow-hidden">
+              <p class="text-[10px] font-bold text-slate-800 truncate">${item.TITULO}</p>
+              <p class="text-[8px] text-slate-400 font-medium">${new Date(h.fecha).toLocaleDateString()}</p>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  function abrirModulo(id) {
+    cursoActualId = id;
+    const curso = userData.todosLosCursos.find(c => c.ID_CURSO === id);
+    document.getElementById('tituloModuloInterno').innerText = curso.TITULO;
+    document.getElementById('textoModuloInterno').innerText = curso.DESCRIPCION;
+    document.getElementById('contenedorPresentacion').innerHTML = `<iframe src="${curso.LINK_CONTENIDO}" class="w-full h-full border-none"></iframe>`;
+
+    const notaPrevia = userData.historial.find(h => h.idItem === id);
+    const btnEva = document.getElementById('btnRealizarEvaluacion');
+
+    if(notaPrevia) {
+      document.getElementById('statusBadgeModulo').classList.remove('hidden');
+      document.getElementById('notaPreviaModulo').innerText = (notaPrevia.nota * 100).toFixed(0) + "%";
+      btnEva.classList.add('hidden');
+    } else {
+      document.getElementById('statusBadgeModulo').classList.add('hidden');
+      btnEva.classList.remove('hidden');
+    }
+
+    cambiarVista('vistaModulo');
+  }
+
+  // ── Navigation ──
+  function cambiarVista(id) {
+    document.querySelectorAll('main > section, main > div').forEach(s => s.classList.add('hidden'));
+    const target = document.getElementById(id);
+    if (target) target.classList.remove('hidden');
+
+    // Sidebar active state
+    document.querySelectorAll('.sidebar-nav-item').forEach(item => {
+      item.classList.remove('bg-indigo-50', 'text-indigo-600');
+      item.classList.add('text-slate-400');
+    });
+  }
+
+  function regresarAlInicio() {
+    if(userRol === "Admin") cambiarVista('vistaAdmin');
+    else cambiarVista('vistaDashboard');
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('mainSidebar');
+    const icon = document.getElementById('sidebarToggleIcon');
+    sidebar.classList.toggle('collapsed');
+    icon.innerText = sidebar.classList.contains('collapsed') ? '❯' : '❮';
+  }
+
+  function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('themeToggle');
+    const theme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', theme);
+    btn.classList.toggle('active');
+  }
+
+  function filtrarModulos() {
+    const query = document.getElementById('searchModulos').value.toLowerCase();
+    const cards = document.querySelectorAll('#gridCursos > div');
+    cards.forEach(card => {
+      const text = card.innerText.toLowerCase();
+      card.style.display = text.includes(query) ? 'flex' : 'none';
+    });
+  }
+
+  // ── Exam Logic ──
+  function cargarExamen() {
+    google.script.run.withSuccessHandler(res => {
+      preguntas = res;
+      indicePregunta = 0;
+      respuestasUsuario = [];
+      document.getElementById('vistaModulo').classList.add('hidden');
+      document.getElementById('vistaExamen').classList.remove('hidden');
+      mostrarPregunta();
+    }).obtenerPreguntas(cursoActualId);
+  }
+
+  function mostrarPregunta() {
+    const p = preguntas[indicePregunta];
+    const cont = document.getElementById('preguntaActualContenedor');
+    const pct = ((indicePregunta + 1) / preguntas.length) * 100;
+    document.getElementById('barraProgreso').style.width = pct + "%";
+    document.getElementById('contadorPreguntas').innerText = (indicePregunta + 1);
+
+    cont.innerHTML = `
+      <h3 class="text-xl font-bold mb-6 text-slate-800">${p.PREGUNTA}</h3>
+      <div class="space-y-3">
+        ${['A','B','C','D'].map(letra => p['OPCION_'+letra] ? `
+          <div onclick="seleccionarRespuesta('${letra}')" id="opt-${letra}" class="quiz-option">
+            <span class="letter-badge">${letra}</span>
+            <span class="text-sm font-semibold text-slate-600">${p['OPCION_'+letra]}</span>
+          </div>
+        ` : '').join('')}
+      </div>
+    `;
+  }
+
+  function seleccionarRespuesta(letra) {
+    document.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+    document.getElementById('opt-'+letra).classList.add('selected');
+    respuestasUsuario[indicePregunta] = letra;
+  }
+
+  function siguientePregunta() {
+    if(!respuestasUsuario[indicePregunta]) { showNotification("Selecciona una respuesta", "error"); return; }
+
+    if(indicePregunta < preguntas.length - 1) {
+      indicePregunta++;
+      mostrarPregunta();
+    } else {
+      finalizarExamen();
+    }
+  }
+
+  function finalizarExamen() {
+    let aciertos = 0;
+    let descErrores = [];
+    preguntas.forEach((p, i) => {
+      if(p.CORRECTA.trim().toUpperCase() === respuestasUsuario[i].toUpperCase()) {
+        aciertos++;
+      } else {
+        descErrores.push(`P${i+1}:${respuestasUsuario[i]} (Correcta: ${p.CORRECTA})`);
+      }
+    });
+
+    const notaFinal = (aciertos / preguntas.length) * 100;
+    showNotification("Enviando resultados...");
+
+    google.script.run.withSuccessHandler(() => {
+      mostrarResultado(notaFinal);
+      cargarDashboard();
+    }).guardarResultado(emailActivo, cursoActualId, notaFinal, descErrores.join(", "));
+  }
+
+  function mostrarResultado(nota) {
+    document.getElementById('vistaExamen').classList.add('hidden');
+    document.getElementById('vistaResultado').classList.remove('hidden');
+    document.getElementById('notaFinal').innerText = nota.toFixed(0) + "%";
+
+    const circle = document.getElementById('gaugeCircle');
+    const offset = 534 - (534 * (nota / 100));
+    circle.style.strokeDashoffset = offset;
+
+    const icon = document.getElementById('iconResultado');
+    const text = document.getElementById('textoResultado');
+    if(nota >= 70) {
+      icon.innerHTML = "🎉"; icon.className = "w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl shadow-lg bg-emerald-100 text-emerald-600";
+      text.innerText = "¡Excelente Trabajo!";
+    } else {
+      icon.innerHTML = "💪"; icon.className = "w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center text-3xl shadow-lg bg-amber-100 text-amber-600";
+      text.innerText = "Sigue Practicando";
+    }
+  }
+
+  // ── Simulation Chat ──
+  function abrirSimulacion(id) {
+      simActualId = id;
+      chatHistorial = [];
+
+      const sim = userData.todasLasSims.find(s => s.ID_SIMULACION === id);
+      document.getElementById('simTitulo').innerText = sim ? (sim.TITULO || 'Simulación') : 'Simulación';
+
+      const container = document.getElementById('chatMessages');
+      container.innerHTML = "";
+
+      document.getElementById('vistaDashboard').classList.add('hidden');
+      document.getElementById('vistaSimulacion').classList.remove('hidden');
+
+      google.script.run.withSuccessHandler(respuesta => {
+        chatHistorial.push({ role: "assistant", content: respuesta });
+        container.innerHTML = `<div class="chat-bubble bot">${escapeHtml(respuesta)}</div>`;
+      }).hablarConIA("iniciar", simActualId, chatHistorial);
+  }
+
+  function enviarMensajeChat() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+    input.value = '';
+
+    const container = document.getElementById('chatMessages');
+    container.innerHTML += `<div class="chat-bubble user">${escapeHtml(msg)}</div>`;
+    container.innerHTML += `<div id="typingIndicator" class="chat-bubble bot">Escribiendo...</div>`;
+
+    chatHistorial.push({ role: "user", content: msg });
+    container.scrollTop = container.scrollHeight;
+
+    google.script.run.withSuccessHandler(respuesta => {
+      document.getElementById('typingIndicator')?.remove();
+      chatHistorial.push({ role: "assistant", content: respuesta });
+      container.innerHTML += `<div class="chat-bubble bot">${escapeHtml(respuesta)}</div>`;
+      container.scrollTop = container.scrollHeight;
+    }).withFailureHandler(() => {
+      document.getElementById('typingIndicator')?.remove();
+      container.innerHTML += `<div class="chat-bubble bot">Error de conexión con IA</div>`;
+    }).hablarConIA(msg, simActualId, chatHistorial, emailActivo);
+  }
+
+  function escapeHtml(text) {
+    const d = document.createElement('div');
+    d.innerText = text;
+    return d.innerHTML;
+  }
+
+  // ── Admin Logic ──
+  function cargarDatosAdmin() {
+    showNotification("Cargando datos maestros...");
+    google.script.run.withSuccessHandler(res => {
+      document.getElementById('adminStatTotalAsesores').innerText = res.stats.totalAsesores;
+      document.getElementById('adminStatPromedio').innerText = res.stats.promedioGeneral;
+      document.getElementById('adminStatTotalCompletados').innerText = res.stats.totalCompletados;
+
+      renderTablaAsesores(res.asesores);
+      renderTablaProgreso(res.progreso);
+    }).obtenerDatosAdmin();
+  }
+
+  function renderTablaAsesores(asesores) {
+    const tbody = document.getElementById('tablaAdminAsesores');
+    tbody.innerHTML = "";
+    const ahora = new Date();
+
+    asesores.forEach(u => {
+      const ultima = u.ultimaConexion ? new Date(u.ultimaConexion) : null;
+      const online = ultima && (ahora - ultima < 10 * 60 * 1000);
+      const statusColor = online ? "bg-emerald-500" : "bg-slate-300";
+
+      tbody.innerHTML += `
+        <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all">
+          <td class="py-4 px-4">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center font-bold text-indigo-600 text-xs">${u.nombre.substring(0,2).toUpperCase()}</div>
+              <div>
+                <p class="font-bold text-slate-700">${u.nombre}</p>
+                <p class="text-[10px] text-slate-400">${u.email}</p>
+              </div>
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${statusColor}"></span>
+              <span class="text-[10px] font-bold uppercase tracking-widest ${online ? 'text-emerald-600' : 'text-slate-400'}">${online ? 'En línea' : 'Offline'}</span>
+            </div>
+          </td>
+          <td class="text-xs text-slate-500">
+             <span class="block">Cursos: ${u.modulos || '-'}</span>
+             <span class="block">Sims: ${u.simulaciones || '-'}</span>
+          </td>
+          <td class="text-center">
+            <button onclick="abrirModalAdmin('${u.email}', '${u.nombre}', '${u.modulos}', '${u.simulaciones}')" class="p-2 hover:text-indigo-600 transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2.828 2.828 0 114 4L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  function renderTablaProgreso(progreso) {
+    const tbody = document.getElementById('tablaAdminProgreso');
+    tbody.innerHTML = "";
+    progreso.reverse().slice(0, 50).forEach(p => {
+      const notaNum = parseFloat(p.nota) || 0;
+      const notaColor = notaNum >= 0.7 ? "text-emerald-600 bg-emerald-50" : "text-rose-600 bg-rose-50";
+
+      tbody.innerHTML += `
+        <tr class="border-b border-slate-50">
+          <td class="py-4 px-4 text-[10px] text-slate-400 font-bold">${new Date(p.fecha).toLocaleDateString()}</td>
+          <td class="text-slate-700 font-bold">${p.email}</td>
+          <td class="text-slate-500 text-xs">${p.idItem}</td>
+          <td>
+            <span class="px-2 py-1 rounded-lg font-bold ${notaColor}">${(notaNum * 100).toFixed(0)}%</span>
+          </td>
+          <td class="text-[10px] text-rose-500 font-medium max-w-xs truncate" title="${p.errores}">${p.errores || '-'}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function abrirModalAdmin(email, nombre, modulos, sims) {
+    document.getElementById('editAdminEmail').value = email;
+    document.getElementById('editAdminNombre').innerText = nombre;
+    document.getElementById('editAdminCursos').value = modulos;
+    document.getElementById('editAdminSims').value = sims;
+    document.getElementById('modalEditAdmin').classList.remove('hidden');
+  }
+
+  function cerrarModalAdmin() {
+    document.getElementById('modalEditAdmin').classList.add('hidden');
+  }
+
+  function guardarAsignacionAdmin() {
+    const email = document.getElementById('editAdminEmail').value;
+    const cursos = document.getElementById('editAdminCursos').value;
+    const sims = document.getElementById('editAdminSims').value;
+
+    showNotification("Guardando cambios...");
+    google.script.run.withSuccessHandler(res => {
+      if (res) {
+        showNotification("Cambios guardados con éxito");
+        cerrarModalAdmin();
+        cargarDatosAdmin();
+      }
+    }).asignarModulosUsuario(email, cursos, sims);
+  }
+
+  function enviarNotificacionGeneral() {
+    showNotification("Iniciando envío de correos...");
+    google.script.run.withSuccessHandler(() => {
+      showNotification("Correos enviados con éxito");
+    }).withFailureHandler(() => {
+      showNotification("Error al enviar correos", "error");
+    }).enviarCorreoGeneral();
+  }
+
+  function cerrarSesion() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    document.getElementById('vistaLogin').classList.remove('hidden');
+    document.getElementById('interfazPrincipal').classList.add('hidden');
+
+    // Reset state
+    emailActivo = "";
+    userRol = "";
+    userData = { todosLosCursos: [], todasLasSims: [], asignadosCursos: [], asignadosSims: [], historial: [] };
+  }
+</script>
