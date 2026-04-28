@@ -60,7 +60,9 @@
 
   function configurarVistasPorRol() {
     const sidebarHistorial = document.getElementById('historySidebar');
-    if (userRol === "Admin") {
+    const rol = (userRol || "").toString().trim().toLowerCase();
+
+    if (rol === "admin") {
       document.getElementById('menuAdmin').classList.remove('hidden');
       document.getElementById('menuAsesor').classList.add('hidden');
       if (sidebarHistorial) sidebarHistorial.classList.add('hidden');
@@ -101,9 +103,13 @@
     const grid = document.getElementById('gridCursos');
     grid.innerHTML = "";
 
+    const asignadosCursosSet = new Set(userData.asignadosCursos.map(id => id.toString().trim()));
+    const asignadosSimsSet = new Set(userData.asignadosSims.map(id => id.toString().trim()));
+
     // 1. Render Cursos
-    userData.todosLosCursos.filter(c => userData.asignadosCursos.includes(c.ID_CURSO)).forEach(curso => {
-      const notaData = userData.historial.find(h => h.idItem === curso.ID_CURSO);
+    userData.todosLosCursos.filter(c => asignadosCursosSet.has((c.ID_CURSO || "").toString().trim())).forEach(curso => {
+      const cursoId = (curso.ID_CURSO || "").toString().trim();
+      const notaData = userData.historial.find(h => (h.idItem || "").toString().trim() === cursoId);
       const completado = !!notaData;
       const notaPct = notaData ? (notaData.nota * 100) : 0;
       const aprobado = notaPct >= 70;
@@ -131,8 +137,9 @@
     });
 
     // 2. Render Simulaciones
-    userData.todasLasSims.filter(s => userData.asignadosSims.includes(s.ID_SIMULACION)).forEach(sim => {
-      const notaData = userData.historial.find(h => h.idItem === sim.ID_SIMULACION);
+    userData.todasLasSims.filter(s => asignadosSimsSet.has((s.ID_SIMULACION || "").toString().trim())).forEach(sim => {
+      const simId = (sim.ID_SIMULACION || "").toString().trim();
+      const notaData = userData.historial.find(h => (h.idItem || "").toString().trim() === simId);
       const completado = !!notaData;
       const notaPct = notaData ? (notaData.nota * 100) : 0;
       const aprobado = notaPct >= 70;
@@ -174,7 +181,9 @@
     const grid = document.getElementById('gridCompletados');
     grid.innerHTML = "";
     userData.historial.slice(-5).reverse().forEach(h => {
-      const item = userData.todosLosCursos.find(c => c.ID_CURSO === h.idItem) || userData.todasLasSims.find(s => s.ID_SIMULACION === h.idItem);
+      const hId = (h.idItem || "").toString().trim();
+      const item = userData.todosLosCursos.find(c => (c.ID_CURSO || "").toString().trim() === hId) ||
+                   userData.todasLasSims.find(s => (s.ID_SIMULACION || "").toString().trim() === hId);
       if(!item) return;
       const aprobado = (h.nota * 100) >= 70;
 

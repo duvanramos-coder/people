@@ -35,13 +35,13 @@ function obtenerDatosCompletos(email) {
   const cursosRaw = ss.getSheetByName("CURSOS").getDataRange().getDisplayValues();
   const cabC = cursosRaw.shift();
   const todosLosCursos = cursosRaw.map(f => {
-    let o = {}; cabC.forEach((c, i) => o[c] = f[i]); return o;
+    let o = {}; cabC.forEach((c, i) => o[c] = (i === 0 ? f[i].toString().trim() : f[i])); return o;
   });
 
   const simsRaw = ss.getSheetByName("SIMULACIONES").getDataRange().getDisplayValues();
   const cabS = simsRaw.shift();
   const todasLasSims = simsRaw.map(f => {
-    let o = {}; cabS.forEach((c, i) => o[c] = f[i]); return o;
+    let o = {}; cabS.forEach((c, i) => o[c] = (i === 0 ? f[i].toString().trim() : f[i])); return o;
   });
 
   const progreso = ss.getSheetByName("PROGRESO").getDataRange().getDisplayValues().slice(1);
@@ -73,9 +73,10 @@ function obtenerPreguntas(id) {
 
 function guardarResultado(email, idItem, nota, errores = "") {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cleanId = (idItem || "").toString().trim();
   // Guardamos como decimal (0.7) para consistencia de base de datos
   // Agregamos columna para errores (Col G)
-  ss.getSheetByName("PROGRESO").appendRow([Date.now(), email, idItem, new Date(), (nota/100), 1, "", errores]);
+  ss.getSheetByName("PROGRESO").appendRow([Date.now(), email, cleanId, new Date(), (nota/100), 1, "", errores]);
   return true;
 }
 
@@ -100,11 +101,12 @@ function obtenerBasePorMensaje(mensajeUsuario) {
 
 function guardarNotaIA(email, idSimulacion, notaIA) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("PROGRESO");
+  const cleanId = (idSimulacion || "").toString().trim();
 
   sheet.appendRow([
     Date.now(),     // ID_REGISTRO
     email,          // EMAIL_ASESORA
-    idSimulacion,   // ID_MODULO
+    cleanId,        // ID_MODULO
     new Date(),     // FECHA_COMPLETADO
     "",             // NOTA_FINAL
     1,              // INTENTOS
@@ -281,7 +283,7 @@ function obtenerDatosAdmin() {
   const progreso = ss.getSheetByName("PROGRESO").getDataRange().getDisplayValues();
 
   usuarios.shift(); // Quitar cabecera
-  const listaAsesores = usuarios.filter(u => u[4] === "Asesor").map(u => {
+  const listaAsesores = usuarios.filter(u => (u[4] || "").toString().trim().toLowerCase() === "asesor").map(u => {
     return {
       nombre: u[1],
       email: u[2],
