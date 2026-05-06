@@ -165,6 +165,7 @@
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
     if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    if (notificationPolling) clearInterval(notificationPolling);
     currentUser = null;
     activeCase = null;
     showView('loginView');
@@ -550,11 +551,13 @@ Línea gratuita nacional: 01 8000 111 879`
     const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
     const channels = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
     const statuses = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
+    const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))].sort();
 
     populateSelect('filterMonth', months, "Mes (Cofrem)");
     populateSelect('filterCompany', companies, "Empresa");
     populateSelect('filterChannel', channels, "Canal");
     populateSelect('filterStatus', statuses, "Estado");
+    populateSelect('filterAdvisor', advisors, "Asesor");
   }
 
   function populateSelect(id, values, label) {
@@ -575,17 +578,49 @@ Línea gratuita nacional: 01 8000 111 879`
     const company = document.getElementById('filterCompany').value;
     const channel = document.getElementById('filterChannel').value;
     const status = document.getElementById('filterStatus').value;
+    const advisor = document.getElementById('filterAdvisor').value;
+
+    // Advanced Search
+    const dateFrom = document.getElementById('searchDateFrom').value;
+    const dateTo = document.getElementById('searchDateTo').value;
+    const searchName = document.getElementById('searchName').value.toLowerCase().trim();
+    const searchPhone = document.getElementById('searchPhone').value.trim();
 
     filteredData = allData.filter(d => {
       const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
-      return (!month || dMonth === month) &&
-             (!company || d.empresa === company) &&
-             (!channel || d.canal === channel) &&
-             (!status || d.estado === status);
+      const matchMonth = !month || dMonth === month;
+      const matchCompany = !company || d.empresa === company;
+      const matchChannel = !channel || d.canal === channel;
+      const matchStatus = !status || d.estado === status;
+      const matchAdvisor = !advisor || d.asesor === advisor;
+
+      // Advanced Search logic
+      let matchAdvanced = true;
+      if (dateFrom) matchAdvanced = matchAdvanced && (d.fechaCofrem >= dateFrom || d.recibidoPeople >= dateFrom);
+      if (dateTo) matchAdvanced = matchAdvanced && (d.fechaCofrem <= dateTo || d.recibidoPeople <= dateTo);
+      if (searchName) matchAdvanced = matchAdvanced && d.nombre.toLowerCase().includes(searchName);
+      if (searchPhone) matchAdvanced = matchAdvanced && d.telefono.includes(searchPhone);
+
+      return matchMonth && matchCompany && matchChannel && matchStatus && matchAdvisor && matchAdvanced;
     });
 
     currentPage = 1;
     updateDashboard();
+  }
+
+  function toggleAdvancedSearch() {
+    const panel = document.getElementById('advancedSearchPanel');
+    const isHidden = panel.style.display === 'none';
+    panel.style.display = isHidden ? 'block' : 'none';
+    lucide.createIcons();
+  }
+
+  function resetAdvancedSearch() {
+    document.getElementById('searchDateFrom').value = '';
+    document.getElementById('searchDateTo').value = '';
+    document.getElementById('searchName').value = '';
+    document.getElementById('searchPhone').value = '';
+    applyFilters();
   }
 
   function updateDashboard() {
@@ -600,10 +635,58 @@ Línea gratuita nacional: 01 8000 111 879`
     }
   }
 
+  let lastActivityId = null;
+  let notificationPolling = null;
+
   function startOnlineAgentsPolling() {
     if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
     updateOnlineAgents();
     onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000); // Cada 30 seg
+
+    // Notificaciones en tiempo real
+    if (notificationPolling) clearInterval(notificationPolling);
+    notificationPolling = setInterval(pollActivity, 30 * 1000);
+  }
+
+  function pollActivity() {
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success && res.eventos.length > 0) {
+          res.eventos.forEach(ev => {
+             // Solo mostrar si es nuevo para este cliente
+             if (ev.id !== lastActivityId) {
+                showToast(ev.mensaje);
+                lastActivityId = ev.id;
+             }
+          });
+        }
+      })
+      .obtenerActividadReciente();
+  }
+
+  function showToast(message) {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = 'glass-card fade-in';
+    toast.style.padding = '12px 20px';
+    toast.style.borderLeft = '4px solid var(--secondary)';
+    toast.style.pointerEvents = 'auto';
+    toast.style.minWidth = '250px';
+    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
+    toast.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <i data-lucide="bell" style="width: 18px; color: var(--secondary-dark);"></i>
+        <div style="font-size: 0.85rem; font-weight: 600;">${message}</div>
+      </div>
+    `;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(20px)';
+      toast.style.transition = 'all 0.5s';
+      setTimeout(() => toast.remove(), 500);
+    }, 5000);
   }
 
   function updateOnlineAgents() {
@@ -617,10 +700,16 @@ Línea gratuita nacional: 01 8000 111 879`
           return;
         }
 
-        container.innerHTML = agents.map(name => `
-          <div class="rank-item">
-            <span class="rank-name">${name}</span>
-            <span class="status-pill green">En línea</span>
+        container.innerHTML = agents.map(a => `
+          <div class="rank-item" style="justify-content: space-between; align-items: center; display: flex; width: 100%;">
+            <div>
+              <span class="rank-name">${a.nombre}</span>
+              <div style="font-size: 0.65rem; color: var(--text-muted);">${a.tiempo}</div>
+            </div>
+            <div style="display: flex; gap: 5px; align-items: center;">
+              ${a.enGestion ? '<span class="status-pill warning" style="font-size: 0.6rem; padding: 2px 6px;">Gestión</span>' : ''}
+              <span class="status-pill green" style="font-size: 0.6rem; padding: 2px 6px;">Línea</span>
+            </div>
           </div>
         `).join('');
       })
@@ -1137,5 +1226,47 @@ Línea gratuita nacional: 01 8000 111 879`
 
     currentPage = 1;
     renderTable();
+  }
+  function renderDailyStats() {
+    const dateInput = document.getElementById('dailyStatsDate').value;
+    const statsContent = document.getElementById('dailyStatsContent');
+    const statsEmpty = document.getElementById('dailyStatsEmpty');
+
+    if (!dateInput) {
+      statsContent.style.display = 'none';
+      statsEmpty.style.display = 'block';
+      return;
+    }
+
+    const dayData = allData.filter(d => d.recibidoPeople === dateInput);
+    const managedDay = dayData.filter(d => d.isManaged);
+    const total = dayData.length;
+    const managed = managedDay.length;
+    const effective = managedDay.filter(d => (d.efectividad || "").toLowerCase().trim().includes('si')).length;
+    const effPerc = managed > 0 ? ((effective / managed) * 100).toFixed(1) : 0;
+
+    document.getElementById('dailyTotal').textContent = total;
+    document.getElementById('dailyManaged').textContent = managed;
+    document.getElementById('dailyEff').textContent = effPerc + '%';
+
+    // Summary by advisor
+    const advisorStats = managedDay.reduce((acc, d) => {
+       if (!acc[d.asesor]) acc[d.asesor] = { count: 0, effective: 0 };
+       acc[d.asesor].count++;
+       if ((d.efectividad || "").toLowerCase().trim().includes('si')) acc[d.asesor].effective++;
+       return acc;
+    }, {});
+
+    const tbody = document.getElementById('dailyAdvisorTable');
+    tbody.innerHTML = Object.entries(advisorStats).map(([name, stat]) => `
+      <tr>
+        <td>${name}</td>
+        <td class="text-center fw-bold">${stat.count}</td>
+        <td class="text-end text-success">${((stat.effective/stat.count)*100).toFixed(0)}%</td>
+      </tr>
+    `).join('') || '<tr><td colspan="3" class="text-center py-2">Sin gestiones este día</td></tr>';
+
+    statsContent.style.display = 'block';
+    statsEmpty.style.display = 'none';
   }
 </script>

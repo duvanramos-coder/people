@@ -69,24 +69,107 @@ function eliminarSesion(nombre) {
 function obtenerAgentesConectados() {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    const sheet = ss.getSheetByName('Sesiones');
-    if (!sheet) return [];
+    const sheetSesiones = ss.getSheetByName('Sesiones');
+    const sheetPQRSF = ss.getSheetByName('PQRSF');
+    if (!sheetSesiones) return [];
 
-    const data = sheet.getDataRange().getValues();
+    const dataSesiones = sheetSesiones.getDataRange().getValues();
+    const dataPQRSF = sheetPQRSF ? sheetPQRSF.getDataRange().getValues() : [];
     const now = new Date().getTime();
     const threshold = 10 * 60 * 1000; // 10 minutos
 
     const conectados = [];
-    for (let i = 1; i < data.length; i++) {
-      const lastSeen = new Date(data[i][1]).getTime();
+    for (let i = 1; i < dataSesiones.length; i++) {
+      const nombre = dataSesiones[i][0];
+      const lastSeenDate = new Date(dataSesiones[i][1]);
+      const lastSeen = lastSeenDate.getTime();
       if (now - lastSeen < threshold) {
-        conectados.push(data[i][0]);
+        // Calcular tiempo relativo
+        const diffMin = Math.floor((now - lastSeen) / 60000);
+        const tiempoRelativo = diffMin === 0 ? "hace un momento" : `hace ${diffMin} min`;
+
+        // Verificar si está en gestión activa (asignado pero no gestionado)
+        let enGestion = false;
+        if (dataPQRSF.length > 1) {
+          enGestion = dataPQRSF.some(r =>
+            String(r[0]).trim().toLowerCase() === String(nombre).trim().toLowerCase() &&
+            String(r[9]).trim() === ""
+          );
+        }
+
+        conectados.push({
+          nombre: nombre,
+          tiempo: tiempoRelativo,
+          enGestion: enGestion
+        });
       }
     }
+    // Ordenar por tiempo de inactividad (más reciente primero)
+    conectados.sort((a, b) => {
+       const aMin = a.tiempo === "hace un momento" ? 0 : parseInt(a.tiempo.match(/\d+/) || 0);
+       const bMin = b.tiempo === "hace un momento" ? 0 : parseInt(b.tiempo.match(/\d+/) || 0);
+       return aMin - bMin;
+    });
+
     return conectados;
   } catch (e) {
     console.error("Error en obtenerAgentesConectados: " + e.message);
     return [];
+  }
+}
+
+function obtenerActividadReciente() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('PQRSF');
+    if (!sheet) return { success: false };
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return { success: true, eventos: [] };
+
+    // Obtenemos los últimos 10 registros gestionados o asignados recientemente
+    // Para simplificar, comparamos el estado actual con lo que el cliente conoce
+    // Pero como no guardamos estado persistente por admin, devolvemos los cambios en los últimos 5 minutos
+    const now = new Date().getTime();
+    const eventos = [];
+    const timeZone = Session.getScriptTimeZone();
+
+    for (let i = data.length - 1; i >= 1 && eventos.length < 5; i--) {
+      const row = data[i];
+      const asesor = String(row[0] || "").trim();
+      const radicado = String(row[2] || "").trim();
+      const estado = String(row[9] || "").trim();
+
+      // Aseguramos obtener la fecha de la columna P (índice 15)
+      let fechaCom = row[15];
+      if (!(fechaCom instanceof Date)) {
+        fechaCom = new Date(fechaCom);
+      }
+
+      // Si fue gestionado hace poco (usamos FECHA COMUNICACIÓN)
+      if (estado !== "" && !isNaN(fechaCom.getTime())) {
+        const diff = now - fechaCom.getTime();
+        // Polling cada 30s, así que miramos los últimos 45s para evitar saltos
+        if (diff > 0 && diff < 45000) {
+          eventos.push({
+            tipo: 'GESTION',
+            mensaje: `${asesor} ha gestionado el radicado ${radicado}`,
+            id: radicado + '_' + fechaCom.getTime()
+          });
+        }
+      }
+
+      // Si fue reclamado pero no gestionado (revisamos si asesor está puesto pero estado no)
+      // Nota: No tenemos fecha de asignación exacta, así que esto es referencial
+    }
+
+    return {
+      success: true,
+      eventos: eventos,
+      totalRegistros: data.length
+    };
+  } catch (e) {
+    return { success: false, message: e.message };
   }
 }
 
@@ -236,9 +319,8 @@ function actualizarRadicadoAdmin(data) {
     sheet.getRange(rowId, 14).setValue(data.seEncontro);
     sheet.getRange(rowId, 15).setValue(data.observacionManual); // Columna O
 
-    // Columna P: Fecha de comunicación al actualizar
-    const fechaGestion = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
-    sheet.getRange(rowId, 16).setValue(fechaGestion); // Columna P: FECHA COMUNICACIÓN
+    // Columna P: FECHA COMUNICACIÓN (Guardamos objeto Date para precisión)
+    sheet.getRange(rowId, 16).setValue(new Date());
 
     return { success: true };
   } catch (e) {
@@ -448,9 +530,8 @@ function saveManagement(data) {
     sheet.getRange(data.rowId, 14).setValue(data.seEncontro);
     sheet.getRange(data.rowId, 15).setValue(data.observacionManual); // Columna O: Observación
 
-    // Col P (16): FECHA COMUNICACIÓN (fecha actual Colombia GMT-5)
-    const fechaGestion = Utilities.formatDate(new Date(), "GMT-5", "yyyy-MM-dd");
-    sheet.getRange(data.rowId, 16).setValue(fechaGestion);
+    // Col P (16): FECHA COMUNICACIÓN (Guardamos objeto Date para precisión)
+    sheet.getRange(data.rowId, 16).setValue(new Date());
 
     // Col Q (17): NOTAS del agente
     sheet.getRange(data.rowId, 17).setValue(data.notas);
