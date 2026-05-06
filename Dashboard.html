@@ -1,416 +1,3 @@
-<!-- Bootstrap 5 CSS -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<!-- Google Fonts -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<style>
-  :root {
-    --brand-indigo: #342D50;
-    --brand-indigo-dark: #1E1B33;
-    --bg-gray: #F4F7FE;
-    --card-shadow: 0px 20px 40px rgba(112, 144, 176, 0.06);
-    --text-navy: #1B2559;
-    --text-gray: #A3AED0;
-    --border-light: #E9EDF7;
-    --success: #B7D400;
-    --danger: #EE5D50;
-    --warning: #FFB800;
-  }
-
-  .admin-dashboard-view {
-    background-color: var(--bg-gray);
-    font-family: 'Inter', sans-serif;
-    color: var(--text-navy);
-    min-height: 100vh;
-    padding: 2rem;
-  }
-
-  /* Typography */
-  h1, h2, h3, .card-title {
-    color: var(--text-navy);
-    font-weight: 700;
-  }
-
-  /* Header */
-  .db-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2.5rem;
-  }
-
-  .db-title h1 {
-    font-size: 1.5rem;
-    margin: 0;
-    letter-spacing: -0.5px;
-  }
-
-  .db-filters {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-  }
-
-  .filter-select {
-    border: 1px solid var(--border-light);
-    background: #FFFFFF;
-    border-radius: 12px;
-    padding: 0.6rem 1rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: var(--text-navy);
-    outline: none;
-    transition: all 0.2s;
-    cursor: pointer;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
-  }
-
-  .filter-select:focus {
-    border-color: var(--brand-indigo);
-    box-shadow: 0px 4px 12px rgba(67, 24, 255, 0.1);
-  }
-
-  .btn-icon-header {
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    border: none;
-    background: #FFFFFF;
-    color: var(--text-navy);
-    transition: all 0.2s;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
-  }
-
-  .btn-icon-header:hover {
-    background: var(--brand-indigo);
-    color: #FFFFFF;
-    transform: translateY(-2px);
-  }
-
-  /* KPI Cards */
-  .kpi-card {
-    background: #FFFFFF;
-    border-radius: 20px;
-    padding: 1.25rem;
-    box-shadow: var(--card-shadow);
-    border: none;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .kpi-icon-wrapper {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    background: var(--bg-gray);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--brand-indigo);
-    flex-shrink: 0;
-  }
-
-  .kpi-content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .kpi-label {
-    font-size: 0.75rem;
-    color: var(--text-gray);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 2px;
-  }
-
-  .kpi-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin: 0;
-    line-height: 1.2;
-  }
-
-  .kpi-trend {
-    font-size: 0.7rem;
-    font-weight: 700;
-    margin-top: 4px;
-  }
-
-  .trend-up { color: var(--success); }
-  .trend-down { color: var(--danger); }
-
-  /* Grid Layout Extensions */
-  .col-5-custom {
-    flex: 0 0 20%;
-    max-width: 20%;
-  }
-
-  /* Glass Cards */
-  .glass-card {
-    background: #FFFFFF;
-    border-radius: 20px;
-    padding: 1.5rem;
-    box-shadow: var(--card-shadow);
-    border: none;
-    margin-bottom: 1.5rem;
-  }
-
-  .card-title {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .card-title i {
-    color: var(--brand-indigo);
-    width: 20px;
-  }
-
-  /* Charts */
-  .chart-container {
-    position: relative;
-    height: 220px;
-  }
-
-  /* Table Style */
-  .table-container {
-    overflow-x: auto;
-  }
-
-  .premium-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 0;
-  }
-
-  .premium-table th {
-    font-size: 0.7rem;
-    font-weight: 800;
-    color: var(--text-gray);
-    text-transform: uppercase;
-    padding: 1.25rem 1rem;
-    border-bottom: none; /* No internal borders as requested */
-  }
-
-  .premium-table tbody tr {
-    transition: all 0.2s;
-    border-radius: 12px;
-  }
-
-  .premium-table tbody tr:hover {
-    background: #FAFBFF;
-    transform: translateY(-2px);
-    box-shadow: 0px 4px 12px rgba(112, 144, 176, 0.08);
-  }
-
-  .premium-table td {
-    padding: 1.25rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-bottom: none; /* No internal borders as requested */
-  }
-
-  .premium-table tbody tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
-  .premium-table tbody tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
-
-  /* Badges */
-  .badge-premium {
-    padding: 0.4rem 0.8rem;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 0.7rem;
-    display: inline-block;
-  }
-
-  .bg-success-pastel { background: #E2F9F2; color: #05CD99; }
-  .bg-danger-pastel { background: #FDEEEE; color: #EE5D50; }
-  .bg-warning-pastel { background: #FFF9E6; color: #FFB800; }
-  .bg-info-pastel { background: #E9EDF7; color: #4318FF; }
-
-  /* Sidebar */
-  .ai-insights-card {
-    background: linear-gradient(135deg, var(--brand-indigo) 0%, var(--brand-indigo-dark) 100%);
-    color: #FFFFFF;
-  }
-
-  .ai-insights-card .card-title { color: #FFFFFF; }
-  .ai-insights-card .card-title i { color: #FFFFFF; }
-  .ai-insights-card p { font-size: 0.8rem; line-height: 1.6; opacity: 0.9; font-weight: 500; }
-
-  .advisor-item {
-    margin-bottom: 1.25rem;
-  }
-
-  .advisor-info {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-  }
-
-  .advisor-name {
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-
-  .advisor-count {
-    font-size: 0.75rem;
-    font-weight: 800;
-    color: var(--brand-indigo);
-  }
-
-  .progress-sm {
-    height: 6px;
-    background: var(--bg-gray);
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  .progress-bar-premium {
-    background: var(--brand-indigo);
-    height: 100%;
-    border-radius: 10px;
-  }
-
-  /* Inputs & Buttons */
-  .premium-input {
-    background: var(--bg-gray);
-    border: 1px solid transparent;
-    border-radius: 12px;
-    padding: 0.75rem 1rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-    width: 100%;
-    margin-bottom: 1rem;
-    outline: none;
-    transition: all 0.2s;
-  }
-
-  .premium-input:focus {
-    background: #FFFFFF;
-    border-color: var(--brand-indigo);
-    box-shadow: 0px 4px 12px rgba(67, 24, 255, 0.05);
-  }
-
-  .btn-premium-action {
-    background: var(--brand-indigo);
-    color: #FFFFFF;
-    border: none;
-    border-radius: 12px;
-    padding: 0.8rem 1.5rem;
-    font-weight: 700;
-    font-size: 0.85rem;
-    width: 100%;
-    transition: all 0.3s;
-    box-shadow: 0px 10px 20px rgba(67, 24, 255, 0.15);
-  }
-
-  .btn-premium-action:hover {
-    transform: translateY(-2px);
-    box-shadow: 0px 10px 20px rgba(67, 24, 255, 0.25);
-    background: var(--brand-indigo-dark);
-  }
-
-  /* Pagination */
-  .db-pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 1.5rem;
-  }
-
-  .pagination-info {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: var(--text-gray);
-  }
-
-  .pagination-btns {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .btn-page {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    border: 1px solid var(--border-light);
-    background: #FFFFFF;
-    color: var(--text-navy);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .btn-page:hover:not(:disabled) {
-    background: var(--brand-indigo);
-    color: #FFFFFF;
-    border-color: var(--brand-indigo);
-  }
-
-  .btn-page:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Online Agents */
-  .agent-online-pill {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.6rem 0.75rem;
-    border-radius: 12px;
-    background: var(--bg-gray);
-    margin-bottom: 0.5rem;
-  }
-
-  .online-indicator {
-    width: 8px;
-    height: 8px;
-    background: var(--success);
-    border-radius: 50%;
-    box-shadow: 0 0 8px var(--success);
-  }
-
-  .agent-online-name {
-    font-size: 0.8rem;
-    font-weight: 700;
-  }
-
-  @media (max-width: 1200px) {
-    .col-5-custom {
-      flex: 0 0 33.33%;
-      max-width: 33.33%;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .db-header {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: 1.5rem;
-    }
-    .db-filters {
-      width: 100%;
-      overflow-x: auto;
-      padding-bottom: 0.5rem;
-    }
-    .col-5-custom {
-      flex: 0 0 100%;
-      max-width: 100%;
-    }
-  }
-</style>
-
 <div class="admin-dashboard-view fade-in">
   <!-- Header -->
   <header class="db-header">
@@ -446,7 +33,7 @@
   </header>
 
   <!-- Advanced Search Panel -->
-  <div id="advancedSearchPanel" class="glass-card mb-4" style="display: none; border: 1px solid var(--brand-indigo);">
+  <div id="advancedSearchPanel" class="glass-card mb-4" style="display: none;">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="card-title mb-0"><i data-lucide="search-code"></i> Búsqueda Avanzada</h3>
       <button class="btn-close-modal" onclick="toggleAdvancedSearch()"><i data-lucide="x" style="width: 18px;"></i></button>
@@ -482,7 +69,7 @@
         <div class="kpi-content">
           <span class="kpi-label">Gestiones Hoy</span>
           <h2 class="kpi-value" id="kpiToday">0</h2>
-          <span class="kpi-trend text-gray">En esta jornada</span>
+          <span class="kpi-trend text-muted">En esta jornada</span>
         </div>
       </div>
     </div>
@@ -508,7 +95,7 @@
     </div>
     <div class="col-5-custom">
       <div class="kpi-card">
-        <div class="kpi-icon-wrapper" style="color: var(--danger);"><i data-lucide="alert-circle"></i></div>
+        <div class="kpi-icon-wrapper" style="color: var(--error);"><i data-lucide="alert-circle"></i></div>
         <div class="kpi-content">
           <span class="kpi-label">Pendientes</span>
           <h2 class="kpi-value" id="kpiPending">0</h2>
@@ -518,7 +105,7 @@
     </div>
     <div class="col-5-custom">
       <div class="kpi-card">
-        <div class="kpi-icon-wrapper" style="color: var(--brand-indigo);"><i data-lucide="trending-up"></i></div>
+        <div class="kpi-icon-wrapper" style="color: var(--secondary);"><i data-lucide="trending-up"></i></div>
         <div class="kpi-content">
           <span class="kpi-label">Efectividad</span>
           <h2 class="kpi-value" id="kpiEffectiveness">0%</h2>
@@ -535,7 +122,7 @@
       <div class="row g-4 mb-4">
         <!-- Status Chart -->
         <div class="col-md-6">
-          <div class="glass-card h-100">
+          <div class="glass-card h-100" style="padding: 1.5rem;">
             <h3 class="card-title"><i data-lucide="bar-chart-2"></i> Estado de Gestión</h3>
             <div class="chart-container">
               <canvas id="chartStatus"></canvas>
@@ -544,7 +131,7 @@
         </div>
         <!-- Channel Chart -->
         <div class="col-md-6">
-          <div class="glass-card h-100">
+          <div class="glass-card h-100" style="padding: 1.5rem;">
             <h3 class="card-title"><i data-lucide="bar-chart-horizontal"></i> Canal de Contacto</h3>
             <div class="chart-container">
               <canvas id="chartChannel"></canvas>
@@ -556,7 +143,7 @@
       <div class="row g-4 mb-4">
         <!-- Managed Chart -->
         <div class="col-md-6">
-          <div class="glass-card h-100">
+          <div class="glass-card h-100" style="padding: 1.5rem;">
             <h3 class="card-title"><i data-lucide="check-square"></i> Gestión vs Pendientes</h3>
             <div class="chart-container">
               <canvas id="chartManaged"></canvas>
@@ -565,7 +152,7 @@
         </div>
         <!-- Effectiveness Chart -->
         <div class="col-md-6">
-          <div class="glass-card h-100">
+          <div class="glass-card h-100" style="padding: 1.5rem;">
             <h3 class="card-title"><i data-lucide="trending-up"></i> Efectividad (Sí/No)</h3>
             <div class="chart-container">
               <canvas id="chartEffectiveness"></canvas>
@@ -575,7 +162,7 @@
       </div>
 
       <!-- Data Table -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem;">
         <div class="d-flex justify-content-between align-items-center mb-4">
           <h3 class="card-title mb-0"><i data-lucide="list"></i> Detalle de Registros</h3>
           <div class="db-filters">
@@ -613,42 +200,42 @@
     <!-- Sidebar (3 cols) -->
     <div class="col-lg-3">
       <!-- AI Insights -->
-      <div class="glass-card ai-insights-card">
+      <div class="glass-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); padding: 1.5rem; margin-bottom: 1.5rem;">
         <h3 class="card-title"><i data-lucide="sparkles"></i> Insights IA</h3>
         <div id="autoInsight">
-          <p>Analizando patrones de gestión para generar sugerencias estratégicas...</p>
+          <p style="font-size: 0.85rem; color: var(--text-muted);">Analizando patrones de gestión para generar sugerencias estratégicas...</p>
         </div>
       </div>
 
       <!-- Action: Search -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
         <h3 class="card-title"><i data-lucide="search"></i> Buscar Radicado</h3>
         <input type="text" id="adminSearchInput" placeholder="Ingrese número (Ej: 12345)" class="premium-input">
-        <button class="btn-premium-action" onclick="ejecutarBusquedaAdmin()">BUSCAR Y EDITAR</button>
+        <button class="btn-premium-action" style="width: 100%;" onclick="ejecutarBusquedaAdmin()">BUSCAR Y EDITAR</button>
       </div>
 
       <!-- Action: Assign -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
         <h3 class="card-title"><i data-lucide="user-plus"></i> Asignar Radicado</h3>
-        <select id="assignAgentSelect" class="premium-input"></select>
-        <input type="text" id="assignRadicadoInput" placeholder="Número de radicado..." class="premium-input">
-        <button class="btn-premium-action" onclick="ejecutarAsignacion()">ASIGNAR AHORA</button>
+        <select id="assignAgentSelect" class="premium-input" style="margin-bottom: 1rem;"></select>
+        <input type="text" id="assignRadicadoInput" placeholder="Número de radicado..." class="premium-input" style="margin-bottom: 1rem;">
+        <button class="btn-premium-action" style="width: 100%;" onclick="ejecutarAsignacion()">ASIGNAR AHORA</button>
       </div>
 
       <!-- Top Advisors -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
         <h3 class="card-title"><i data-lucide="award"></i> Top Asesores</h3>
         <div id="rankingContainer"></div>
       </div>
 
       <!-- Online Status -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
         <h3 class="card-title"><i data-lucide="users"></i> Agentes en Línea</h3>
         <div id="onlineAgentsContainer"></div>
       </div>
 
       <!-- Daily Management Stats -->
-      <div class="glass-card">
+      <div class="glass-card" style="padding: 1.5rem;">
         <h3 class="card-title"><i data-lucide="calendar-days"></i> Gestión por Día</h3>
         <div class="form-group mb-3">
           <label class="premium-label">SELECCIONAR FECHA</label>
@@ -657,28 +244,28 @@
         <div id="dailyStatsContent" style="display: none;">
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <div class="p-2 border rounded bg-light text-center">
-                <small class="kpi-label">Llegaron</small>
+              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+                <small class="kpi-label" style="font-size: 0.6rem;">Llegaron</small>
                 <div class="fw-bold" id="dailyTotal">0</div>
               </div>
             </div>
             <div class="col-6">
-              <div class="p-2 border rounded bg-light text-center">
-                <small class="kpi-label">Gestionados</small>
+              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+                <small class="kpi-label" style="font-size: 0.6rem;">Gestionados</small>
                 <div class="fw-bold" id="dailyManaged">0</div>
               </div>
             </div>
             <div class="col-12 mt-2">
-              <div class="p-2 border rounded bg-light text-center">
-                <small class="kpi-label">Efectividad</small>
+              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+                <small class="kpi-label" style="font-size: 0.6rem;">Efectividad</small>
                 <div class="fw-bold text-success" id="dailyEff">0%</div>
               </div>
             </div>
           </div>
-          <label class="premium-label">RESUMEN POR ASESOR</label>
+          <label class="premium-label" style="font-size: 0.6rem;">RESUMEN POR ASESOR</label>
           <div class="table-responsive" style="max-height: 200px;">
-            <table class="table table-sm table-borderless" style="font-size: 0.75rem;">
-              <thead class="sticky-top bg-white">
+            <table class="table table-sm table-borderless text-white" style="font-size: 0.75rem;">
+              <thead class="sticky-top" style="background: var(--primary);">
                 <tr>
                   <th>Asesor</th>
                   <th class="text-center">Cant.</th>
@@ -700,12 +287,7 @@
 <!-- Real-time Notifications Container -->
 <div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
 
-<!-- Bootstrap 5 JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <script>
-  // OVERRIDE GLOBAL FUNCTIONS FOR CUSTOM UI
-
   function updateAdminDashboard() {
     renderAdminKPIs();
     renderAdminCharts();
@@ -744,32 +326,31 @@
 
   function renderAdminCharts() {
     const statusCounts = countBy(filteredData, 'estado');
-    // Colores: Morado (#342D50), Lima (#B7D400), Rojo (#EE5D50)
     const statusColors = Object.keys(statusCounts).map(key => {
       const s = key.toLowerCase();
       if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50';
-      if (s.includes('contactado')) return '#B7D400';
-      return '#342D50';
+      if (s.includes('contactado')) return '#C4E538';
+      return '#282B5A';
     });
-    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos', true);
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos');
 
     const channelCounts = countBy(filteredData, 'canal');
-    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#342D50', '#B7D400', '#1E1B33', '#A2BC00'], 'Casos', false);
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#282B5A', '#C4E538', '#1D1F49', '#8E94BB'], 'Casos');
 
     const managedCounts = {
       'Gestionados': filteredData.filter(d => d.isManaged).length,
       'Pendientes': filteredData.filter(d => !d.isManaged).length
     };
-    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#B7D400', '#342D50'], 'Casos', true);
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#C4E538', '#282B5A'], 'Casos');
 
     const effCounts = countBy(filteredData, 'efectividad');
     const effColors = Object.keys(effCounts).map(key => {
       const e = key.toLowerCase();
-      if (e.includes('si')) return '#B7D400';
+      if (e.includes('si')) return '#C4E538';
       if (e.includes('no')) return '#EE5D50';
-      return '#342D50';
+      return '#282B5A';
     });
-    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos', false);
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos');
   }
 
   function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
@@ -778,18 +359,23 @@
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
 
+    // Create Gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(196, 229, 56, 0.4)');
+    gradient.addColorStop(1, 'rgba(196, 229, 56, 0)');
+
     const options = {
       indexAxis: isHorizontal ? 'y' : 'x',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false, // For bar charts, legend is usually redundant if bars have labels
+          display: false,
         },
         tooltip: {
-          backgroundColor: '#1B2559',
-          titleFont: { size: 13, family: 'Inter', weight: '700' },
-          bodyFont: { size: 12, family: 'Inter' },
+          backgroundColor: '#1D1F49',
+          titleFont: { size: 13, family: 'Plus Jakarta Sans', weight: '700' },
+          bodyFont: { size: 12, family: 'Plus Jakarta Sans' },
           padding: 12,
           cornerRadius: 12,
           displayColors: false
@@ -797,48 +383,49 @@
         datalabels: {
           anchor: 'end',
           align: 'end',
-          color: '#1B2559',
+          color: '#C4E538',
           offset: 4,
-          font: { weight: '800', family: 'Inter', size: 11 },
+          font: { weight: '800', family: 'Plus Jakarta Sans', size: 10 },
           formatter: (value, context) => {
             const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = ((value / total) * 100).toFixed(1) + '%';
+            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
             return `${value} (${percentage})`;
           }
         }
       },
       scales: {
         x: {
-          grid: { display: isHorizontal, color: '#E9EDF7', drawBorder: false },
-          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } },
+          grid: { display: false },
+          ticks: { color: '#8E94BB', font: { weight: '600', size: 10 } },
           beginAtZero: true
         },
         y: {
-          grid: { display: !isHorizontal, color: '#E9EDF7', drawBorder: false },
-          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } }
+          grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
+          ticks: { color: '#8E94BB', font: { weight: '600', size: 10 } }
         }
       },
       layout: {
         padding: {
-          right: isHorizontal ? 60 : 0, // Extra space for datalabels on horizontal bars
+          right: isHorizontal ? 60 : 20,
           top: !isHorizontal ? 30 : 0
         }
       }
     };
 
     charts[id] = new Chart(ctx, {
-      type: 'bar', // Always bar now
+      type: 'line',
       data: {
         labels: labels,
         datasets: [{
           label: datasetLabel,
           data: data,
-          backgroundColor: colors,
-          hoverBackgroundColor: colors.map(c => c + 'CC'), // Slightly transparent on hover
-          borderRadius: 10,
-          borderWidth: 0,
-          barThickness: 24,
-          maxBarThickness: 30
+          borderColor: '#C4E538',
+          backgroundColor: gradient,
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#C4E538',
+          borderWidth: 3
         }]
       },
       options: options,
@@ -860,12 +447,12 @@
       const tr = document.createElement('tr');
       const isEffective = (row.efectividad || "").toLowerCase().includes('si');
       tr.innerHTML = `
-        <td><span style="color: var(--brand-indigo); font-weight: 800;">${row.radicado}</span></td>
+        <td><span style="color: var(--secondary); font-weight: 800;">${row.radicado}</span></td>
         <td>${row.nombre}</td>
         <td>${row.empresa}</td>
-        <td><span class="badge-premium ${getStatusBadgeClass(row.estado)}">${row.estado || '---'}</span></td>
+        <td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td>
         <td>${row.canal || '---'}</td>
-        <td><span class="badge-premium ${isEffective ? 'bg-success-pastel' : 'bg-danger-pastel'}">${row.efectividad || 'No'}</span></td>
+        <td><span class="status-pill ${isEffective ? 'green' : 'red'}">${row.efectividad || 'No'}</span></td>
       `;
       tbody.appendChild(tr);
     });
@@ -878,14 +465,6 @@
     lucide.createIcons();
   }
 
-  function getStatusBadgeClass(status) {
-    const s = (status || "").toLowerCase();
-    if (s.includes('contactado')) return 'bg-success-pastel';
-    if (s.includes('no contesta') || s.includes('corta')) return 'bg-danger-pastel';
-    if (s.includes('incorrecta')) return 'bg-warning-pastel';
-    return 'bg-info-pastel';
-  }
-
   function renderAdminRanking() {
     const container = document.getElementById('rankingContainer');
     if (!container) return;
@@ -893,15 +472,15 @@
     const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
     const max = sorted.length > 0 ? sorted[0][1] : 1;
 
-    if (sorted.length === 0) { container.innerHTML = '<p class="text-gray text-center mt-1">Sin datos</p>'; return; }
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1" style="font-size: 0.8rem;">Sin datos</p>'; return; }
     container.innerHTML = sorted.map(([name, count]) => `
-      <div class="advisor-item">
-        <div class="advisor-info">
-          <span class="advisor-name">${name}</span>
-          <span class="advisor-count">${count}</span>
+      <div class="advisor-item" style="margin-bottom: 1.5rem;">
+        <div class="advisor-info" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="advisor-name" style="font-size: 0.85rem; font-weight: 700;">${name}</span>
+          <span class="advisor-count" style="font-size: 0.85rem; font-weight: 800; color: var(--secondary);">${count}</span>
         </div>
-        <div class="progress-sm">
-          <div class="progress-bar-premium" style="width: ${(count/max)*100}%"></div>
+        <div class="progress" style="height: 6px; background: var(--primary-dark); border-radius: 10px; overflow: hidden;">
+          <div class="progress-bar" style="width: ${(count/max)*100}%; background: var(--secondary); border-radius: 10px;"></div>
         </div>
       </div>
     `).join('');
@@ -918,132 +497,12 @@
     const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
 
     insightDiv.innerHTML = `
-      <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
-      <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
-      <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
+      <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+        <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
+        <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
+        <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
+      </div>
     `;
     lucide.createIcons();
   }
-
-  // Override updateOnlineAgents for Premium UI
-  function updateOnlineAgents() {
-    google.script.run
-      .withSuccessHandler(agents => {
-        const container = document.getElementById('onlineAgentsContainer');
-        if (!container) return;
-
-        if (agents.length === 0) {
-          container.innerHTML = '<p class="text-gray text-center mt-1" style="font-size: 0.8rem;">No hay agentes activos</p>';
-          return;
-        }
-
-        container.innerHTML = agents.map(name => `
-          <div class="agent-online-pill">
-            <div class="online-indicator"></div>
-            <span class="agent-online-name">${name}</span>
-          </div>
-        `).join('');
-      })
-      .obtenerAgentesConectados();
-  }
-
-  // Administrative Actions
-  function refreshAdminData() {
-    fetchData();
-  }
-
-  function changePage(delta) {
-    currentPage += delta;
-    renderAdminTable();
-  }
-
-  function filterTable() {
-    const query = document.getElementById('tableSearch').value.toLowerCase();
-    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
-    for (let i = 0; i < rows.length; i++) {
-      const text = rows[i].textContent.toLowerCase();
-      rows[i].style.display = text.includes(query) ? "" : "none";
-    }
-  }
-
-  function sortTable(n) {
-    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
-    const key = columns[n];
-
-    if (currentSort.column === key) {
-      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-      currentSort.column = key;
-      currentSort.direction = 'asc';
-    }
-
-    filteredData.sort((a, b) => {
-      let valA = a[key] || "";
-      let valB = b[key] || "";
-      if (typeof valA === 'string') valA = valA.toLowerCase();
-      if (typeof valB === 'string') valB = valB.toLowerCase();
-      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    currentPage = 1;
-    renderAdminTable();
-  }
-
-  function exportToCSV() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
-
-    filteredData.forEach(row => {
-      let r = [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad];
-      csvContent += r.join(",") + "\r\n";
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "pqrsf_admin_export.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function exportToPDF() { window.print(); }
-
-  function ejecutarBusquedaAdmin() {
-    const numero = document.getElementById('adminSearchInput').value.trim();
-    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
-    buscarYMostrarEditor(numero);
-  }
-
-  function ejecutarAsignacion() {
-    const agente = document.getElementById('assignAgentSelect').value;
-    const radicado = document.getElementById('assignRadicadoInput').value.trim();
-
-    if (!agente) { showNotification('error', 'Falta Asesor', 'Seleccione un asesor para asignar.'); return; }
-    if (!radicado) { showNotification('error', 'Falta Radicado', 'Ingrese el número de radicado.'); return; }
-
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          showNotification('success', 'Asignación Exitosa', res.message);
-          document.getElementById('assignRadicadoInput').value = '';
-          fetchData();
-        } else {
-          showNotification('error', 'Error de Asignación', res.message);
-        }
-      })
-      .withFailureHandler(err => {
-        toggleLoader(false);
-        showNotification('error', 'Error de Conexión', err.message);
-      })
-      .asignarRadicado(radicado, agente);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
-  });
 </script>

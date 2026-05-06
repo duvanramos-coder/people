@@ -1046,6 +1046,12 @@ Línea gratuita nacional: 01 8000 111 879`
     const canvas = document.getElementById(id);
     if(!canvas) return;
     const ctx = canvas.getContext('2d');
+
+    const isLine = type === 'line' || type === 'bar'; // Enhance bars to look premium too
+    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+    gradient.addColorStop(0, 'rgba(196, 229, 56, 0.3)');
+    gradient.addColorStop(1, 'rgba(196, 229, 56, 0)');
+
     charts[id] = new Chart(ctx, {
       type: type,
       data: {
@@ -1053,26 +1059,35 @@ Línea gratuita nacional: 01 8000 111 879`
         datasets: [{
           label: datasetLabel,
           data: data,
-          backgroundColor: colors,
-          borderColor: '#ffffff',
-          borderWidth: 2
+          backgroundColor: type === 'line' ? gradient : colors,
+          borderColor: type === 'line' ? '#C4E538' : '#1D1F49',
+          borderWidth: 2,
+          fill: type === 'line',
+          tension: 0.4
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 600 } } },
+          legend: {
+            position: 'bottom',
+            labels: { color: '#8E94BB', boxWidth: 10, font: { size: 10, weight: 600, family: 'Plus Jakarta Sans' } }
+          },
           datalabels: {
-            color: '#1e293b', font: { weight: 'bold', size: 10 },
+            color: '#C4E538', font: { weight: 'bold', size: 10, family: 'Plus Jakarta Sans' },
             formatter: (value, ctx) => {
                let sum = 0; let dataArr = ctx.chart.data.datasets[0].data;
                dataArr.map(data => sum += data);
-               let percentage = (value * 100 / sum).toFixed(1) + "%";
-               return type === 'bar' ? value : percentage;
+               let percentage = total > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
+               return type === 'bar' || type === 'line' ? value : percentage;
             }
           }
-        }
+        },
+        scales: (type === 'bar' || type === 'line') ? {
+          x: { ticks: { color: '#8E94BB' }, grid: { display: false } },
+          y: { ticks: { color: '#8E94BB' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+        } : {}
       },
       plugins: [ChartDataLabels]
     });
