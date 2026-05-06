@@ -1,0 +1,276 @@
+<div class="agent-portal-layout fade-in">
+  <aside class="sidebar-nav">
+    <div class="sidebar-brand">
+      <div class="brand-logo-small">P</div>
+      <div class="brand-text">
+        <h3>PEOPLE BPO</h3>
+        <p>Agent Portal</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div id="nav-gestion" class="nav-item active" onclick="showAgentSection('gestion')"><i data-lucide="layout-dashboard"></i> Gestión</div>
+      <div id="nav-asignados" class="nav-item" onclick="showAgentSection('asignados')"><i data-lucide="user-check"></i> Asignados <span id="assignedCountBadge" class="badge-mini" style="display: none;">0</span></div>
+      <div id="nav-historial" class="nav-item" onclick="showAgentSection('historial')"><i data-lucide="history"></i> Historial</div>
+    </nav>
+
+
+    <div class="sidebar-footer">
+      <button class="btn-logout-minimal" onclick="handleLogout()">
+        <i data-lucide="log-out"></i> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="portal-main">
+    <header class="portal-header">
+      <div class="welcome-banner">
+        <h2>¡Hola, <span id="agentName">...</span>!</h2>
+        <p>Tienes radicados pendientes por comunicar.</p>
+      </div>
+
+      <div class="header-search-container">
+        <div class="search-input-group-premium">
+          <i data-lucide="search" class="search-icon-inside"></i>
+          <input type="text" id="agentSearchInput" placeholder="Buscar radicado para editar..." class="search-input-premium">
+          <button class="btn-search-premium" onclick="ejecutarBusquedaAgente()">
+            <span>BUSCAR Y EDITAR</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="quick-stats-row">
+        <div class="mini-stat-card glass">
+          <div class="stat-icon purple"><i data-lucide="clock"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Por comunicar</span>
+            <h4 id="pendingToCommunicate" class="stat-value">0</h4>
+          </div>
+        </div>
+        <div class="mini-stat-card glass">
+          <div class="stat-icon lime"><i data-lucide="check-circle-2"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Gestiones hoy</span>
+            <h4 id="agentCountToday" class="stat-value">0</h4>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="portal-content">
+      <!-- Section Asignados -->
+      <div id="agent-section-asignados" class="agent-section" style="display: none;">
+        <div class="card-premium fade-in">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="user-check"></i> Radicados Asignados</h3>
+            <p>Radicados asignados por el administrador para tu gestión inmediata.</p>
+          </div>
+          <div class="table-responsive-premium mt-1">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="text-align: left; border-bottom: 2px solid var(--bg-main);">
+                  <th style="padding: 1rem;">Radicado</th>
+                  <th style="padding: 1rem;">Usuario</th>
+                  <th style="padding: 1rem;">Empresa</th>
+                  <th style="padding: 1rem;">Fecha Registro</th>
+                  <th style="padding: 1rem;">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="agentAssignedBody">
+                <!-- Inyectado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="agent-section-gestion" class="management-grid agent-section active">
+        <!-- Active Case Card -->
+        <div class="case-card card-premium">
+          <div id="claimCaseCard" class="claim-placeholder">
+            <div class="empty-state">
+              <div class="empty-icon"><i data-lucide="clipboard-list"></i></div>
+              <h3>Listo para gestionar</h3>
+              <p>Pulse el botón para obtener el siguiente radicado disponible y comience su gestión de inmediato.</p>
+              <button class="btn-primary-premium" onclick="claimNextCase()" id="btnClaim">
+                <i data-lucide="grab"></i> SOLICITAR RADICADO
+              </button>
+            </div>
+          </div>
+
+          <div id="activeCaseCard" style="display: none;" class="active-case-view">
+            <div class="case-header-premium">
+              <div class="case-id-badge">
+                <span class="badge-label">RADICADO EN GESTIÓN</span>
+                <h1 id="activeRadicadoLabel" class="prominent-radicado">RAD-00000</h1>
+              </div>
+              <div class="case-meta-tags">
+                <span class="status-pill warning"><i data-lucide="activity"></i> En Proceso</span>
+                <button class="btn-liberar-radicado" onclick="liberarRadicadoActivo()">
+                   <i data-lucide="unlock"></i> LIBERAR RADICADO
+                </button>
+              </div>
+            </div>
+
+            <div class="case-info-grid-premium">
+              <div class="info-tile">
+                <label>Nombre del Usuario</label>
+                <p id="caseNombre">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Teléfono de Contacto</label>
+                <p id="caseTelefono">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Empresa</label>
+                <p id="caseEmpresa">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Fecha Registro</label>
+                <p id="caseFecha">...</p>
+              </div>
+            </div>
+
+            <form id="managementForm" onsubmit="saveManagement(event)" class="form-premium">
+              <div class="input-row-grid">
+                <div class="form-group">
+                  <label>Estado de Gestión</label>
+                  <select id="mgmtEstado" required onchange="toggleMgmtFields()" class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Contactado">Contactado</option>
+                    <option value="No contesta">No contesta</option>
+                    <option value="Corta llamada">Corta llamada</option>
+                    <option value="Solucion Incorrecta">Solucion Incorrecta</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Canal de Contacto</label>
+                  <select id="mgmtCanal" required class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Llamada">Llamada</option>
+                    <option value="Correo">Correo</option>
+                    <option value="Web">Web</option>
+                    <option value="Solución Incorrecta">Solución Incorrecta</option>
+                    <option value="Por gestionar">Por gestionar</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Fue efectivo?</label>
+                  <select id="mgmtEfectividad" required onchange="toggleMgmtFields()" class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Si">Si</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Requiere otra solución?</label>
+                  <select id="mgmtOtraSolucion" required class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Si">Si</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Se encontró PQRS?</label>
+                  <select id="mgmtSeEncontro" required class="premium-select">
+                    <option value="NO">No</option>
+                    <option value="SI">Si</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group mt-1">
+                <label id="mgmtNotasLabel">Notas del intento (Automático)</label>
+                <textarea id="mgmtNotas" rows="3" readonly class="premium-textarea" style="background-color: var(--bg-main); color: var(--text-muted); cursor: not-allowed;"></textarea>
+              </div>
+
+              <div class="form-group mt-1">
+                <label>Observación adicional (Opcional)</label>
+                <textarea id="mgmtObservacionManual" rows="2" placeholder="Escriba aquí cualquier detalle adicional de la gestión..." class="premium-textarea"></textarea>
+              </div>
+
+              <div class="form-group id-contact-group" id="emailContactGroup" style="display: none;">
+                <label>Correo Electrónico de Contacto</label>
+                <input type="email" id="mgmtEmailContact" placeholder="usuario@ejemplo.com" class="premium-input">
+              </div>
+
+              <div class="form-footer-actions">
+                <button type="submit" class="btn-save-premium" id="btnSaveMgmt">
+                  <i data-lucide="save"></i> Guardar Gestión
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- AI Panel -->
+        <div class="ai-panel-card card-premium">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="sparkles"></i> Response Converter</h3>
+            <p>Formaliza tus respuestas con IA</p>
+          </div>
+          <div class="ai-flow-container">
+            <textarea id="aiInput" rows="4" placeholder="Escribe aquí las notas rápidas de tu gestión..." class="premium-textarea ai-input-field"></textarea>
+            <div class="ai-action-buttons">
+              <button class="btn-ai-outline" onclick="improveText('PQRSF-RES')">
+                <i data-lucide="check-check"></i> Formato Respuesta
+              </button>
+              <button class="btn-ai-outline" onclick="improveText('PQRSF-NC')">
+                <i data-lucide="phone-off"></i> Formato No Contesta
+              </button>
+            </div>
+
+            <div id="aiOutputContainer" style="display: none;" class="ai-results-fade">
+              <div class="result-box">
+                <div class="box-header">
+                  <span>ENCABEZADO</span>
+                  <button class="btn-copy-mini" onclick="copiarCampo('headerOutput')"><i data-lucide="copy"></i></button>
+                </div>
+                <textarea id="headerOutput" readonly class="result-textarea header-box"></textarea>
+              </div>
+
+              <div class="result-box mt-1">
+                <div class="box-header">
+                  <span>CUERPO DE LA RESPUESTA</span>
+                  <button class="btn-copy-mini" onclick="copiarCampo('bodyOutput')"><i data-lucide="copy"></i></button>
+                </div>
+                <textarea id="bodyOutput" readonly class="result-textarea body-box"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial Section -->
+      <div id="agent-section-historial" class="agent-section" style="display: none;">
+        <div class="card-premium fade-in">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="history"></i> Mi Historial Reciente</h3>
+            <p>Últimos 20 radicados gestionados</p>
+          </div>
+          <div class="table-responsive-premium mt-1">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="text-align: left; border-bottom: 2px solid var(--bg-main);">
+                  <th style="padding: 1rem;">Radicado</th>
+                  <th style="padding: 1rem;">Usuario</th>
+                  <th style="padding: 1rem;">Fecha</th>
+                  <th style="padding: 1rem;">Estado</th>
+                  <th style="padding: 1rem;">Canal</th>
+                  <th style="padding: 1rem;">Efectividad</th>
+                </tr>
+              </thead>
+              <tbody id="agentHistoryBody">
+                <!-- Inyectado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="portal-footer-signature" style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem;">
+      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--primary);">By Duvan Ramos</span> • 2026</p>
+    </footer>
+  </main>
+</div>
