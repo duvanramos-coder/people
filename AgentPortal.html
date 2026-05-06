@@ -1,7 +1,9 @@
 <div class="agent-portal-layout fade-in">
   <aside class="sidebar-nav">
     <div class="sidebar-brand">
-      <div class="brand-logo-small">P</div>
+      <div class="logo-container-sidebar">
+        <div class="du-logo small"></div>
+      </div>
       <div class="brand-text">
         <h3>PEOPLE BPO</h3>
         <p>Agent Portal</p>
@@ -25,7 +27,12 @@
   <main class="portal-main">
     <header class="portal-header">
       <div class="welcome-banner">
-        <h2>¡Hola, <span id="agentName">...</span>!</h2>
+        <div class="d-flex align-items-center gap-3">
+          <h2>¡Hola, <span id="agentName">...</span>!</h2>
+          <button class="btn-icon-header" onclick="toggleTheme()" title="Cambiar Tema" style="width: 32px; height: 32px; border-radius: 8px;">
+            <i data-lucide="sun" class="theme-icon-agent" style="width: 16px;"></i>
+          </button>
+        </div>
         <p>Tienes radicados pendientes por comunicar.</p>
       </div>
 
@@ -269,8 +276,8 @@
       </div>
     </section>
 
-    <footer class="portal-footer-signature" style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem;">
-      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--primary);">By Duvan Ramos</span> • 2026</p>
+    <footer class="portal-footer-signature">
+      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--secondary);">By Duvan Ramos</span> • 2026</p>
     </footer>
   </main>
 </div>

@@ -1,6 +1,29 @@
 <!DOCTYPE html>
 <html>
   <head>
+        <script>
+        window.google = {
+            script: {
+                run: {
+                    withSuccessHandler: function() { return this; },
+                    withFailureHandler: function() { return this; },
+                    validarLogin: function() {},
+                    getPQRSFData: function() {},
+                    obtenerUsuarios: function() {},
+                    registrarSesion: function() {},
+                    eliminarSesion: function() {},
+                    obtenerAgentesConectados: function() {},
+                    obtenerActividadReciente: function() {},
+                    obtenerAsignadosAsesor: function() {}
+                }
+            }
+        };
+        // Mock getScriptTimeZone for formatting
+        window.Session = {
+            getScriptTimeZone: function() { return "GMT-5"; }
+        };
+        </script>
+
     <base target="_top">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -10,39 +33,63 @@
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap');
 
   :root {
-    /* Strict Premium Palette */
-    --primary: #1D1F49;            /* Deep Navy Background */
-    --primary-light: #282B5A;      /* Surface/Card Base */
-    --primary-dark: #131537;       /* Main App Background */
-    --secondary: #C4E538;          /* Lime Yellow Accent */
-    --secondary-dark: #A8C628;
-
-    --accent: #6366f1;
-    --white: #ffffff;
-    --text-main: #FFFFFF;
-    --text-muted: #8E94BB;         /* Bluish Grey */
-    --border-subtle: rgba(255, 255, 255, 0.05);
+    /* Light Mode (Default) */
+    --bg-main: #F4F7FE;
+    --bg-sidebar: #1D1F49;
+    --bg-card: #FFFFFF;
+    --text-main: #1B2559;
+    --text-muted: #A3AED0;
+    --border-color: #E9EDF7;
+    --primary: #342D50;
+    --primary-light: #4A446E;
+    --secondary: #B7D400;
+    --secondary-dark: #9AC418;
+    --accent: #4318FF;
+    --error: #EE5D50;
+    --success: #05CD99;
+    --warning: #FFB800;
 
     --radius-md: 14px;
     --radius-lg: 20px;
-    --shadow-premium: 0px 20px 50px rgba(0, 0, 0, 0.4);
-    --glow-secondary: 0 0 20px rgba(196, 229, 56, 0.3);
+    --shadow-premium: 0px 20px 40px rgba(112, 144, 176, 0.06);
+    --glow-secondary: 0 0 20px rgba(183, 212, 0, 0.2);
+
+    /* Constants */
+    --white: #ffffff;
+    --sidebar-width: 280px;
+    --sidebar-collapsed-width: 80px;
+  }
+
+  [data-theme="dark"] {
+    --bg-main: #131537;
+    --bg-sidebar: #1D1F49; /* Sidebar stays dark */
+    --bg-card: rgba(40, 43, 90, 0.4);
+    --text-main: #FFFFFF;
+    --text-muted: #8E94BB;
+    --border-color: rgba(255, 255, 255, 0.05);
+    --primary: #1D1F49;
+    --primary-light: #282B5A;
+    --secondary: #C4E538;
+    --secondary-dark: #A8C628;
+    --accent: #6366f1;
     --error: #ef4444;
     --success: #C4E538;
     --warning: #facc15;
+    --shadow-premium: 0px 20px 50px rgba(0, 0, 0, 0.4);
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
   body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--primary-dark);
+    background-color: var(--bg-main);
     color: var(--text-main);
     line-height: 1.6;
     overflow-x: hidden;
+    transition: background-color 0.3s, color 0.3s;
   }
 
   h1, h2, h3, h4 { font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; color: var(--text-main); }
@@ -50,23 +97,50 @@
   .fade-in { animation: fadeIn 0.5s ease-out; }
   @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-  /* --- Premium Glassmorphism --- */
-  .glass-card {
-    background: rgba(40, 43, 90, 0.4);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-premium);
+  /* --- Logo Styling --- */
+  .logo-container-login {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 5;
+    filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
   }
 
-  /* --- Login Redesign --- */
+  .logo-container-sidebar {
+    width: 45px;
+    height: 45px;
+  }
+
+  .du-logo {
+    width: 100%;
+    height: 100%;
+    background-image: url('data:image/jfif;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAMCAggICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoICAgICgoJCAgNDQoIDQgICQgBAwQEBgUGCAYGCA0NCA0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDf/AABEIAokEAAMBIgACEQEDEQH/xAAdAAACAgIDAQAAAAAAAAAAAAAAAQIDBAUGBwgJ/8QAXxAAAgECAgYDCQgMCQoGAQUAAAECAxEEBQYSITFh8EFRcQcIExSBkaGxwQkVI3J00eHxFiIyM0JSVJKUsrTTJCU1VWJzk7PUFxgmNFN1goSi0kNERWOjwpU2ZYOkw//EAB0BAQEBAAIDAQEAAAAAAAAAAAABAgMEBQcIBgn/xABDEQEAAQICBgUHCQcDBQAAAAAAAQIRAwQFBgcSITFBUWFxsRMUMjU2kdEiUlSBgpKhssEVFyVCRHJzJuHwFiMkNFP/2gAMAwEAAhEDEQA/APoUkFhkkjtuJBEwsAAAWAAAAAAAAAAuAANCGgJAAANIYokgAAAAABAMBDIALgwKGDEAErARuPWAYCuDYDCxG4ASAWsFwGJsLjIJIEgAQAYAUAXAVghpAJAFMAYAACYIBgFhWCGAILEauLDQNAZU0gEAZNAFxXCiwIQ0FACsMBEooQIipXBIGxFaO4AwABDEA4okRiyRJQWCKGJkQDQiUTQBiGGgAAQAABQADABDYAAWE0DkIjJjZAYDsNIiSCAAAoAAAGkSsJDMgAAIAAAAAAAAACgAAIAEAAAAAAAAAAAAAAAAAAAmhNEhMoiFgYGgWIskRA1lxpgCRtkwCwAFwAAAAAAAAuAAAAAIBoCQAADRIjEYDAQEDEAFANCGQAAwKAQxAAAAAADAAAAABAA0SgRJQJImIBkgAhgaAAEQHcLiuFwGMVwAEgsAWAEMEAAACYDAAOOGj1R2FcGVA0IbYgsC4AAUAABAhoQ0FMAANGIBgIYAQCJMSC4QxiGIQiSREmFgmxiTHcigAAAAQAMBIZQAIGysyTEMAhDEMARIEgCgAAIYIRJEkMAAyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE0IbEagRkRJsiVWtY0IZtgAAAAAAAAAAAAAAAAASSIkkAwAAGhiihgAxDAQwAAAAAAAQAAwAQwAIAAAoAAABDEA0TgVlsTMgGINY0GBG4XAkRbBsVwC47iAB3GRGESASGFAAK4DEFwJIYAh2MtEMAsAgHYQAAAAAAAA0IkkFgwAA0AAAAQDIBAAWKzKSGRSJEAiREdwsGAARSuADABXGIoBkQKlzQhsQZIAABokiKRIAAdgsQIB2AoEiQkMzIAACAAAAAHYVgAAAAAAAAAAAAsMBAMVgAAAAAAAAAAAAsAAAAAEWSE0WBEiSZA0NchhYDTIAAKAAAAAAIAAAoAAAAkiJNAAAAEkhgAAAAEAgAAuMQBTAAAAAQDABAMBAgAYAAAAABJERqRmSEguR1haxYE7iI3C5Q7jK3UK5YlAXthrHE9Lu6bgMBBzxmLoYeK/2tSMW+EY/dSfCKb4HQWmXugeSUNZUPGMW1006TpQb+NW1Hbjqm6aKquUI9UOoReKR859LfdLsU9ZYTA4ekuiVepUrS8sIeCj/wBbOqM97/jP617Y2NBdWHw9GCXY5wqT/wCtnYjLVdKXfW5YtA8Wj4vZj32Gd1Pu80xsr9VVw/UUbGkqd8DmUntx2Ob6/Gq//eb817Vu+3bxaDxo+Ia7vWY/luN/S8R+8Jf5dsx/Lcb+lV/3m0vmvaPt142CxiPiPHu7Zh+WY39LxH7wku7vj/y3G/pWI/eE81nrLvtusYh+No+JS7vGYfluN/Sq/wC8G+7xmH5Zjf0qv+8J5pPWXfbXxpC8bR8S/wDLrmH5bjf0rEfvB/5c8f8AlmN/Sq/7weadq3fbPxtB42j4mru54/8ALMb+lV/3hZDu64/8sxv6VX/eF80nrLvtd40g8aR8U493PH/luN/SsR+8JR7uWP8AyzG/pVf94TzTtLvtX4yhrEI+Ky7umP8AyzGfpVf94WLu64/8sxn6VX/eE80nrLvtL4yg8aPi7Hu7Y/8ALMb+lV/3g13dcd+WYz9Kr/8AeTzSetbvtC8UPxo+MEe7rj/yzGfpVf8AeEl3d8f+WYz9Jr/vC+aT1rd9nfGkCxCPjLHu6478rxn6VX/eE493XHbL4vGfpVf94PNZ603n2Y8ZDxlHxpj3dsd+V4z9Kr/94/8ALpjfyvGfpNf94TzSes3n2V8ZQ1iUfGxd3PHfleM/Sa//AHjXdzxv5VjP0mv+8Hmk9aXfZNYlB40j43ru5478rxf6TX/7yUO7rjvyvF/pNb/vHms9a3fY7xpB4yj46Lu6438rxf6TX8/3ZYu7zjfyvF/pNb/vHmk9Zd9h1iSXjJ8eY93rG/lWL/SK3/eZFDvgsensxeLX/MVvbMnms9Zd9f8AxhElWPk7l3fW5nTtbMMWrPpqOX62sjm+Q9+/m1Pfi4VV1VqFKSfDWhGnL/qMzlqjefS1TGeJNFe/2quyxGFoVOuVGpOm/wAyeuv+pHc2iXfc5ViLKpOphpP/AGsHKF/j09ay4tI4asKqOhbu9WI1OR6UYfExU6FanWi1vpzjNf8AS215TaqRxBiAAAYAgJJDEBAwEMAAQ0BIAAyAAAAAAAAAAAAAAAAsAAAAAIAAAAAAAAAAAAAAAAAAAAAABMYAQZElIibVrgADbAAAAAAAAAAAAAAAuAABJEbEkgGNCBATAQAFwuAAAACABiABgAgAAAAuFxDAAC4rgMLkWLWAlri1iNyMmBZceuUOQ3IkrC1zI+EK5VDExGPSAzKlexq8y0ghTTcpJJLa27Jcdp0R3d++5y7JoypzqeHxTi3DDUtsl1OrL7mlG/4zu9tkz51d2bvsc2zeUozruhhm9mGoPVhb+nNJVKj6HrPV/oo7OHgVVcZ5Jd777rvf05TlrlSp1XjMRHY6eH+2hB9U633tPrinKS6UjyF3SvdAM5xrlChUWBovZqYdJ1Gv6Vaacv7PwZ5UqV2+kUDvUYFNKOU5zp1iK83UqVZ1JvfOpOU5/nSbfpNNXzGct7Zg3JI7MQWWVKnFkWK47mlO49YimSYROLJFY0yC1SJX5+krQ2UWKQ9YgSTKJ3JJ/SisnBkVLnn6yxPnlFSJphFqnz6SesyqA0yC1T5+YcZ89BWpErAWqS+Ykpc+v0FafkJoKmtpO/0c+kri/oJpgWJ8+klfnylcR8d5EWX59RKEun0dpCK9HOwae7jyiixS59ZJv6PIQv2jv9BBYpkoy4c/MVpvyeqw1Lnp43AshU548SV+esqgvJwZYmBLtXYSUvp+jn6IKXPzEkvYBK/PtJx554kESixZGTh6zTW13ubfA6VVofczezoNCpc8+Ymp8/OLK7Q0V7stfDyU41KlOS/DpylCXni0ei+5538eLp6sa84YuHVVShVXZVglrf8AHGXaeJIzJQqtbU2vKcFeFTV0Ld9de573zWW4/VgqvgKzt8FW+1u+qFT73Ps1lLgdsUcUpbm+E/KNMatJr7a66meku4z32WMwrjB1fDUVZeArO9l/7dTbOD4NuPA6OJlrcmrvpISSOuu5l3a8FmcV4GerWSTnQnsqL4vRUj/Si3xSOw1M6UxYTEABQAxAA0IkiShgAGQAAAAABVAAAAAARAAAAAABQAAUAABAAABAFwAAAACgAAAAAAAAAiMiBORBmoVrgAZqWYIAA0gAAAAsAAFgAAAAABokRRIABCbHECQAAAFhiALAArhDuMjckFAgFrAMBXI3AbYriuJsCVxaxBzI6wFjkRciEplcqgFrmQdQpdQqlWAyXUKa2KS3swMVmSirs6d7s/d8wuWYedavUUYxTtFbZ1JdEILpk/rsappmS7sTS7uh4fCUp1a1WFKnTi5TnOSjGKW9ts8A98L3/lbEueGyiU6FF3jPFNataotqaopr4KL/AB2tfq1djPPfdz74/G53V+3lKlhYt+Dw8ZPVX9Op/tKnF3Uejpb6pjM8jhYERxlJlssxzepVlKc5SnKTblKTp6ndt9pgXC4kd1EgEyVy2UIkRRJMgBjihoXDiNCRKIuBDQmNfQUSiiSfUQuTsFMsK0ySQRKI7iQ4ASuTK48/OTSAnF88CS6iCfPPPskmBNEornngRXPzkosCxc+kaQurnoJKxBKLJJ87xLyewkpASUiSfTzz2ELegaAnfnn0jSIpc88CfPPqCiPPtLI259BC/t7USjHs4BEueewlHq7CK5ZNLp52AOxLV54Ijca+nzASRNERp9gEtuwlcS9PoH6yBpvnj7eglz9RDnzE0gDV9RJQBEkueglg1AycLW1XdbGY1ueglBoo7A0Q7qFXDzjLXknF3jKLakmtzUlZp9jPcPcQ776FSMKWYT1lsUcSltXV4aKW1f8AuRV+tb2fOCEjb5TpHOg04t9h18TBipYl9scBmMKkYzhJSjJJxlFppp7mmtjTMpSPnL3vvfU1cG405t1cO2tag3dw65UW/uX1xb1Xwe0986IaZUMbRhWoTVSnNbGuvpUlvjJbmntPFYmHNDV3IQEmTOEKxJIjYaAYABkAAAUAA7AIAAIAAAAAAAAACgAsFgABiCAAAAAACgACwQmA7AAAAAAAAEZCY2JmlawYh3LLMEAAaQAAFAAAAAAAAAADRIhEkArk4ldyyDAkAAACuMTYQmxA2K4UyVyu5IAbC5FiuBK5FsTkQcgJOoQciDkVyqBFjqEXUKnUKpVQLZ1CuVUx6lYx6mJLYZVSuYGNzNRV2a3Ms6UU9p0v3WO7JSwlGpVqT1YU4tyfsS6W9yXSzUU3Vk923u64fLsPOrVnZJPVimtapLohBN7W/R0ny37rfdVxWbYmVevN6quqVLWepSj1JbnJ/hSe1+ZF/de7rdfNsU61RyjTjdUaTd1CN9/VrS2OT7FuSOBuR5PCwt2OLKMUSihXJHZshpkkRY0aVIaYgQEkSsJMaAaJCixRYE0O5AkkFSQCJIolFDaAbZBJPrGQTJCyJDbIJkufrCpoZGEueod+kosT9JKLIgiC1Ln0eYkkJesmlfykRO4+fMVp8+QnfzhUr7ialzzxK1Ln0E0yiaRJ88+bYQ9JJMipx+ Cardi Logic --- */
+  function getStatusClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes('contactado')) return 'green';
+    if (s.includes('no contesta') || s.includes('corte') || s.includes('corta')) return 'red';
+    return 'warning';
+  }
+
+  /* --- Glassmorphism --- */
+  .glass-card {
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+
+  /* --- Login --- */
   .login-wrapper {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--primary-dark);
+    background-color: var(--bg-sidebar);
     padding: 1.5rem;
     position: relative;
   }
@@ -76,17 +150,17 @@
     width: 100%;
     max-width: 950px;
     min-height: 580px;
-    background: var(--primary);
+    background: var(--bg-sidebar);
     border-radius: var(--radius-lg);
     overflow: hidden;
     box-shadow: var(--shadow-premium);
-    border: 1px solid var(--border-subtle);
+    border: 1px solid rgba(255,255,255,0.05);
     z-index: 10;
   }
 
   .login-left-panel {
     flex: 1;
-    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    background: linear-gradient(135deg, #1D1F49, #282B5A);
     padding: 4rem 3.5rem;
     position: relative;
     display: flex;
@@ -96,446 +170,132 @@
     overflow: hidden;
   }
 
-  .logo-box-premium {
-    background: var(--secondary);
-    color: var(--primary);
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 16px;
-    margin-bottom: 2rem;
-    box-shadow: var(--glow-secondary);
-  }
-  .logo-box-premium i { width: 30px; height: 30px; }
+  .welcome-label { font-size: 0.8rem; font-weight: 700; letter-spacing: 3px; color: var(--secondary); margin-bottom: 0.5rem; }
+  .brand-title { font-size: 2.8rem; margin-bottom: 1.5rem; letter-spacing: -1.5px; color: var(--white); line-height: 1; }
+  .brand-description { font-size: 1rem; line-height: 1.7; color: rgba(255,255,255,0.6); max-width: 320px; }
+  .by-author-login { font-size: 0.85rem; font-weight: 700; color: var(--secondary); margin-top: 1rem; letter-spacing: 1px; opacity: 0.8; }
 
-  .welcome-label {
-    font-size: 0.8rem;
-    font-weight: 700;
-    letter-spacing: 3px;
-    color: var(--secondary);
-    margin-bottom: 0.5rem;
-  }
-
-  .brand-title {
-    font-size: 2.8rem;
-    margin-bottom: 1.5rem;
-    letter-spacing: -1.5px;
-    color: var(--white);
-    line-height: 1;
-  }
-
-  .brand-description {
-    font-size: 1rem;
-    line-height: 1.7;
-    color: var(--text-muted);
-    max-width: 320px;
-  }
-
-  .decoration-sphere {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, var(--primary-light), var(--primary-dark));
-    box-shadow: inset -10px -10px 30px rgba(0,0,0,0.5);
-  }
+  .decoration-sphere { position: absolute; border-radius: 50%; background: radial-gradient(circle at 30% 30%, #282B5A, #131537); box-shadow: inset -10px -10px 30px rgba(0,0,0,0.5); }
   .sphere-1 { width: 220px; height: 220px; bottom: -60px; left: -60px; }
   .sphere-2 { width: 140px; height: 140px; top: 80px; right: -50px; opacity: 0.6; }
 
-  .login-right-panel {
-    flex: 1;
-    padding: 4rem 4rem;
-    display: flex;
-    align-items: center;
-    background: var(--primary-dark);
-  }
+  .login-right-panel { flex: 1; padding: 4rem 4rem; display: flex; align-items: center; background: var(--bg-main); transition: background-color 0.3s; }
   .login-form-box { width: 100%; }
-  .form-title { font-size: 2.2rem; color: var(--white); margin-bottom: 0.5rem; letter-spacing: -0.5px; }
+  .form-title { font-size: 2.2rem; color: var(--text-main); margin-bottom: 0.5rem; letter-spacing: -0.5px; }
   .form-subtitle { font-size: 0.95rem; color: var(--text-muted); margin-bottom: 2.5rem; }
   .form-group-premium { margin-bottom: 1.8rem; }
   .premium-label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 0.8rem; letter-spacing: 1.2px; text-transform: uppercase; }
 
   .premium-input-wrapper { position: relative; display: flex; align-items: center; }
   .premium-input-wrapper .input-icon { position: absolute; left: 1.2rem; width: 18px; height: 18px; color: var(--text-muted); }
+  .premium-input-wrapper input, .premium-input-wrapper select { width: 100%; padding: 1rem 1rem 1rem 3.5rem; border: 1px solid var(--border-color); border-radius: 12px; font-size: 1rem; background: var(--bg-card); color: var(--text-main); transition: all 0.3s; outline: none; appearance: none; }
+  .premium-input-wrapper input:focus, .premium-input-wrapper select:focus { border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(183, 212, 0, 0.1); }
 
-  .premium-input-wrapper input, .premium-input-wrapper select {
-    width: 100%; padding: 1rem 1rem 1rem 3.5rem; border: 1px solid var(--border-subtle); border-radius: 12px;
-    font-size: 1rem; background: var(--primary-light); color: var(--white); transition: all 0.3s; outline: none; appearance: none;
-  }
-  .premium-input-wrapper input:focus, .premium-input-wrapper select:focus {
-    border-color: var(--secondary); box-shadow: 0 0 0 4px rgba(196, 229, 56, 0.1);
-  }
+  .btn-toggle-pass { position: absolute; right: 1.2rem; background: none; border: none; font-size: 0.7rem; font-weight: 800; color: var(--secondary-dark); cursor: pointer; letter-spacing: 1px; }
+  .btn-auth-premium { width: 100%; background: var(--secondary); color: #1D1F49; border: none; padding: 1.2rem; border-radius: 12px; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 2.5rem; box-shadow: var(--glow-secondary); }
+  .btn-auth-premium:hover { background: var(--secondary-dark); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(183, 212, 0, 0.3); }
+  .login-footer-fixed { position: absolute; bottom: 2rem; font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-align: center; width: 100%; pointer-events: none; }
 
-  .btn-toggle-pass {
-    position: absolute; right: 1.2rem; background: none; border: none; font-size: 0.7rem; font-weight: 800; color: var(--secondary); cursor: pointer; letter-spacing: 1px;
-  }
-
-  .btn-auth-premium {
-    width: 100%; background: var(--secondary); color: var(--primary); border: none; padding: 1.2rem; border-radius: 12px;
-    font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 2.5rem;
-    box-shadow: var(--glow-secondary);
-  }
-  .btn-auth-premium:hover { background: var(--secondary-dark); transform: translateY(-2px); box-shadow: 0 10px 25px rgba(196, 229, 56, 0.4); }
-
-  .error-box-premium { margin-top: 1.5rem; padding: 1rem; background: rgba(239, 68, 68, 0.1); color: var(--error); border-radius: 10px; font-size: 0.85rem; text-align: center; font-weight: 600; border: 1px solid rgba(239, 68, 68, 0.2); }
-  .login-footer-fixed { position: absolute; bottom: 2rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); letter-spacing: 2px; text-align: center; width: 100%; pointer-events: none; opacity: 0.5; }
-
-  /* --- Agent Portal Layout --- */
-  .agent-portal-layout {
-    display: flex;
-    min-height: 100vh;
-    background-color: var(--primary-dark);
-  }
-
-  .sidebar-nav {
-    width: 280px;
-    background-color: var(--primary);
-    color: var(--white);
-    display: flex;
-    flex-direction: column;
-    padding: 2.5rem 1.5rem;
-    position: fixed;
-    height: 100vh;
-    border-right: 1px solid var(--border-subtle);
-    z-index: 100;
-  }
-
-  .sidebar-brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 3.5rem;
-  }
-
-  .brand-logo-small {
-    background: var(--secondary);
-    color: var(--primary);
-    width: 42px;
-    height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 1.3rem;
-    box-shadow: var(--glow-secondary);
-  }
-
-  .brand-text h3 { font-size: 1.1rem; margin: 0; letter-spacing: -0.5px; }
-  .brand-text p { font-size: 0.75rem; color: var(--text-muted); margin: 0; font-weight: 600; }
-
+  /* --- Sidebar --- */
+  .sidebar-nav { width: var(--sidebar-width); background-color: var(--bg-sidebar); color: var(--white); display: flex; flex-direction: column; padding: 2.5rem 1.5rem; position: fixed; height: 100vh; border-right: 1px solid rgba(255,255,255,0.05); z-index: 100; }
+  .sidebar-brand { display: flex; align-items: center; gap: 1rem; margin-bottom: 3.5rem; }
+  .brand-text h3 { font-size: 1.1rem; margin: 0; letter-spacing: -0.5px; color: var(--white); }
+  .brand-text p { font-size: 0.75rem; color: rgba(255,255,255,0.5); margin: 0; font-weight: 600; }
   .nav-menu { flex: 1; }
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    padding: 1.1rem 1.5rem;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.3s;
-    margin-bottom: 0.6rem;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: var(--text-muted);
-  }
+  .nav-item { display: flex; align-items: center; gap: 1.2rem; padding: 1.1rem 1.5rem; border-radius: 12px; cursor: pointer; transition: all 0.3s; margin-bottom: 0.6rem; font-weight: 600; font-size: 0.95rem; color: rgba(255,255,255,0.5); }
   .nav-item i { width: 20px; height: 20px; }
-  .nav-item:hover {
-    background-color: rgba(255,255,255,0.03);
-    color: var(--white);
-  }
-  .nav-item.active {
-    background-color: rgba(196, 229, 56, 0.08);
-    color: var(--secondary);
-    position: relative;
-  }
-  .nav-item.active::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 4px;
-    height: 20px;
-    background: var(--secondary);
-    border-radius: 0 4px 4px 0;
-  }
-
-  .sidebar-footer { padding-top: 1.5rem; border-top: 1px solid var(--border-subtle); }
-  .btn-logout-minimal {
-    width: 100%;
-    background: none;
-    border: none;
-    color: var(--text-muted);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 0.8rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: all 0.3s;
-  }
+  .nav-item:hover { background-color: rgba(255,255,255,0.03); color: var(--white); }
+  .nav-item.active { background-color: rgba(255, 255, 255, 0.08); color: var(--secondary); position: relative; }
+  .nav-item.active::after { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 4px; height: 20px; background: var(--secondary); border-radius: 0 4px 4px 0; }
+  .sidebar-footer { padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05); }
+  .btn-logout-minimal { width: 100%; background: none; border: none; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 1rem; padding: 0.8rem; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s; }
   .btn-logout-minimal:hover { color: var(--error); }
 
-  .portal-main {
-    flex: 1;
-    margin-left: 280px;
-    padding: 3rem 4rem;
-  }
+  /* --- Layouts --- */
+  .agent-portal-layout { display: flex; min-height: 100vh; background-color: var(--bg-main); }
+  .portal-main { flex: 1; margin-left: var(--sidebar-width); padding: 2.5rem 3.5rem; }
+  .admin-dashboard-view { padding: 2.5rem 4rem; background-color: var(--bg-main); min-height: 100vh; transition: background-color 0.3s; }
 
-  .portal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3.5rem;
-  }
+  .portal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3.5rem; }
+  .welcome-banner h1, .welcome-banner h2 { font-size: 2rem; margin-bottom: 0.2rem; letter-spacing: -1px; color: var(--text-main); }
+  .welcome-banner p { color: var(--text-muted); font-size: 0.95rem; }
 
-  .welcome-banner h2 { font-size: 2.2rem; margin-bottom: 0.4rem; letter-spacing: -1px; }
-  .welcome-banner p { color: var(--text-muted); font-size: 1.05rem; }
+  .db-filters { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+  .filter-select { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.6rem 1rem; font-size: 0.8rem; color: var(--text-main); font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03); }
+  .filter-select:hover { border-color: var(--accent); }
 
-  .header-search-container { width: 420px; }
-  .search-input-group-premium {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  .search-icon-inside { position: absolute; left: 1.2rem; color: var(--text-muted); width: 18px; }
-  .search-input-premium {
-    width: 100%;
-    padding: 1rem 1rem 1rem 3.2rem;
-    border: 1px solid var(--border-subtle);
-    border-radius: 14px;
-    font-size: 0.95rem;
-    background: var(--primary);
-    color: var(--white);
-    outline: none;
-    transition: all 0.3s;
-  }
-  .search-input-premium:focus { border-color: var(--secondary); background: var(--primary-light); }
+  .btn-icon-header { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); transition: all 0.2s; box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03); display: flex; align-items: center; justify-content: center; cursor: pointer; }
+  .btn-icon-header:hover { background: var(--accent); color: var(--white); transform: translateY(-2px); }
 
-  .btn-search-premium {
-    background: var(--secondary);
-    color: var(--primary);
-    border: none;
-    padding: 0.9rem 1.5rem;
-    border-radius: 12px;
-    font-weight: 800;
-    font-size: 0.75rem;
-    cursor: pointer;
-    white-space: nowrap;
-    box-shadow: var(--glow-secondary);
-  }
-
-  .quick-stats-row { display: flex; gap: 1.5rem; }
-  .mini-stat-card {
-    background: var(--primary);
-    padding: 1.2rem 1.8rem;
-    border-radius: 18px;
-    display: flex;
-    align-items: center;
-    gap: 1.2rem;
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-premium);
-  }
-  .stat-icon {
-    width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
-  }
-  .stat-icon.purple { background: rgba(99, 102, 241, 0.1); color: var(--accent); }
-  .stat-icon.lime { background: rgba(196, 229, 56, 0.1); color: var(--secondary); }
-  .stat-info .stat-label { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-  .stat-info .stat-value { font-size: 1.5rem; font-weight: 800; color: var(--white); }
-
-  .portal-content { display: block; }
-  .agent-section { display: none; }
-  .agent-section.active { display: block; }
-  #agent-section-gestion.active { display: grid !important; }
-
-  .management-grid {
-    display: grid;
-    grid-template-columns: 1.8fr 1fr;
-    gap: 2.5rem;
-  }
-
-  .card-premium {
-    background: var(--primary);
-    border-radius: var(--radius-lg);
-    padding: 2.5rem;
-    border: 1px solid var(--border-subtle);
-    box-shadow: var(--shadow-premium);
-  }
-
-  .empty-state {
-    text-align: center;
-    padding: 5rem 2rem;
-  }
-  .empty-icon {
-    width: 90px; height: 90px; background: var(--primary-light); color: var(--secondary); border-radius: 24px;
-    display: flex; align-items: center; justify-content: center; margin: 0 auto 2rem;
-    box-shadow: var(--glow-secondary);
-  }
-  .empty-icon i { width: 40px; height: 40px; }
-  .empty-state h3 { font-size: 1.5rem; margin-bottom: 0.8rem; letter-spacing: -0.5px; }
-  .empty-state p { color: var(--text-muted); font-size: 1rem; margin-bottom: 2.5rem; max-width: 400px; margin-left: auto; margin-right: auto; }
-
-  .btn-primary-premium {
-    background: var(--secondary); color: var(--primary); border: none; padding: 1.2rem 2.5rem; border-radius: 14px;
-    font-weight: 800; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 1rem; transition: all 0.3s;
-    box-shadow: var(--glow-secondary);
-  }
-  .btn-primary-premium:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(196, 229, 56, 0.4); }
-
-  .case-header-premium {
-    display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; padding-bottom: 1.8rem; border-bottom: 1px solid var(--border-subtle);
-  }
-  .badge-label { font-size: 0.7rem; font-weight: 800; color: var(--secondary); text-transform: uppercase; letter-spacing: 2px; }
-  .prominent-radicado { font-size: 2.8rem; color: var(--white); line-height: 1; letter-spacing: -1.5px; }
-  .status-pill { padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.6rem; border: 1px solid transparent; }
-  .status-pill.warning { background: rgba(249, 168, 37, 0.1); color: #F9A825; border-color: rgba(249, 168, 37, 0.2); }
-  .status-pill.green { background: rgba(196, 229, 56, 0.1); color: var(--secondary); border-color: rgba(196, 229, 56, 0.2); }
-  .status-pill.red { background: rgba(239, 68, 68, 0.1); color: var(--error); border-color: rgba(239, 68, 68, 0.2); }
-
-  .btn-liberar-radicado {
-    background: none; border: 1px solid var(--border-subtle); padding: 0.5rem 1rem; border-radius: 10px; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin-top: 0.8rem; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s;
-  }
-  .btn-liberar-radicado:hover { color: var(--error); border-color: var(--error); background: rgba(239,68,68,0.05); }
-
-  .case-info-grid-premium {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 3rem; background: var(--primary-light); padding: 2rem; border-radius: 20px; border: 1px solid var(--border-subtle);
-  }
-  .info-tile label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 1px; }
-  .info-tile p { font-size: 0.95rem; font-weight: 700; color: var(--white); }
-
-  .input-row-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
-  .premium-select, .premium-textarea, .premium-input {
-    width: 100%; padding: 1rem 1.2rem; border: 1px solid var(--border-subtle); border-radius: 12px; font-size: 0.95rem; background: var(--primary-dark); color: var(--white); outline: none; transition: all 0.3s;
-  }
-  .premium-select:focus, .premium-textarea:focus, .premium-input:focus { border-color: var(--secondary); background: var(--primary-light); }
-
-  .form-footer-actions { margin-top: 2.5rem; }
-
-  .btn-save-premium {
-    background: var(--secondary); color: var(--primary); border: none; padding: 1.2rem; border-radius: 14px; font-weight: 800; font-size: 1rem; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.8rem; box-shadow: var(--glow-secondary); transition: all 0.3s;
-  }
-  .btn-save-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(196, 229, 56, 0.4); background: var(--secondary-dark); }
-
-  .panel-header-premium { margin-bottom: 2rem; }
-  .panel-header-premium h3 { font-size: 1.3rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.8rem; }
-  .panel-header-premium p { font-size: 0.95rem; color: var(--text-muted); }
-
-  .ai-action-buttons { display: flex; gap: 1rem; margin-bottom: 2rem; }
-  .btn-ai-outline {
-    flex: 1; background: none; border: 1px solid var(--secondary); color: var(--secondary); padding: 1rem; border-radius: 12px; font-weight: 800; font-size: 0.75rem; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 0.6rem;
-  }
-  .btn-ai-outline:hover { background: var(--secondary); color: var(--primary); box-shadow: var(--glow-secondary); }
-
-  .result-box { background: var(--primary-dark); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.2rem; transition: all 0.3s; }
-  .result-box:hover { border-color: var(--secondary); }
-  .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
-  .box-header span { font-size: 0.65rem; font-weight: 800; color: var(--secondary); letter-spacing: 1.5px; text-transform: uppercase; }
-  .result-textarea { width: 100%; background: none; border: none; font-size: 0.95rem; font-family: 'Inter', sans-serif; color: var(--white); resize: none; outline: none; line-height: 1.6; }
-  .header-box { font-weight: 700; height: 50px; }
-  .body-box { height: 160px; }
-
-  .btn-copy-mini { background: none; border: none; color: var(--text-muted); cursor: pointer; transition: all 0.3s; }
-  .btn-copy-mini:hover { color: var(--secondary); transform: scale(1.1); }
-
-  /* --- Premium Table --- */
-  .premium-table { width: 100%; border-collapse: separate; border-spacing: 0 0.8rem; }
-  .premium-table th { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; padding: 0 1.5rem; border: none; letter-spacing: 1px; }
-  .premium-table td { padding: 1.5rem; background: var(--primary); border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); font-size: 0.9rem; font-weight: 600; color: var(--white); }
-  .premium-table tr { transition: all 0.3s; }
-  .premium-table tr:hover td { background: var(--primary-light); transform: translateY(-2px); border-color: var(--secondary); }
-  .premium-table tr td:first-child { border-left: 1px solid var(--border-subtle); border-top-left-radius: 18px; border-bottom-left-radius: 18px; }
-  .premium-table tr td:last-child { border-right: 1px solid var(--border-subtle); border-top-right-radius: 18px; border-bottom-right-radius: 18px; }
-
-  .table-responsive-premium { overflow-x: auto; }
-  .portal-footer-signature { margin-top: 4rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); border-top: 1px solid var(--border-subtle); padding-top: 2rem; opacity: 0.6; }
-
-  .badge-mini { background: var(--secondary); color: var(--primary); font-size: 0.65rem; font-weight: 800; padding: 3px 8px; border-radius: 8px; margin-left: auto; box-shadow: var(--glow-secondary); }
-
-  /* --- Admin Specific Redesign --- */
-  .admin-dashboard-view { background-color: var(--primary-dark); padding: 3rem 4rem; }
-  .db-header { margin-bottom: 3.5rem; }
-  .db-title h1 { font-size: 2.2rem; letter-spacing: -1px; }
-
-  .filter-select {
-    background: var(--primary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 0.8rem 1.2rem;
-    font-size: 0.85rem; color: var(--white); font-weight: 600; cursor: pointer; transition: all 0.3s;
-  }
-  .filter-select:hover, .filter-select:focus { border-color: var(--secondary); background: var(--primary-light); }
-
-  .btn-icon-header {
-    width: 46px; height: 46px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--primary); color: var(--white);
-    transition: all 0.3s; box-shadow: var(--shadow-premium);
-  }
-  .btn-icon-header:hover { background: var(--secondary); color: var(--primary); transform: translateY(-2px); box-shadow: var(--glow-secondary); }
-
-  /* KPI Cards Admin */
-  .kpi-card {
-    background: var(--primary); border-radius: 22px; padding: 2rem; border: 1px solid var(--border-subtle); box-shadow: var(--shadow-premium);
-    transition: all 0.3s;
-  }
-  .kpi-card:hover { transform: translateY(-5px); border-color: var(--secondary); }
-  .kpi-icon-wrapper {
-    width: 60px; height: 60px; border-radius: 16px; background: var(--primary-light); color: var(--secondary); display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-  }
-  .kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 800; letter-spacing: 1px; }
-  .kpi-value { font-size: 2rem; font-weight: 800; margin: 0.5rem 0; color: var(--white); }
-  .kpi-trend { font-size: 0.8rem; font-weight: 700; }
-  .trend-up { color: var(--secondary); }
+  /* --- KPI Cards --- */
+  .kpi-card { background: var(--bg-card); border-radius: 20px; padding: 1.5rem; border: 1px solid var(--border-color); box-shadow: var(--shadow-premium); transition: all 0.3s; display: flex; align-items: center; gap: 1.2rem; }
+  .kpi-card:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .kpi-icon-wrapper { width: 56px; height: 56px; border-radius: 50%; background: var(--bg-main); color: var(--accent); display: flex; align-items: center; justify-content: center; transition: background-color 0.3s; }
+  .kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kpi-value { font-size: 1.8rem; font-weight: 800; margin: 0; color: var(--text-main); line-height: 1.2; }
+  .kpi-trend { font-size: 0.7rem; font-weight: 700; margin-top: 4px; }
+  .trend-up { color: var(--success); }
   .trend-down { color: var(--error); }
 
-  /* Charts Admin */
-  .chart-container { height: 280px; position: relative; margin-top: 1rem; }
-  .card-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 2rem; display: flex; align-items: center; gap: 0.8rem; color: var(--white); }
-  .card-title i { color: var(--secondary); width: 22px; }
+  /* --- Charts --- */
+  .chart-container { height: 220px; position: relative; }
+  .card-title { font-size: 1rem; font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; color: var(--text-main); }
+  .card-title i { color: var(--accent); width: 20px; }
 
-  /* Modal Premium */
-  .modal-overlay { background: rgba(19, 21, 55, 0.85); backdrop-filter: blur(12px); }
-  .modal-content.glass { background: var(--primary); border: 1px solid var(--border-subtle); padding: 3rem; border-radius: 24px; }
-  .modal-header h3 { font-size: 1.6rem; color: var(--white); letter-spacing: -0.5px; }
-  .btn-close-modal { color: var(--text-muted); background: var(--primary-light); padding: 0.6rem; border-radius: 50%; }
-  .btn-close-modal:hover { background: var(--error); color: var(--white); }
+  /* --- Table --- */
+  .table-container { overflow-x: auto; }
+  .premium-table { width: 100%; border-collapse: separate; border-spacing: 0 0.8rem; }
+  .premium-table th { font-size: 0.75rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; padding: 0 1.5rem; border: none; letter-spacing: 1px; cursor: pointer; }
+  .premium-table td { padding: 1.1rem 1.2rem; background: var(--bg-card); border-top: 1px solid var(--border-color); border-bottom: 1px solid var(--border-color); font-size: 0.85rem; font-weight: 600; color: var(--text-main); transition: background-color 0.3s; }
+  .premium-table tr { transition: all 0.3s; }
+  .premium-table tr:hover td { background: var(--bg-main); transform: translateY(-2px); border-color: var(--accent); }
+  .premium-table tr td:first-child { border-left: 1px solid var(--border-color); border-top-left-radius: 14px; border-bottom-left-radius: 14px; }
+  .premium-table tr td:last-child { border-right: 1px solid var(--border-color); border-top-right-radius: 14px; border-bottom-right-radius: 14px; }
 
-  /* Notification Card Premium */
-  .notification-card { background: var(--primary); border: 1px solid var(--border-subtle); padding: 4rem 3rem; border-radius: 24px; }
-  .notif-icon.success { background: rgba(196, 229, 56, 0.1); color: var(--secondary); box-shadow: var(--glow-secondary); }
-  .btn-notif-action { background: var(--secondary); color: var(--primary); font-weight: 800; box-shadow: var(--glow-secondary); border-radius: 14px; }
-  .btn-notif-action:hover { background: var(--secondary-dark); transform: scale(1.02); }
+  .db-pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+  .pagination-info { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); }
+  .btn-page { width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 10px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-main); cursor: pointer; transition: all 0.2s; }
+  .btn-page:hover:not(:disabled) { background: var(--accent); color: var(--white); border-color: var(--accent); }
+  .btn-page:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  /* --- Scrollbar Customization --- */
+  /* --- Status Pills --- */
+  .status-pill { padding: 0.5rem 1rem; border-radius: 12px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.6rem; border: 1px solid transparent; }
+  .status-pill.warning { background: rgba(249, 168, 37, 0.1); color: #F9A825; border-color: rgba(249, 168, 37, 0.2); }
+  .status-pill.green { background: rgba(5, 205, 153, 0.1); color: var(--success); border-color: rgba(5, 205, 153, 0.2); }
+  .status-pill.red { background: rgba(238, 93, 80, 0.1); color: var(--error); border-color: rgba(238, 93, 80, 0.2); }
+
+  /* --- Widgets --- */
+  .rank-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg-main); border-radius: 12px; margin-bottom: 0.5rem; border: 1px solid var(--border-color); }
+  .rank-name { font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+  .premium-input { width: 100%; padding: 0.8rem 1.1rem; border: 1px solid var(--border-color); border-radius: 12px; font-size: 0.9rem; background: var(--bg-main); color: var(--text-main); outline: none; transition: all 0.3s; }
+  .btn-premium-action { background: var(--accent); color: var(--white); border: none; border-radius: 10px; padding: 0.75rem 1.2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; width: 100%; margin-top: 0.5rem; }
+  .btn-premium-action:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(67, 24, 255, 0.2); }
+
+  /* --- Modals & Notifications --- */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+  .modal-content.glass { background: var(--bg-card); border: 1px solid var(--border-color); padding: 2.5rem; border-radius: 24px; max-width: 700px; width: 90%; box-shadow: var(--shadow-premium); }
+  .btn-close-modal { color: var(--text-muted); background: var(--bg-main); padding: 0.5rem; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .btn-close-modal:hover { color: var(--error); background: rgba(238, 93, 80, 0.1); }
+  .notification-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 3rem 2.5rem; border-radius: 24px; text-align: center; max-width: 400px; }
+  .notif-icon.success { background: rgba(5, 205, 153, 0.1); color: var(--success); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 1.5rem; }
+  .btn-notif-action { background: var(--accent); color: var(--white); font-weight: 700; border-radius: 12px; padding: 0.8rem 2rem; border: none; cursor: pointer; transition: all 0.2s; margin-top: 1.5rem; }
+
+  /* --- Scrollbar --- */
   ::-webkit-scrollbar { width: 8px; }
-  ::-webkit-scrollbar-track { background: var(--primary-dark); }
-  ::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+  ::-webkit-scrollbar-track { background: var(--bg-main); }
+  ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 10px; border: 2px solid var(--bg-main); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-  /* Utilities */
-  .mt-1 { margin-top: 1rem !important; }
-  .mt-2 { margin-top: 2rem !important; }
-  .mb-4 { margin-bottom: 4rem !important; }
-  .text-center { text-align: center; }
-  .fw-bold { font-weight: 800; }
+  .loader-overlay-premium { background: rgba(27, 37, 89, 0.9); backdrop-filter: blur(8px); position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--white); }
+  .spinner-premium { width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-top-color: var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.5rem; }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Advanced Search Styling */
-  #advancedSearchPanel { border-left: 5px solid var(--secondary); background: rgba(40, 43, 90, 0.6); }
-
-  /* Online Agents List */
-  .agent-online-pill { background: var(--primary-light); border: 1px solid var(--border-subtle); padding: 1rem; border-radius: 14px; }
-  .online-indicator { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
-  .agent-online-name { color: var(--white); font-weight: 700; }
-
-  /* Success Animation for Cards */
-  .animate-success { animation: successPulse 0.6s ease-in-out; }
-  @keyframes successPulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); border-color: var(--secondary); box-shadow: 0 0 30px rgba(196, 229, 56, 0.3); }
-    100% { transform: scale(1); }
+  @media (max-width: 1024px) {
+    .sidebar-nav { width: var(--sidebar-collapsed-width); padding: 2.5rem 0.5rem; }
+    .brand-text, .nav-item span:not(.badge-mini) { display: none; }
+    .portal-main { margin-left: var(--sidebar-collapsed-width); }
+    .admin-dashboard-view { padding: 1.5rem; }
   }
-
-  .loader-overlay-premium { background: rgba(19, 21, 55, 0.95); }
-  .spinner-premium { border-top-color: var(--secondary); }
 </style>
 
   </head>
@@ -548,8 +308,8 @@
       <!-- Panel Izquierdo: Branding y Decoración -->
       <div class="login-left-panel">
         <div class="branding-content" style="position: relative; z-index: 2;">
-          <div class="logo-box-premium">
-            <i data-lucide="shield-check"></i>
+          <div class="logo-container-login">
+            <div class="du-logo"></div>
           </div>
           <p class="welcome-label">BIENVENIDO A</p>
           <h1 class="brand-title">PEOPLE BPO</h1>
@@ -557,6 +317,7 @@
             Sistema de Gestión Centralizado v4.0.<br>
             Accede a tu perfil de manera segura y eficiente.
           </p>
+          <p class="by-author-login">By Duvan Ramos</p>
         </div>
 
         <!-- Esferas decorativas -->
@@ -603,7 +364,7 @@
 
     <!-- Footer Global de Login -->
     <div class="login-footer-fixed">
-      <p>SYSTEM VERSION 4.0 — BY DUVAN RAMOS</p>
+      <p>SYSTEM VERSION 4.0</p>
     </div>
   </div>
 </div>
@@ -611,40 +372,47 @@
       <div id="adminView" class="view-container" style="display: none;">
         <div class="admin-dashboard-view fade-in">
   <!-- Header -->
-  <header class="db-header">
-    <div class="db-title">
+  <header class="portal-header">
+    <div class="welcome-banner">
       <h1>Dashboard Admin</h1>
+      <p>Gestión global de radicados y rendimiento.</p>
     </div>
-    <div class="db-filters">
-      <select id="filterMonth" onchange="applyFilters()" class="filter-select">
-        <option value="">Mes</option>
-      </select>
-      <select id="filterCompany" onchange="applyFilters()" class="filter-select">
-        <option value="">Empresa</option>
-      </select>
-      <select id="filterChannel" onchange="applyFilters()" class="filter-select">
-        <option value="">Canal</option>
-      </select>
-      <select id="filterStatus" onchange="applyFilters()" class="filter-select">
-        <option value="">Estado</option>
-      </select>
-      <select id="filterAdvisor" onchange="applyFilters()" class="filter-select">
-        <option value="">Asesor</option>
-      </select>
-      <button class="btn-icon-header" onclick="toggleAdvancedSearch()" title="Búsqueda Avanzada">
-        <i data-lucide="search-code" style="width: 18px;"></i>
+    <div class="d-flex gap-2">
+       <button class="btn-icon-header" id="themeToggle" onclick="toggleTheme()" title="Cambiar Tema">
+        <i data-lucide="sun" id="themeIcon"></i>
       </button>
       <button class="btn-icon-header" onclick="refreshData()" title="Actualizar Datos">
-        <i data-lucide="refresh-cw" style="width: 18px;"></i>
+        <i data-lucide="refresh-cw"></i>
       </button>
       <button class="btn-icon-header" onclick="handleLogout()" title="Cerrar Sesión">
-        <i data-lucide="power" style="width: 18px;"></i>
+        <i data-lucide="power"></i>
       </button>
     </div>
   </header>
 
+  <div class="db-filters w-100 mb-4">
+    <select id="filterMonth" onchange="applyFilters()" class="filter-select">
+      <option value="">Mes</option>
+    </select>
+    <select id="filterCompany" onchange="applyFilters()" class="filter-select">
+      <option value="">Empresa</option>
+    </select>
+    <select id="filterChannel" onchange="applyFilters()" class="filter-select">
+      <option value="">Canal</option>
+    </select>
+    <select id="filterStatus" onchange="applyFilters()" class="filter-select">
+      <option value="">Estado</option>
+    </select>
+    <select id="filterAdvisor" onchange="applyFilters()" class="filter-select">
+      <option value="">Asesor</option>
+    </select>
+    <button class="btn-icon-header" onclick="toggleAdvancedSearch()" title="Búsqueda Avanzada">
+      <i data-lucide="search-code" style="width: 18px;"></i>
+    </button>
+  </div>
+
   <!-- Advanced Search Panel -->
-  <div id="advancedSearchPanel" class="glass-card mb-4" style="display: none;">
+  <div id="advancedSearchPanel" class="glass-card mb-4" style="display: none; padding: 1.5rem;">
     <div class="d-flex justify-content-between align-items-center mb-3">
       <h3 class="card-title mb-0"><i data-lucide="search-code"></i> Búsqueda Avanzada</h3>
       <button class="btn-close-modal" onclick="toggleAdvancedSearch()"><i data-lucide="x" style="width: 18px;"></i></button>
@@ -674,7 +442,7 @@
 
   <!-- KPI Row -->
   <div class="row g-4 mb-4">
-    <div class="col-5-custom">
+    <div class="col-md">
       <div class="kpi-card">
         <div class="kpi-icon-wrapper"><i data-lucide="calendar"></i></div>
         <div class="kpi-content">
@@ -684,7 +452,7 @@
         </div>
       </div>
     </div>
-    <div class="col-5-custom">
+    <div class="col-md">
       <div class="kpi-card">
         <div class="kpi-icon-wrapper"><i data-lucide="database"></i></div>
         <div class="kpi-content">
@@ -694,7 +462,7 @@
         </div>
       </div>
     </div>
-    <div class="col-5-custom">
+    <div class="col-md">
       <div class="kpi-card">
         <div class="kpi-icon-wrapper"><i data-lucide="check-circle"></i></div>
         <div class="kpi-content">
@@ -704,7 +472,7 @@
         </div>
       </div>
     </div>
-    <div class="col-5-custom">
+    <div class="col-md">
       <div class="kpi-card">
         <div class="kpi-icon-wrapper" style="color: var(--error);"><i data-lucide="alert-circle"></i></div>
         <div class="kpi-content">
@@ -714,9 +482,9 @@
         </div>
       </div>
     </div>
-    <div class="col-5-custom">
+    <div class="col-md">
       <div class="kpi-card">
-        <div class="kpi-icon-wrapper" style="color: var(--secondary);"><i data-lucide="trending-up"></i></div>
+        <div class="kpi-icon-wrapper" style="color: var(--accent);"><i data-lucide="trending-up"></i></div>
         <div class="kpi-content">
           <span class="kpi-label">Efectividad</span>
           <h2 class="kpi-value" id="kpiEffectiveness">0%</h2>
@@ -812,9 +580,9 @@
     <div class="col-lg-3">
       <!-- AI Insights -->
       <div class="glass-card" style="background: linear-gradient(135deg, var(--primary), var(--primary-light)); padding: 1.5rem; margin-bottom: 1.5rem;">
-        <h3 class="card-title"><i data-lucide="sparkles"></i> Insights IA</h3>
+        <h3 class="card-title" style="color: var(--white);"><i data-lucide="sparkles"></i> Insights IA</h3>
         <div id="autoInsight">
-          <p style="font-size: 0.85rem; color: var(--text-muted);">Analizando patrones de gestión para generar sugerencias estratégicas...</p>
+          <p style="font-size: 0.85rem; color: rgba(255,255,255,0.6);">Analizando patrones de gestión para generar sugerencias estratégicas...</p>
         </div>
       </div>
 
@@ -855,19 +623,19 @@
         <div id="dailyStatsContent" style="display: none;">
           <div class="row g-2 mb-3">
             <div class="col-6">
-              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+              <div class="p-2 border border-subtle rounded text-center" style="background: var(--bg-main);">
                 <small class="kpi-label" style="font-size: 0.6rem;">Llegaron</small>
                 <div class="fw-bold" id="dailyTotal">0</div>
               </div>
             </div>
             <div class="col-6">
-              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+              <div class="p-2 border border-subtle rounded text-center" style="background: var(--bg-main);">
                 <small class="kpi-label" style="font-size: 0.6rem;">Gestionados</small>
                 <div class="fw-bold" id="dailyManaged">0</div>
               </div>
             </div>
             <div class="col-12 mt-2">
-              <div class="p-2 border border-subtle rounded bg-primary-dark text-center">
+              <div class="p-2 border border-subtle rounded text-center" style="background: var(--bg-main);">
                 <small class="kpi-label" style="font-size: 0.6rem;">Efectividad</small>
                 <div class="fw-bold text-success" id="dailyEff">0%</div>
               </div>
@@ -875,8 +643,8 @@
           </div>
           <label class="premium-label" style="font-size: 0.6rem;">RESUMEN POR ASESOR</label>
           <div class="table-responsive" style="max-height: 200px;">
-            <table class="table table-sm table-borderless text-white" style="font-size: 0.75rem;">
-              <thead class="sticky-top" style="background: var(--primary);">
+            <table class="table table-sm table-borderless" style="font-size: 0.75rem; color: var(--text-main);">
+              <thead class="sticky-top" style="background: var(--bg-card);">
                 <tr>
                   <th>Asesor</th>
                   <th class="text-center">Cant.</th>
@@ -898,233 +666,15 @@
 <!-- Real-time Notifications Container -->
 <div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
 
-<script>
-  function updateAdminDashboard() {
-    renderAdminKPIs();
-    renderAdminCharts();
-    renderAdminTable();
-    generateAdminInsights();
-    renderAdminRanking();
-  }
-
-  function renderAdminKPIs() {
-    const todayStr = getBogotaDateStr();
-    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
-
-    const total = filteredData.length;
-    const managed = filteredData.filter(d => d.isManaged).length;
-    const pending = total - managed;
-    const effective = filteredData.filter(d => {
-      const val = (d.efectividad || "").toLowerCase().trim();
-      return val === 'sí' || val === 'si';
-    }).length;
-
-    document.getElementById('kpiToday').textContent = gestionesHoy;
-    document.getElementById('kpiTotal').textContent = total;
-    document.getElementById('kpiManaged').textContent = managed;
-    document.getElementById('kpiPending').textContent = pending;
-
-    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
-    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
-    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
-
-    document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
-    document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
-    document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
-
-    lucide.createIcons();
-  }
-
-  function renderAdminCharts() {
-    const statusCounts = countBy(filteredData, 'estado');
-    const statusColors = Object.keys(statusCounts).map(key => {
-      const s = key.toLowerCase();
-      if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50';
-      if (s.includes('contactado')) return '#C4E538';
-      return '#282B5A';
-    });
-    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos');
-
-    const channelCounts = countBy(filteredData, 'canal');
-    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#282B5A', '#C4E538', '#1D1F49', '#8E94BB'], 'Casos');
-
-    const managedCounts = {
-      'Gestionados': filteredData.filter(d => d.isManaged).length,
-      'Pendientes': filteredData.filter(d => !d.isManaged).length
-    };
-    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#C4E538', '#282B5A'], 'Casos');
-
-    const effCounts = countBy(filteredData, 'efectividad');
-    const effColors = Object.keys(effCounts).map(key => {
-      const e = key.toLowerCase();
-      if (e.includes('si')) return '#C4E538';
-      if (e.includes('no')) return '#EE5D50';
-      return '#282B5A';
-    });
-    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos');
-  }
-
-  function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
-    if (charts[id]) charts[id].destroy();
-    const canvas = document.getElementById(id);
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    // Create Gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(196, 229, 56, 0.4)');
-    gradient.addColorStop(1, 'rgba(196, 229, 56, 0)');
-
-    const options = {
-      indexAxis: isHorizontal ? 'y' : 'x',
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-        tooltip: {
-          backgroundColor: '#1D1F49',
-          titleFont: { size: 13, family: 'Plus Jakarta Sans', weight: '700' },
-          bodyFont: { size: 12, family: 'Plus Jakarta Sans' },
-          padding: 12,
-          cornerRadius: 12,
-          displayColors: false
-        },
-        datalabels: {
-          anchor: 'end',
-          align: 'end',
-          color: '#C4E538',
-          offset: 4,
-          font: { weight: '800', family: 'Plus Jakarta Sans', size: 10 },
-          formatter: (value, context) => {
-            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-            const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%';
-            return `${value} (${percentage})`;
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { display: false },
-          ticks: { color: '#8E94BB', font: { weight: '600', size: 10 } },
-          beginAtZero: true
-        },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.05)', borderDash: [5, 5] },
-          ticks: { color: '#8E94BB', font: { weight: '600', size: 10 } }
-        }
-      },
-      layout: {
-        padding: {
-          right: isHorizontal ? 60 : 20,
-          top: !isHorizontal ? 30 : 0
-        }
-      }
-    };
-
-    charts[id] = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: datasetLabel,
-          data: data,
-          borderColor: '#C4E538',
-          backgroundColor: gradient,
-          fill: true,
-          tension: 0.4,
-          pointRadius: 4,
-          pointBackgroundColor: '#C4E538',
-          borderWidth: 3
-        }]
-      },
-      options: options,
-      plugins: [ChartDataLabels]
-    });
-  }
-
-  function renderAdminTable() {
-    const tbody = document.getElementById('tableBody');
-    if(!tbody) return;
-    tbody.innerHTML = '';
-    const totalRows = filteredData.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    const startIdx = (currentPage - 1) * rowsPerPage;
-    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
-
-    displayData.forEach(row => {
-      const tr = document.createElement('tr');
-      const isEffective = (row.efectividad || "").toLowerCase().includes('si');
-      tr.innerHTML = `
-        <td><span style="color: var(--secondary); font-weight: 800;">${row.radicado}</span></td>
-        <td>${row.nombre}</td>
-        <td>${row.empresa}</td>
-        <td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td>
-        <td>${row.canal || '---'}</td>
-        <td><span class="status-pill ${isEffective ? 'green' : 'red'}">${row.efectividad || 'No'}</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    const pagInfo = document.getElementById('paginationInfo');
-    if(pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros`;
-
-    document.getElementById('btnPrev').disabled = currentPage === 1;
-    document.getElementById('btnNext').disabled = currentPage === totalPages;
-    lucide.createIcons();
-  }
-
-  function renderAdminRanking() {
-    const container = document.getElementById('rankingContainer');
-    if (!container) return;
-    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
-    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const max = sorted.length > 0 ? sorted[0][1] : 1;
-
-    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1" style="font-size: 0.8rem;">Sin datos</p>'; return; }
-    container.innerHTML = sorted.map(([name, count]) => `
-      <div class="advisor-item" style="margin-bottom: 1.5rem;">
-        <div class="advisor-info" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-          <span class="advisor-name" style="font-size: 0.85rem; font-weight: 700;">${name}</span>
-          <span class="advisor-count" style="font-size: 0.85rem; font-weight: 800; color: var(--secondary);">${count}</span>
-        </div>
-        <div class="progress" style="height: 6px; background: var(--primary-dark); border-radius: 10px; overflow: hidden;">
-          <div class="progress-bar" style="width: ${(count/max)*100}%; background: var(--secondary); border-radius: 10px;"></div>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  function generateAdminInsights() {
-    const insightDiv = document.getElementById('autoInsight');
-    if(!insightDiv) return;
-    const total = filteredData.length;
-    if (total === 0) { insightDiv.innerHTML = "<p>No hay datos suficientes para análisis.</p>"; return; }
-    const unmanaged = filteredData.filter(d => !d.isManaged).length;
-    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
-    const channelCounts = countBy(filteredData, 'canal');
-    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
-
-    insightDiv.innerHTML = `
-      <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
-        <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
-        <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
-        <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
-      </div>
-    `;
-    lucide.createIcons();
-  }
-</script>
-
       </div>
 
       <div id="agentView" class="view-container" style="display: none;">
         <div class="agent-portal-layout fade-in">
   <aside class="sidebar-nav">
     <div class="sidebar-brand">
-      <div class="brand-logo-small">P</div>
+      <div class="logo-container-sidebar">
+        <div class="du-logo small"></div>
+      </div>
       <div class="brand-text">
         <h3>PEOPLE BPO</h3>
         <p>Agent Portal</p>
@@ -1148,7 +698,12 @@
   <main class="portal-main">
     <header class="portal-header">
       <div class="welcome-banner">
-        <h2>¡Hola, <span id="agentName">...</span>!</h2>
+        <div class="d-flex align-items-center gap-3">
+          <h2>¡Hola, <span id="agentName">...</span>!</h2>
+          <button class="btn-icon-header" onclick="toggleTheme()" title="Cambiar Tema" style="width: 32px; height: 32px; border-radius: 8px;">
+            <i data-lucide="sun" class="theme-icon-agent" style="width: 16px;"></i>
+          </button>
+        </div>
         <p>Tienes radicados pendientes por comunicar.</p>
       </div>
 
@@ -1392,8 +947,8 @@
       </div>
     </section>
 
-    <footer class="portal-footer-signature" style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem;">
-      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--primary);">By Duvan Ramos</span> • 2026</p>
+    <footer class="portal-footer-signature">
+      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--secondary);">By Duvan Ramos</span> • 2026</p>
     </footer>
   </main>
 </div>
@@ -1411,13 +966,19 @@
   let heartbeatInterval = null;
   let onlineAgentsPolling = null;
   let assignedCheckInterval = null;
+  let activityPolling = null;
   let lastAssignedCount = 0;
 
-  // Page initialization
+  // --- Initialization ---
   document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
     checkSession();
     loadLoginUsers();
+
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('pqrsf_theme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
   });
 
   function checkSession() {
@@ -1434,11 +995,7 @@
   function startHeartbeat() {
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     if (!currentUser) return;
-
-    // Registrar inmediatamente
     google.script.run.registrarSesion(currentUser.nombre);
-
-    // Heartbeat cada 5 minutos
     heartbeatInterval = setInterval(() => {
       google.script.run.registrarSesion(currentUser.nombre);
     }, 5 * 60 * 1000);
@@ -1447,7 +1004,6 @@
   function loadLoginUsers() {
     google.script.run
       .withSuccessHandler(users => {
-        // 1. Dropdown de login
         const selectLogin = document.getElementById('agentSelect');
         if (selectLogin) {
           selectLogin.innerHTML = '<option value="" disabled selected>Selecciona tu perfil...</option>';
@@ -1458,8 +1014,6 @@
             selectLogin.appendChild(opt);
           });
         }
-
-        // 2. Dropdown de asignación (Admin)
         const selectAssign = document.getElementById('assignAgentSelect');
         if (selectAssign) {
           selectAssign.innerHTML = '<option value="" disabled selected>Seleccionar asesor...</option>';
@@ -1474,6 +1028,7 @@
       .obtenerUsuarios();
   }
 
+  // --- Authentication ---
   function handleLogin(e) {
     e.preventDefault();
     const user = document.getElementById('agentSelect').value;
@@ -1510,64 +1065,13 @@
       .validarLogin(user, pass);
   }
 
-  function showViewByRole(role) {
-    if (role === 'admin') {
-      showView('adminView');
-      fetchData();
-      startOnlineAgentsPolling();
-      if(assignedCheckInterval) clearInterval(assignedCheckInterval);
-    } else {
-      showView('agentView');
-      fetchAgentInitialData();
-      startAssignedPolling();
-    }
-  }
-
-  function startAssignedPolling() {
-    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
-    assignedCheckInterval = setInterval(() => {
-      google.script.run
-        .withSuccessHandler(assigned => {
-          const badge = document.getElementById('assignedCountBadge');
-          const currentCount = assigned.length;
-
-          if (currentCount > 0) {
-            badge.textContent = currentCount;
-            badge.style.display = 'inline-block';
-
-            if (currentCount > lastAssignedCount) {
-               showNotification('success', 'Nuevo Radicado', `Se te ha asignado ${currentCount - lastAssignedCount} nuevo(s) radicado(s). Revisa la pestaña "Asignados".`);
-            }
-          } else {
-            badge.style.display = 'none';
-          }
-          lastAssignedCount = currentCount;
-        })
-        .obtenerAsignadosAsesor(currentUser.nombre);
-    }, 60000); // Revisar cada minuto
-  }
-
-  function showView(viewId) {
-    document.querySelectorAll('.view-container').forEach(v => {
-      v.style.display = 'none';
-      v.classList.remove('active');
-    });
-    const target = document.getElementById(viewId);
-    if (!target) return;
-    target.style.display = 'block';
-    target.classList.add('active');
-    lucide.createIcons();
-  }
-
   function handleLogout() {
-    if (currentUser) {
-      google.script.run.eliminarSesion(currentUser.nombre);
-    }
+    if (currentUser) google.script.run.eliminarSesion(currentUser.nombre);
     localStorage.removeItem('pqrsf_session');
     if (heartbeatInterval) clearInterval(heartbeatInterval);
     if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
     if (assignedCheckInterval) clearInterval(assignedCheckInterval);
-    if (notificationPolling) clearInterval(notificationPolling);
+    if (activityPolling) clearInterval(activityPolling);
     currentUser = null;
     activeCase = null;
     showView('loginView');
@@ -1585,342 +1089,44 @@
     }
   }
 
-  function showNotification(type, title, message, btnText = 'Continuar') {
-    const modal = document.getElementById('notificationModal');
-    const iconDiv = document.getElementById('notifIcon');
-    const titleEl = document.getElementById('notifTitle');
-    const msgEl = document.getElementById('notifMessage');
-    const btn = modal.querySelector('.btn-notif-action');
-
-    iconDiv.className = 'notif-icon ' + type;
-
-    if (type === 'success') {
-      iconDiv.innerHTML = '<i data-lucide="check-circle-2" style="width: 45px; height: 45px;"></i>';
+  // --- Navigation & Routing ---
+  function showViewByRole(role) {
+    if (role === 'admin') {
+      showView('adminView');
+      fetchData();
+      startAdminPolling();
     } else {
-      iconDiv.innerHTML = '<i data-lucide="alert-circle" style="width: 45px; height: 45px;"></i>';
-    }
-
-    titleEl.textContent = title;
-    msgEl.textContent = message;
-    btn.textContent = btnText;
-
-    modal.style.display = 'flex';
-    lucide.createIcons();
-  }
-
-  function closeNotification() {
-    document.getElementById('notificationModal').style.display = 'none';
-  }
-
-  // --- Agent Portal Logic ---
-  let activeCase = null;
-
-  function fetchAgentInitialData() {
-    document.getElementById('agentName').textContent = currentUser.nombre;
-    google.script.run
-      .withSuccessHandler(data => {
-        allData = data;
-        updateAgentStats();
-        cargarAsignadosAsesor(true); // Actualizar badge silenciosamente
-      })
-      .getPQRSFData();
-  }
-
-  function getBogotaDateStr() {
-    // Retorna YYYY-MM-DD en el timezone de Colombia
-    return new Intl.DateTimeFormat('sv-SE', {
-      timeZone: 'America/Bogota',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).format(new Date());
-  }
-
-  function updateAgentStats() {
-    const todayStr = getBogotaDateStr();
-    const managedToday = allData.filter(d => d.asesor === currentUser.nombre && d.isManaged && d.recibidoPeople === todayStr).length;
-    const pendingToComm = allData.filter(d => !d.estado || d.estado.trim() === "").length;
-
-    document.getElementById('agentCountToday').textContent = managedToday;
-    document.getElementById('pendingToCommunicate').textContent = pendingToComm;
-  }
-
-  function claimNextCase() {
-    const btn = document.getElementById('btnClaim');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
-
-    google.script.run
-      .withSuccessHandler(res => {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
-        lucide.createIcons();
-
-        if (res.success) {
-          activeCase = res.data;
-          showActiveCase();
-        } else {
-          showNotification('error', 'Sin radicados', res.message);
-        }
-      })
-      .withFailureHandler(err => {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
-        lucide.createIcons();
-        showNotification('error', 'Error Técnico', err.message);
-      })
-      .claimNextCase(currentUser.nombre);
-  }
-
-  function showActiveCase() {
-    document.getElementById('claimCaseCard').style.display = 'none';
-    document.getElementById('activeCaseCard').style.display = 'block';
-
-    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
-    document.getElementById('caseNombre').textContent = activeCase.nombre;
-    document.getElementById('caseTelefono').textContent = activeCase.telefono;
-    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
-    document.getElementById('caseFecha').textContent = activeCase.fecha;
-
-    lucide.createIcons();
-  }
-
-  function saveManagement(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSaveMgmt');
-    const card = document.querySelector('.active-case-view');
-    const data = {
-      rowId: activeCase.rowId,
-      asesor: currentUser.nombre,
-      estado: document.getElementById('mgmtEstado').value,
-      canal: document.getElementById('mgmtCanal').value,
-      efectividad: document.getElementById('mgmtEfectividad').value,
-      otraSolucion: document.getElementById('mgmtOtraSolucion').value,
-      seEncontro: document.getElementById('mgmtSeEncontro').value,
-      notas: document.getElementById('mgmtNotas').value,
-      observacionManual: document.getElementById('mgmtObservacionManual').value,
-      emailContacto: document.getElementById('mgmtEmailContact').value
-    };
-
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> PROCESANDO...';
-
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          if(card) card.classList.add('animate-success');
-          setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-            lucide.createIcons();
-            fetchAgentInitialData();
-            resetManagement();
-            showNotification('success', 'Gestión Exitosa', '¡La gestión se ha guardado con éxito!');
-          }, 600);
-        } else {
-          btn.disabled = false;
-          btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-          lucide.createIcons();
-          showNotification('error', 'Error al guardar', res.message);
-        }
-      })
-      .withFailureHandler(err => {
-        btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-        lucide.createIcons();
-        showNotification('error', 'Error de Conexión', err.message);
-      })
-      .saveManagement(data);
-  }
-
-  function resetManagement() {
-    activeCase = null;
-    document.getElementById('activeCaseCard').style.display = 'none';
-    document.getElementById('claimCaseCard').style.display = 'block';
-    document.getElementById('managementForm').reset();
-    document.getElementById('aiInput').value = '';
-    document.getElementById('aiOutputContainer').style.display = 'none';
-  }
-
-  function liberarRadicadoActivo() {
-    if (!activeCase) return;
-
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          showNotification('success', 'Radicado Liberado', 'El radicado ha sido liberado y está disponible para otros asesores.');
-          resetManagement();
-          fetchAgentInitialData(); // Actualizar stats
-        } else {
-          showNotification('error', 'Error al liberar', res.message);
-        }
-      })
-      .withFailureHandler(err => {
-        toggleLoader(false);
-        showNotification('error', 'Error de conexión', err.message);
-      })
-      .liberarRadicado(activeCase.rowId);
-  }
-
-  function toggleMgmtFields() {
-    const estado = document.getElementById('mgmtEstado').value;
-    const efectividad = document.getElementById('mgmtEfectividad').value;
-    const emailGroup = document.getElementById('emailContactGroup');
-    const notasLabel = document.getElementById('mgmtNotasLabel');
-    const notasTextarea = document.getElementById('mgmtNotas');
-
-    if (estado === 'No contesta' || estado === 'Corta llamada') {
-      emailGroup.style.display = 'block';
-      notasLabel.textContent = 'Notas del intento (Automático)';
-
-      if (efectividad === 'No') {
-        notasTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario; por lo cual, queda sin lograr comunicación exitosa.";
-      } else {
-        notasTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
-      }
-    } else if (estado === 'Contactado') {
-      emailGroup.style.display = 'none';
-      notasLabel.textContent = 'Notas del intento (Automático)';
-      notasTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud.";
-    } else {
-      emailGroup.style.display = 'none';
-      notasLabel.textContent = 'Notas del intento (Automático)';
-      notasTextarea.value = "";
+      showView('agentView');
+      fetchAgentInitialData();
+      startAssignedPolling();
     }
   }
 
-  function improveText(tipo) {
-  if (!activeCase) {
-    showNotification('error', 'Acción denegada', 'Debes tener un caso activo.');
-    return;
-  }
-
-  const radicado = activeCase.radicado;
-  const agente = currentUser.nombre;
-  const correo = document.getElementById('mgmtEmailContact').value || "";
-
-  const outputContainer = document.getElementById('aiOutputContainer');
-  const headerBox = document.getElementById('headerOutput');
-  const bodyBox = document.getElementById('bodyOutput');
-
-  outputContainer.style.display = 'block';
-  headerBox.value = "Procesando...";
-  bodyBox.value = "Procesando...";
-
-  // 🟢 CASO RESUELTO (USA IA)
-  if (tipo === "PQRSF-RES") {
-    const prompt = document.getElementById('aiInput').value.trim();
-
-    if (!prompt) {
-      showNotification('error', 'Campo Requerido', 'Por favor escribe la solución.');
-      headerBox.value = "";
-      bodyBox.value = "";
-      return;
-    }
-
-    const metadata = { nombre: activeCase.nombre };
-
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          const final = construirRespuestaFront("PQRSF-RES", {
-            radicado,
-            agente,
-            cuerpoIA: res.text
-          });
-          mostrarResultado(final);
-        } else {
-          headerBox.value = "Error";
-          bodyBox.value = "Error: " + res.message;
-        }
-      })
-      .withFailureHandler(err => {
-        headerBox.value = "Error";
-        bodyBox.value = "Error: " + err.message;
-      })
-      .generarRespuestaIA(prompt, metadata);
-  }
-
-  // 🔴 NO CONTACTO (NO USA IA)
-  else if (tipo === "PQRSF-NC") {
-    if (!correo) {
-      showNotification('error', 'Correo Faltante', 'Debes ingresar el correo del usuario.');
-      headerBox.value = "";
-      bodyBox.value = "";
-      return;
-    }
-
-    const final = construirRespuestaFront("PQRSF-NC", {
-      radicado,
-      agente,
-      correo
+  function showView(viewId) {
+    document.querySelectorAll('.view-container').forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('active');
     });
-    mostrarResultado(final);
-  }
-}
-
-function mostrarResultado(data) {
-  document.getElementById('headerOutput').value = data.header;
-  document.getElementById('bodyOutput').value = data.body;
-  document.getElementById('aiOutputContainer').style.display = 'block';
-}
-
-function construirRespuestaFront(tipo, data) {
-  if (tipo === "PQRSF-RES") {
-    return {
-      header: `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`,
-      body: `Cordial saludo,
-Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
-
-En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:
-
-${data.cuerpoIA}
-
-Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio.
-
-Cordialmente,
-
-${data.agente}
-Asesora de Servicio al Cliente
-Teléfono: (608) 681 83 20
-Línea gratuita nacional: 01 8000 111 879`
-    };
+    const target = document.getElementById(viewId);
+    if (!target) return;
+    target.style.display = 'block';
+    target.classList.add('active');
+    lucide.createIcons();
   }
 
-  if (tipo === "PQRSF-NC") {
-    return {
-      header: `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`,
-      body: `Cordial saludo,
-
-Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
-
-En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.
-
-La información asociada a su solicitud fue enviada al siguiente correo electrónico:
-
-📧 ${data.correo}
-
-Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio. En caso de requerir información adicional, puede comunicarse a través de nuestros canales de atención.
-
-Cordialmente,
-
-${data.agente}
-Asesora de Servicio al Cliente
-Teléfono: (608) 681 83 20
-Línea gratuita nacional: 01 8000 111 879`
-    };
-  }
-}
-
-  function copiarCampo(id) {
-    const el = document.getElementById(id);
-    el.select();
-    document.execCommand('copy');
-    showNotification('success', 'Copiado', 'Contenido copiado al portapapeles.');
+  function showAgentSection(section) {
+    document.querySelectorAll('.agent-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const target = document.getElementById('agent-section-' + section);
+    if(target) target.style.display = section === 'gestion' ? 'grid' : 'block';
+    const nav = document.getElementById('nav-' + section);
+    if(nav) nav.classList.add('active');
+    if (section === 'historial') cargarHistorialAsesor();
+    else if (section === 'asignados') cargarAsignadosAsesor();
+    lucide.createIcons();
   }
 
+  // --- Data Fetching & Refresh ---
   function fetchData() {
     toggleLoader(true);
     google.script.run
@@ -1938,23 +1144,94 @@ Línea gratuita nacional: 01 8000 111 879`
       .getPQRSFData();
   }
 
-  function toggleLoader(show) {
-    const loader = document.getElementById('loader');
-    if(loader) loader.style.display = show ? 'flex' : 'none';
+  function refreshData() { fetchData(); }
+
+  // --- Polling Systems ---
+  function startAdminPolling() {
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    updateOnlineAgents();
+    onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000);
+    if (activityPolling) clearInterval(activityPolling);
+    activityPolling = setInterval(pollActivity, 30 * 1000);
   }
 
+  function startAssignedPolling() {
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    assignedCheckInterval = setInterval(() => {
+      google.script.run
+        .withSuccessHandler(assigned => {
+          const badge = document.getElementById('assignedCountBadge');
+          const currentCount = assigned.length;
+          if (currentCount > 0) {
+            badge.textContent = currentCount; badge.style.display = 'inline-block';
+            if (currentCount > lastAssignedCount) showNotification('success', 'Nuevo Radicado', `Se te ha asignado ${currentCount - lastAssignedCount} nuevo(s) radicado(s).`);
+          } else badge.style.display = 'none';
+          lastAssignedCount = currentCount;
+        })
+        .obtenerAsignadosAsesor(currentUser.nombre);
+    }, 60000);
+  }
+
+  function updateOnlineAgents() {
+    google.script.run
+      .withSuccessHandler(agents => {
+        const container = document.getElementById('onlineAgentsContainer');
+        if (!container) return;
+        if (agents.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center mt-1">No hay agentes en línea</p>';
+          return;
+        }
+        container.innerHTML = agents.map(a => `
+          <div class="rank-item">
+            <div class="d-flex flex-column">
+              <span class="rank-name">${a.nombre}</span>
+              <small class="text-muted" style="font-size: 0.65rem;">${a.tiempo}</small>
+            </div>
+            <span class="status-pill small ${a.enGestion ? 'warning' : 'green'}">${a.enGestion ? 'En gestión' : 'Disponible'}</span>
+          </div>
+        `).join('');
+      })
+      .obtenerAgentesConectados();
+  }
+
+  function pollActivity() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    google.script.run.withSuccessHandler(res => {
+      if (res.success && res.eventos) res.eventos.forEach(event => showToastNotification(event.mensaje, event.id));
+    }).obtenerActividadReciente();
+  }
+
+  function showToastNotification(mensaje, id) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toastId = 'toast-' + id;
+    if (document.getElementById(toastId)) return;
+    const toast = document.createElement('div');
+    toast.id = toastId; toast.className = 'glass-card fade-in';
+    toast.style.padding = '1rem'; toast.style.width = '300px'; toast.style.borderLeft = '4px solid var(--success)';
+    toast.style.pointerEvents = 'auto'; toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+    toast.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <strong style="font-size: 0.7rem; color: var(--success); text-transform: uppercase;">Actividad Reciente</strong>
+        <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--text-muted); padding:0; line-height:1; cursor:pointer;"><i data-lucide="x" style="width:14px;"></i></button>
+      </div>
+      <div style="font-size: 0.85rem; font-weight: 500;">${mensaje}</div>`;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 8000);
+  }
+
+  // --- Filtering & Table ---
   function initializeFilters() {
     const months = [...new Set(allData.map(d => {
       if(!d.fechaCofrem) return null;
       const date = new Date(d.fechaCofrem);
       return date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
     }).filter(Boolean))].sort();
-
     const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
     const channels = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
     const statuses = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
     const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))].sort();
-
     populateSelect('filterMonth', months, "Mes (Cofrem)");
     populateSelect('filterCompany', companies, "Empresa");
     populateSelect('filterChannel', channels, "Canal");
@@ -1963,15 +1240,10 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function populateSelect(id, values, label) {
-    const select = document.getElementById(id);
+    const select = document.getElementById(id); if(!select) return;
     const currentValue = select.value;
     select.innerHTML = `<option value="">Todos los ${label}</option>`;
-    values.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v;
-      opt.textContent = v.charAt(0).toUpperCase() + v.slice(1);
-      select.appendChild(opt);
-    });
+    values.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.textContent = v.charAt(0).toUpperCase() + v.slice(1); select.appendChild(opt); });
     select.value = currentValue;
   }
 
@@ -1980,235 +1252,306 @@ Línea gratuita nacional: 01 8000 111 879`
     const company = document.getElementById('filterCompany').value;
     const channel = document.getElementById('filterChannel').value;
     const status = document.getElementById('filterStatus').value;
-    const advisor = document.getElementById('filterAdvisor').value;
-
-    // Advanced Search
-    const dateFrom = document.getElementById('searchDateFrom').value;
-    const dateTo = document.getElementById('searchDateTo').value;
-    const searchName = document.getElementById('searchName').value.toLowerCase().trim();
-    const searchPhone = document.getElementById('searchPhone').value.trim();
+    const advisor = document.getElementById('filterAdvisor') ? document.getElementById('filterAdvisor').value : '';
+    const dateFrom = document.getElementById('searchDateFrom') ? document.getElementById('searchDateFrom').value : '';
+    const dateTo = document.getElementById('searchDateTo') ? document.getElementById('searchDateTo').value : '';
+    const nameSearch = document.getElementById('searchName') ? document.getElementById('searchName').value.toLowerCase() : '';
+    const phoneSearch = document.getElementById('searchPhone') ? document.getElementById('searchPhone').value : '';
 
     filteredData = allData.filter(d => {
       const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
-      const matchMonth = !month || dMonth === month;
-      const matchCompany = !company || d.empresa === company;
-      const matchChannel = !channel || d.canal === channel;
-      const matchStatus = !status || d.estado === status;
-      const matchAdvisor = !advisor || d.asesor === advisor;
-
-      // Advanced Search logic
-      let matchAdvanced = true;
-      if (dateFrom) matchAdvanced = matchAdvanced && (d.fechaCofrem >= dateFrom || d.recibidoPeople >= dateFrom);
-      if (dateTo) matchAdvanced = matchAdvanced && (d.fechaCofrem <= dateTo || d.recibidoPeople <= dateTo);
-      if (searchName) matchAdvanced = matchAdvanced && d.nombre.toLowerCase().includes(searchName);
-      if (searchPhone) matchAdvanced = matchAdvanced && d.telefono.includes(searchPhone);
-
-      return matchMonth && matchCompany && matchChannel && matchStatus && matchAdvisor && matchAdvanced;
+      const matchBase = (!month || dMonth === month) && (!company || d.empresa === company) && (!channel || d.canal === channel) && (!status || d.estado === status) && (!advisor || d.asesor === advisor);
+      const dDate = d.fechaCofrem ? new Date(d.fechaCofrem).toISOString().split('T')[0] : null;
+      const matchDate = (!dateFrom || (dDate && dDate >= dateFrom)) && (!dateTo || (dDate && dDate <= dateTo));
+      const matchName = !nameSearch || (d.nombre && d.nombre.toLowerCase().includes(nameSearch));
+      const matchPhone = !phoneSearch || (d.telefono && d.telefono.includes(phoneSearch));
+      return matchBase && matchDate && matchName && matchPhone;
     });
-
-    currentPage = 1;
-    updateDashboard();
+    currentPage = 1; updateDashboard();
   }
 
-  function toggleAdvancedSearch() {
-    const panel = document.getElementById('advancedSearchPanel');
-    const isHidden = panel.style.display === 'none';
-    panel.style.display = isHidden ? 'block' : 'none';
-    lucide.createIcons();
+  function filterTable() {
+    const query = document.getElementById('tableSearch').value.toLowerCase();
+    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) { const text = rows[i].textContent.toLowerCase(); rows[i].style.display = text.includes(query) ? "" : "none"; }
   }
 
-  function resetAdvancedSearch() {
-    document.getElementById('searchDateFrom').value = '';
-    document.getElementById('searchDateTo').value = '';
-    document.getElementById('searchName').value = '';
-    document.getElementById('searchPhone').value = '';
-    applyFilters();
+  function sortTable(n) {
+    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
+    const key = columns[n];
+    if (currentSort.column === key) currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    else { currentSort.column = key; currentSort.direction = 'asc'; }
+    filteredData.sort((a, b) => {
+      let valA = a[key] || ""; let valB = b[key] || "";
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    currentPage = 1; renderTable();
   }
 
+  function changePage(delta) { currentPage += delta; renderTable(); }
+
+  // --- Dashboard Rendering ---
   function updateDashboard() {
-    if (currentUser && currentUser.role === 'admin' && typeof updateAdminDashboard === 'function') {
-      updateAdminDashboard();
-    } else {
-      renderKPIs();
-      renderCharts();
-      renderTable();
-      generateInsights();
-      renderRanking();
-    }
+    if (currentUser && currentUser.role === 'admin' && typeof updateAdminDashboard === 'function') updateAdminDashboard();
+    else { renderKPIs(); renderCharts(); renderTable(); generateInsights(); renderRanking(); }
   }
 
-  let lastActivityId = null;
-  let notificationPolling = null;
-
-  function startOnlineAgentsPolling() {
-    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
-    updateOnlineAgents();
-    onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000); // Cada 30 seg
-
-    // Notificaciones en tiempo real
-    if (notificationPolling) clearInterval(notificationPolling);
-    notificationPolling = setInterval(pollActivity, 30 * 1000);
+  function renderKPIs() {
+    const todayStr = getBogotaDateStr();
+    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => { const val = (d.efectividad || "").toLowerCase().trim(); return val === 'sí' || val === 'si'; }).length;
+    if(document.getElementById('kpiToday')) document.getElementById('kpiToday').textContent = gestionesHoy;
+    if(document.getElementById('kpiTotal')) document.getElementById('kpiTotal').textContent = total;
+    if(document.getElementById('kpiManaged')) document.getElementById('kpiManaged').textContent = managed;
+    if(document.getElementById('kpiPending')) document.getElementById('kpiPending').textContent = pending;
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+    if(document.getElementById('kpiManagedPerc')) document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
+    if(document.getElementById('kpiPendingPerc')) document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
+    if(document.getElementById('kpiEffectiveness')) document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
   }
 
-  function pollActivity() {
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success && res.eventos.length > 0) {
-          res.eventos.forEach(ev => {
-             // Solo mostrar si es nuevo para este cliente
-             if (ev.id !== lastActivityId) {
-                showToast(ev.mensaje);
-                lastActivityId = ev.id;
-             }
-          });
-        }
-      })
-      .obtenerActividadReciente();
+  function renderCharts() {
+    const statusCounts = countBy(filteredData, 'estado');
+    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estado');
+    const channelCounts = countBy(filteredData, 'canal');
+    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canal');
+    const managedCounts = { 'Gestionados': filteredData.filter(d => d.isManaged).length, 'Pendientes': filteredData.filter(d => !d.isManaged).length };
+    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
+    const effCounts = countBy(filteredData, 'efectividad');
+    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#e2e8f0'], 'Efectividad');
   }
 
-  function showToast(message) {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    toast.className = 'glass-card fade-in';
-    toast.style.padding = '12px 20px';
-    toast.style.borderLeft = '4px solid var(--secondary)';
-    toast.style.pointerEvents = 'auto';
-    toast.style.minWidth = '250px';
-    toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.15)';
-    toast.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 12px;">
-        <i data-lucide="bell" style="width: 18px; color: var(--secondary-dark);"></i>
-        <div style="font-size: 0.85rem; font-weight: 600;">${message}</div>
-      </div>
-    `;
-    container.appendChild(toast);
-    lucide.createIcons();
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(20px)';
-      toast.style.transition = 'all 0.5s';
-      setTimeout(() => toast.remove(), 500);
-    }, 5000);
+  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id); if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    charts[id] = new Chart(ctx, {
+      type: type, data: { labels: labels, datasets: [{ label: datasetLabel, data: data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 600 } } }, datalabels: { color: '#1e293b', font: { weight: 'bold', size: 10 }, formatter: (value, ctx) => { let sum = 0; let dataArr = ctx.chart.data.datasets[0].data; dataArr.map(data => sum += data); let percentage = (value * 100 / sum).toFixed(1) + "%"; return type === 'bar' ? value : percentage; } } } },
+      plugins: [ChartDataLabels]
+    });
   }
 
-  function updateOnlineAgents() {
-    google.script.run
-      .withSuccessHandler(agents => {
-        const container = document.getElementById('onlineAgentsContainer');
-        if (!container) return;
-
-        if (agents.length === 0) {
-          container.innerHTML = '<p class="text-muted text-center mt-1">No hay agentes en línea</p>';
-          return;
-        }
-
-        container.innerHTML = agents.map(a => `
-          <div class="rank-item" style="justify-content: space-between; align-items: center; display: flex; width: 100%;">
-            <div>
-              <span class="rank-name">${a.nombre}</span>
-              <div style="font-size: 0.65rem; color: var(--text-muted);">${a.tiempo}</div>
-            </div>
-            <div style="display: flex; gap: 5px; align-items: center;">
-              ${a.enGestion ? '<span class="status-pill warning" style="font-size: 0.6rem; padding: 2px 6px;">Gestión</span>' : ''}
-              <span class="status-pill green" style="font-size: 0.6rem; padding: 2px 6px;">Línea</span>
-            </div>
-          </div>
-        `).join('');
-      })
-      .obtenerAgentesConectados();
+  function renderTable() {
+    const tbody = document.getElementById('tableBody'); if(!tbody) return;
+    tbody.innerHTML = '';
+    const totalRows = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
+    displayData.forEach(row => {
+      const tr = document.createElement('tr'); tr.innerHTML = `<td><strong>${row.radicado}</strong></td><td>${row.nombre}</td><td>${row.empresa}</td><td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td><td>${row.canal || '---'}</td><td>${row.efectividad || 'No'}</td>`;
+      tbody.appendChild(tr);
+    });
+    const pagInfo = document.getElementById('paginationInfo'); if(pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros.`;
+    if(document.getElementById('btnPrev')) document.getElementById('btnPrev').disabled = currentPage === 1;
+    if(document.getElementById('btnNext')) document.getElementById('btnNext').disabled = currentPage === totalPages;
   }
 
-  function showAgentSection(section) {
-    document.querySelectorAll('.agent-section').forEach(s => s.style.display = 'none');
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  function renderRanking() {
+    const container = document.getElementById('rankingContainer'); if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `<div class="rank-item"><span class="rank-name">${name}</span><span class="rank-badge">${count} casos</span></div>`).join('');
+  }
 
-    document.getElementById('agent-section-' + section).style.display = section === 'gestion' ? 'grid' : 'block';
-    document.getElementById('nav-' + section).classList.add('active');
-
-    if (section === 'historial') {
-      cargarHistorialAsesor();
-    } else if (section === 'asignados') {
-      cargarAsignadosAsesor();
-    }
+  function generateInsights() {
+    const insightDiv = document.getElementById('autoInsight'); if(!insightDiv) return;
+    const total = filteredData.length; if (total === 0) { insightDiv.textContent = "No hay datos"; return; }
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+    insightDiv.innerHTML = `<div style="display:flex; align-items:center; gap:12px; margin-top:10px;"><i data-lucide="info" style="color:var(--accent)"></i><div style="font-size:0.85rem"><p>El <strong>${unmanagedPerc}%</strong> de los radicados están pendientes.</p><p>Canal principal: <strong>${topChannel}</strong>.</p></div></div>`;
     lucide.createIcons();
   }
 
-  function cargarAsignadosAsesor(silent = false) {
-    const tbody = document.getElementById('agentAssignedBody');
-    const badge = document.getElementById('assignedCountBadge');
-    if(!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Buscando asignados...</td></tr>';
-
-    google.script.run
-      .withSuccessHandler(assigned => {
-        if (assigned.length === 0) {
-          if(!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center">No tienes radicados asignados pendientes.</td></tr>';
-          badge.style.display = 'none';
-          return;
-        }
-
-        badge.textContent = assigned.length;
-        badge.style.display = 'inline-block';
-
-        if(!silent) {
-          tbody.innerHTML = assigned.map(h => `
-            <tr class="fade-in">
-              <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
-              <td style="padding:1rem;">${h.nombre}</td>
-              <td style="padding:1rem;">${h.empresa}</td>
-              <td style="padding:1rem;">${h.fecha}</td>
-              <td style="padding:1rem;">
-                 <button class="btn-search-premium" onclick="gestionarAsignado('${h.radicado}')" style="padding: 0.4rem 0.8rem; font-size: 0.7rem;">
-                   GESTIONAR
-                 </button>
-              </td>
-            </tr>
-          `).join('');
-        }
-      })
-      .obtenerAsignadosAsesor(currentUser.nombre);
+  // --- Admin Logic & Overrides ---
+  function updateAdminDashboard() {
+    renderKPIs(); renderAdminCharts(); renderTable(); generateAdminInsights(); renderAdminRanking();
   }
 
-  function gestionarAsignado(radicado) {
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          activeCase = res.data;
-          showAgentSection('gestion');
-          showActiveCase();
-        } else {
-          showNotification('error', 'Error', res.message);
-        }
-      })
-      .buscarRadicadoAdmin(radicado); // Reutilizamos búsqueda para traer data completa
+  function renderAdminCharts() {
+    const statusCounts = countBy(filteredData, 'estado');
+    const statusColors = Object.keys(statusCounts).map(key => {
+      const s = key.toLowerCase(); if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50'; if (s.includes('contactado')) return '#B7D400'; return '#342D50';
+    });
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos', true);
+    const channelCounts = countBy(filteredData, 'canal');
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#342D50', '#B7D400', '#1D1F49', '#8E94BB'], 'Casos', false);
+    const managedCounts = { 'Gestionados': filteredData.filter(d => d.isManaged).length, 'Pendientes': filteredData.filter(d => !d.isManaged).length };
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#B7D400', '#342D50'], 'Casos', true);
+    const effCounts = countBy(filteredData, 'efectividad');
+    const effColors = Object.keys(effCounts).map(key => {
+      const e = key.toLowerCase(); if (e.includes('si')) return '#B7D400'; if (e.includes('no')) return '#EE5D50'; return '#342D50';
+    });
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos', false);
   }
 
-  function cargarHistorialAsesor() {
-    const tbody = document.getElementById('agentHistoryBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Cargando historial...</td></tr>';
-
-    google.script.run
-      .withSuccessHandler(history => {
-        if (history.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" class="text-center">No has realizado gestiones aún.</td></tr>';
-          return;
-        }
-
-        tbody.innerHTML = history.map(h => `
-          <tr class="fade-in">
-            <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
-            <td style="padding:1rem;">${h.nombre}</td>
-            <td style="padding:1rem;">${h.fecha}</td>
-            <td style="padding:1rem;"><span class="status-pill ${getStatusClass(h.estado)}">${h.estado}</span></td>
-            <td style="padding:1rem;">${h.canal}</td>
-            <td style="padding:1rem;"><span class="status-pill ${h.efectividad.toLowerCase() === 'si' ? 'green' : 'red'}">${h.efectividad}</span></td>
-          </tr>
-        `).join('');
-      })
-      .obtenerHistorialAsesor(currentUser.nombre);
+  function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id); if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const options = {
+      indexAxis: isHorizontal ? 'y' : 'x', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1D1F49', titleFont: { size: 13, family: 'Plus Jakarta Sans', weight: '700' }, bodyFont: { size: 12, family: 'Plus Jakarta Sans' }, padding: 12, cornerRadius: 12, displayColors: false }, datalabels: { anchor: 'end', align: 'end', color: 'var(--text-main)', offset: 4, font: { weight: '800', family: 'Plus Jakarta Sans', size: 10 }, formatter: (value, context) => { const total = context.dataset.data.reduce((a, b) => a + b, 0); const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%'; return `${value} (${percentage})`; } } },
+      scales: { x: { grid: { display: isHorizontal, color: 'var(--border-color)', drawBorder: false }, ticks: { color: 'var(--text-muted)', font: { weight: '600', size: 10 } }, beginAtZero: true }, y: { grid: { display: !isHorizontal, color: 'var(--border-color)', drawBorder: false }, ticks: { color: 'var(--text-muted)', font: { weight: '600', size: 10 } } } },
+      layout: { padding: { right: isHorizontal ? 60 : 20, top: !isHorizontal ? 30 : 0 } }
+    };
+    charts[id] = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: datasetLabel, data: data, backgroundColor: colors, borderRadius: 8, barThickness: 24 }] }, options: options, plugins: [ChartDataLabels] });
   }
 
+  function renderAdminRanking() {
+    const container = document.getElementById('rankingContainer'); if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const max = sorted.length > 0 ? sorted[0][1] : 1;
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1" style="font-size: 0.8rem;">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `
+      <div class="advisor-item" style="margin-bottom: 1.5rem;">
+        <div class="advisor-info" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="advisor-name" style="font-size: 0.85rem; font-weight: 700;">${name}</span>
+          <span class="advisor-count" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">${count}</span>
+        </div>
+        <div class="progress" style="height: 6px; background: var(--bg-main); border-radius: 10px; overflow: hidden;">
+          <div class="progress-bar" style="width: ${(count/max)*100}%; background: var(--accent); border-radius: 10px;"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  function generateAdminInsights() {
+    const insightDiv = document.getElementById('autoInsight'); if(!insightDiv) return;
+    const total = filteredData.length; if (total === 0) { insightDiv.innerHTML = "<p>No hay datos.</p>"; return; }
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+    insightDiv.innerHTML = `
+      <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.6;">
+        <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
+        <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
+        <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
+      </div>`;
+    lucide.createIcons();
+  }
+
+  // --- Agent Workflows ---
+  function fetchAgentInitialData() {
+    if(document.getElementById('agentName')) document.getElementById('agentName').textContent = currentUser.nombre;
+    google.script.run.withSuccessHandler(data => { allData = data; updateAgentStats(); cargarAsignadosAsesor(true); }).getPQRSFData();
+  }
+
+  function updateAgentStats() {
+    const todayStr = getBogotaDateStr();
+    const managedToday = allData.filter(d => d.asesor === currentUser.nombre && d.isManaged && d.recibidoPeople === todayStr).length;
+    const pendingToComm = allData.filter(d => !d.estado || d.estado.trim() === "").length;
+    if(document.getElementById('agentCountToday')) document.getElementById('agentCountToday').textContent = managedToday;
+    if(document.getElementById('pendingToCommunicate')) document.getElementById('pendingToCommunicate').textContent = pendingToComm;
+  }
+
+  function claimNextCase() {
+    const btn = document.getElementById('btnClaim'); btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+    google.script.run.withSuccessHandler(res => {
+      btn.disabled = false; btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado'; lucide.createIcons();
+      if (res.success) { activeCase = res.data; showActiveCase(); }
+      else showNotification('error', 'Sin radicados', res.message);
+    }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado'; lucide.createIcons(); showNotification('error', 'Error Técnico', err.message); }).claimNextCase(currentUser.nombre);
+  }
+
+  function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
+    document.getElementById('caseFecha').textContent = activeCase.fecha;
+    lucide.createIcons();
+  }
+
+  function saveManagement(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveMgmt'); const card = document.querySelector('.active-case-view');
+    const data = { rowId: activeCase.rowId, asesor: currentUser.nombre, estado: document.getElementById('mgmtEstado').value, canal: document.getElementById('mgmtCanal').value, efectividad: document.getElementById('mgmtEfectividad').value, otraSolucion: document.getElementById('mgmtOtraSolucion').value, seEncontro: document.getElementById('mgmtSeEncontro').value, notas: document.getElementById('mgmtNotas').value, observacionManual: document.getElementById('mgmtObservacionManual').value, emailContacto: document.getElementById('mgmtEmailContact').value };
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> PROCESANDO...';
+    google.script.run.withSuccessHandler(res => {
+      if (res.success) { if(card) card.classList.add('animate-success'); setTimeout(() => { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); fetchAgentInitialData(); resetManagement(); showNotification('success', 'Gestión Exitosa', '¡La gestión se ha guardado con éxito!'); }, 600); }
+      else { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); showNotification('error', 'Error al guardar', res.message); }
+    }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); showNotification('error', 'Error de Conexión', err.message); }).saveManagement(data);
+  }
+
+  function resetManagement() { activeCase = null; document.getElementById('activeCaseCard').style.display = 'none'; document.getElementById('claimCaseCard').style.display = 'block'; document.getElementById('managementForm').reset(); if(document.getElementById('aiInput')) document.getElementById('aiInput').value = ''; if(document.getElementById('aiOutputContainer')) document.getElementById('aiOutputContainer').style.display = 'none'; }
+
+  function liberarRadicadoActivo() {
+    if (!activeCase) return; toggleLoader(true);
+    google.script.run.withSuccessHandler(res => { toggleLoader(false); if (res.success) { showNotification('success', 'Radicado Liberado', 'El radicado ha sido liberado.'); resetManagement(); fetchAgentInitialData(); } else showNotification('error', 'Error al liberar', res.message); }).withFailureHandler(err => { toggleLoader(false); showNotification('error', 'Error de conexión', err.message); }).liberarRadicado(activeCase.rowId);
+  }
+
+  function toggleMgmtFields() {
+    const estado = document.getElementById('mgmtEstado').value; const efectividad = document.getElementById('mgmtEfectividad').value;
+    const emailGroup = document.getElementById('emailContactGroup'); const notasLabel = document.getElementById('mgmtNotasLabel'); const notasTextarea = document.getElementById('mgmtNotas');
+    if (estado === 'No contesta' || estado === 'Corta llamada') {
+      emailGroup.style.display = 'block'; notasLabel.textContent = 'Notas del intento (Automático)';
+      if (efectividad === 'No') notasTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario.";
+      else notasTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. Se procede a enviar comunicación al correo electrónico.";
+    } else if (estado === 'Contactado') { emailGroup.style.display = 'none'; notasLabel.textContent = 'Notas del intento (Automático)'; notasTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud."; }
+    else { emailGroup.style.display = 'none'; notasLabel.textContent = 'Notas del intento (Automático)'; notasTextarea.value = ""; }
+  }
+
+  function improveText(tipo) {
+    if (!activeCase) { showNotification('error', 'Acción denegada', 'Debes tener un caso activo.'); return; }
+    const radicado = activeCase.radicado; const agente = currentUser.nombre; const correo = document.getElementById('mgmtEmailContact').value || "";
+    const outputContainer = document.getElementById('aiOutputContainer'); const headerBox = document.getElementById('headerOutput'); const bodyBox = document.getElementById('bodyOutput');
+    outputContainer.style.display = 'block'; headerBox.value = "Procesando..."; bodyBox.value = "Procesando...";
+    if (tipo === "PQRSF-RES") {
+      const prompt = document.getElementById('aiInput').value.trim(); if (!prompt) { showNotification('error', 'Campo Requerido', 'Por favor escribe la solución.'); headerBox.value = ""; bodyBox.value = ""; return; }
+      google.script.run.withSuccessHandler(res => { if (res.success) mostrarResultado(construirRespuestaFront("PQRSF-RES", { radicado, agente, cuerpoIA: res.text })); else { headerBox.value = "Error"; bodyBox.value = "Error: " + res.message; } }).withFailureHandler(err => { headerBox.value = "Error"; bodyBox.value = "Error: " + err.message; }).generarRespuestaIA(prompt, { nombre: activeCase.nombre });
+    }
+    else if (tipo === "PQRSF-NC") { if (!correo) { showNotification('error', 'Correo Faltante', 'Debes ingresar el correo del usuario.'); headerBox.value = ""; bodyBox.value = ""; return; } mostrarResultado(construirRespuestaFront("PQRSF-NC", { radicado, agente, correo })); }
+  }
+
+  function mostrarResultado(data) { document.getElementById('headerOutput').value = data.header; document.getElementById('bodyOutput').value = data.body; document.getElementById('aiOutputContainer').style.display = 'block'; }
+
+  function construirRespuestaFront(tipo, data) {
+    const baseHeader = `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`;
+    const baseFooter = `
+
+Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio.
+
+Cordialmente,
+
+${data.agente}
+Asesora de Servicio al Cliente
+Teléfono: (608) 681 83 20
+Línea gratuita nacional: 01 8000 111 879`;
+    const baseSalutation = `Cordial saludo,
+Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
+
+`;
+    if (tipo === "PQRSF-RES") return { header: baseHeader, body: baseSalutation + `En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:
+
+${data.cuerpoIA}` + baseFooter };
+    if (tipo === "PQRSF-NC") return { header: baseHeader, body: baseSalutation + `En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.
+
+La información asociada a su solicitud fue enviada al siguiente correo electrónico:
+
+📧 ${data.correo}
+
+En caso de requerir información adicional, puede comunicarse a través de nuestros canales de atención.` + baseFooter };
+  }
+
+  // --- Search & Assign (Admin Actions) ---
   function ejecutarBusquedaAdmin() {
     const numero = document.getElementById('adminSearchInput').value.trim();
     if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
@@ -2218,27 +1561,12 @@ Línea gratuita nacional: 01 8000 111 879`
   function ejecutarAsignacion() {
     const agente = document.getElementById('assignAgentSelect').value;
     const radicado = document.getElementById('assignRadicadoInput').value.trim();
-
-    if (!agente) { showNotification('error', 'Falta Asesor', 'Seleccione un asesor para asignar.'); return; }
-    if (!radicado) { showNotification('error', 'Falta Radicado', 'Ingrese el número de radicado.'); return; }
-
+    if (!agente || !radicado) { showNotification('error', 'Datos Faltantes', 'Seleccione asesor e ingrese radicado.'); return; }
     toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          showNotification('success', 'Asignación Exitosa', res.message);
-          document.getElementById('assignRadicadoInput').value = '';
-          fetchData(); // Refrescar dashboard
-        } else {
-          showNotification('error', 'Error de Asignación', res.message);
-        }
-      })
-      .withFailureHandler(err => {
-        toggleLoader(false);
-        showNotification('error', 'Error de Conexión', err.message);
-      })
-      .asignarRadicado(radicado, agente);
+    google.script.run.withSuccessHandler(res => {
+      toggleLoader(false); if (res.success) { showNotification('success', 'Asignación Exitosa', res.message); document.getElementById('assignRadicadoInput').value = ''; fetchData(); }
+      else showNotification('error', 'Error de Asignación', res.message);
+    }).withFailureHandler(err => { toggleLoader(false); showNotification('error', 'Error de Conexión', err.message); }).asignarRadicado(radicado, agente);
   }
 
   function ejecutarBusquedaAgente() {
@@ -2247,444 +1575,45 @@ Línea gratuita nacional: 01 8000 111 879`
     buscarYMostrarEditor(numero);
   }
 
-  function buscarYMostrarEditor(numero) {
-    // Optimización: buscar primero en local si los datos están cargados
-    if (allData.length > 0) {
-      const found = allData.find(d => String(d.radicado).trim() === String(numero).trim());
-      if (found) {
-        mostrarEditorRadicado({
-          rowId: found.id,
-          radicado: found.radicado,
-          nombre: found.nombre,
-          asesor: found.asesor,
-          estado: found.estado,
-          canal: found.canal,
-          efectividad: found.efectividad,
-          otraSolucion: found.requiereOtraSolucion,
-          seEncontro: found.seEncontroPqrs
-        });
-        return;
-      }
-    }
-
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          mostrarEditorRadicado(res.data);
-        } else {
-          showNotification('error', 'No encontrado', res.message);
-        }
-      })
-      .buscarRadicadoAdmin(numero);
-  }
-
-  function mostrarEditorRadicado(data) {
-    const modal = document.getElementById('adminEditModal');
-    const body = document.getElementById('adminEditModalBody');
-    modal.style.display = 'flex';
-
-    body.innerHTML = `
-      <div class="case-info-grid-premium" style="margin-top: 0;">
-        <div class="info-tile">
-          <label>USUARIO</label>
-          <p>${data.nombre}</p>
-        </div>
-        <div class="info-tile">
-          <label>ASESOR ORIGINAL</label>
-          <p>${data.asesor || 'Sin asignar'}</p>
-        </div>
-      </div>
-
-      <div class="input-row-grid mt-1" style="grid-template-columns: repeat(2, 1fr);">
-        <div class="form-group">
-          <label>Estado de Gestión</label>
-          <select id="editEstado" class="premium-select" style="padding-left: 1rem;">
-            <option value="Contactado" ${data.estado === 'Contactado' ? 'selected' : ''}>Contactado</option>
-            <option value="No contesta" ${data.estado === 'No contesta' ? 'selected' : ''}>No contesta</option>
-            <option value="Corta llamada" ${data.estado === 'Corta llamada' ? 'selected' : ''}>Corta llamada</option>
-            <option value="Solucion Incorrecta" ${data.estado === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Canal</label>
-          <select id="editCanal" class="premium-select" style="padding-left: 1rem;">
-            <option value="Llamada" ${data.canal === 'Llamada' ? 'selected' : ''}>Llamada</option>
-            <option value="Correo" ${data.canal === 'Correo' ? 'selected' : ''}>Correo</option>
-            <option value="Web" ${data.canal === 'Web' ? 'selected' : ''}>Web</option>
-            <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
-            <option value="Por gestionar" ${data.canal === 'Por gestionar' ? 'selected' : ''}>Por gestionar</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>¿Fue efectivo?</label>
-          <select id="editEfectividad" class="premium-select" style="padding-left: 1rem;">
-            <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
-            <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>¿Requiere otra solución?</label>
-          <select id="editOtraSolucion" class="premium-select" style="padding-left: 1rem;">
-            <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
-            <option value="No" ${data.otraSolucion === 'No' ? 'selected' : ''}>No</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>¿Se encontró PQRS?</label>
-          <select id="editSeEncontro" class="premium-select" style="padding-left: 1rem;">
-            <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
-            <option value="NO" ${data.seEncontro && data.seEncontro.toUpperCase() === 'NO' ? 'selected' : ''}>No</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group mt-1">
-        <label>Observaciones (Opcional)</label>
-        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
-      </div>
-
-      <div class="form-footer-actions mt-1">
-        <button class="btn-save-premium" onclick="guardarEdicionAdmin(${data.rowId})" style="width: 100%; justify-content: center;">
-          <i data-lucide="refresh-cw"></i> ACTUALIZAR COMUNICACIÓN
-        </button>
-      </div>
-    `;
-    lucide.createIcons();
-  }
-
-  function cerrarModalAdmin() {
-    document.getElementById('adminEditModal').style.display = 'none';
-  }
-
-  function guardarEdicionAdmin(rowId) {
-    const data = {
-      rowId: rowId,
-      estado: document.getElementById('editEstado').value,
-      canal: document.getElementById('editCanal').value,
-      efectividad: document.getElementById('editEfectividad').value,
-      otraSolucion: document.getElementById('editOtraSolucion').value,
-      seEncontro: document.getElementById('editSeEncontro').value,
-      observacionManual: document.getElementById('editObservacion').value
-    };
-
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(res => {
-        toggleLoader(false);
-        if (res.success) {
-          const modal = document.querySelector('.modal-content');
-          if(modal) {
-            modal.classList.add('animate-success');
-            setTimeout(() => {
-              showNotification('success', 'Actualización Exitosa', '¡Información actualizada correctamente!');
-              cerrarModalAdmin();
-
-              const adminInput = document.getElementById('adminSearchInput');
-              if (adminInput) adminInput.value = '';
-              const agentInput = document.getElementById('agentSearchInput');
-              if (agentInput) agentInput.value = '';
-
-              if (currentUser.role === 'admin') {
-                fetchData();
-              } else {
-                fetchAgentInitialData();
-              }
-            }, 600);
-          }
-        } else {
-          showNotification('error', 'Error de Actualización', res.message);
-        }
-      })
-      .actualizarRadicadoAdmin(data);
-  }
-
-  function renderKPIs() {
-    const todayStr = getBogotaDateStr();
-    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
-
-    const total = filteredData.length;
-    const managed = filteredData.filter(d => d.isManaged).length;
-    const pending = total - managed;
-    const effective = filteredData.filter(d => {
-      const val = (d.efectividad || "").toLowerCase().trim();
-      return val === 'sí' || val === 'si';
-    }).length;
-
-    document.getElementById('kpiToday').textContent = gestionesHoy;
-    document.getElementById('kpiTotal').textContent = total;
-    document.getElementById('kpiManaged').textContent = managed;
-    document.getElementById('kpiPending').textContent = pending;
-
-    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
-    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
-    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
-
-    document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
-    document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
-    document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
-  }
-
-  function renderCharts() {
-    const statusCounts = countBy(filteredData, 'estado');
-    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estado');
-
-    const channelCounts = countBy(filteredData, 'canal');
-    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canal');
-
-    const managedCounts = {
-      'Gestionados': filteredData.filter(d => d.isManaged).length,
-      'Pendientes': filteredData.filter(d => !d.isManaged).length
-    };
-    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
-
-    const effCounts = countBy(filteredData, 'efectividad');
-    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#e2e8f0'], 'Efectividad');
-  }
-
-  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
-    if (charts[id]) charts[id].destroy();
-    const canvas = document.getElementById(id);
-    if(!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    const isLine = type === 'line' || type === 'bar'; // Enhance bars to look premium too
-    const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-    gradient.addColorStop(0, 'rgba(196, 229, 56, 0.3)');
-    gradient.addColorStop(1, 'rgba(196, 229, 56, 0)');
-
-    charts[id] = new Chart(ctx, {
-      type: type,
-      data: {
-        labels: labels,
-        datasets: [{
-          label: datasetLabel,
-          data: data,
-          backgroundColor: type === 'line' ? gradient : colors,
-          borderColor: type === 'line' ? '#C4E538' : '#1D1F49',
-          borderWidth: 2,
-          fill: type === 'line',
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: { color: '#8E94BB', boxWidth: 10, font: { size: 10, weight: 600, family: 'Plus Jakarta Sans' } }
-          },
-          datalabels: {
-            color: '#C4E538', font: { weight: 'bold', size: 10, family: 'Plus Jakarta Sans' },
-            formatter: (value, ctx) => {
-               let sum = 0; let dataArr = ctx.chart.data.datasets[0].data;
-               dataArr.map(data => sum += data);
-               let percentage = total > 0 ? (value * 100 / sum).toFixed(1) + "%" : "0%";
-               return type === 'bar' || type === 'line' ? value : percentage;
-            }
-          }
-        },
-        scales: (type === 'bar' || type === 'line') ? {
-          x: { ticks: { color: '#8E94BB' }, grid: { display: false } },
-          y: { ticks: { color: '#8E94BB' }, grid: { color: 'rgba(255,255,255,0.05)' } }
-        } : {}
-      },
-      plugins: [ChartDataLabels]
-    });
-  }
-
-  function countBy(arr, key) {
-    return arr.reduce((acc, obj) => {
-      const val = obj[key] || 'Sin definir';
-      acc[val] = (acc[val] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    if(!tbody) return;
-    tbody.innerHTML = '';
-    const totalRows = filteredData.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-    const startIdx = (currentPage - 1) * rowsPerPage;
-    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
-
-    displayData.forEach(row => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${row.radicado}</strong></td>
-        <td>${row.nombre}</td>
-        <td>${row.empresa}</td>
-        <td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td>
-        <td>${row.canal || '---'}</td>
-        <td>${row.efectividad || 'No'}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    const pagInfo = document.getElementById('paginationInfo');
-    if(pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros.`;
-  }
-
-  function getStatusClass(status) {
-    const s = (status || "").toLowerCase();
-    if (s.includes('contactado')) return 'green';
-    if (s.includes('no contesta') || s.includes('corte') || s.includes('corta')) return 'red';
-    return 'warning';
-  }
-
-  function changePage(delta) {
-    currentPage += delta;
-    if (currentUser && currentUser.role === 'admin' && typeof renderAdminTable === 'function') {
-      renderAdminTable();
-    } else {
-      renderTable();
-    }
-  }
-
-  function renderRanking() {
-    const container = document.getElementById('rankingContainer');
-    if (!container) return;
-    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
-    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
-
-    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1">Sin datos</p>'; return; }
-    container.innerHTML = sorted.map(([name, count]) => `
-      <div class="rank-item">
-        <span class="rank-name">${name}</span>
-        <span class="rank-badge">${count} casos</span>
-      </div>
-    `).join('');
-  }
-
-  function generateInsights() {
-    const insightDiv = document.getElementById('autoInsight');
-    if(!insightDiv) return;
-    const total = filteredData.length;
-    if (total === 0) { insightDiv.textContent = "No hay datos"; return; }
-    const unmanaged = filteredData.filter(d => !d.isManaged).length;
-    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
-    const channelCounts = countBy(filteredData, 'canal');
-    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
-
-    insightDiv.innerHTML = `
-      <div style="display:flex; align-items:center; gap:12px; margin-top:10px;">
-        <i data-lucide="info" style="color:var(--secondary-dark)"></i>
-        <div style="font-size:0.85rem">
-          <p>El <strong>${unmanagedPerc}%</strong> de los radicados están pendientes.</p>
-          <p>Canal principal: <strong>${topChannel}</strong>.</p>
-        </div>
-      </div>
-    `;
-    lucide.createIcons();
-  }
-
-  function filterTable() {
-    const query = document.getElementById('tableSearch').value.toLowerCase();
-    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
-    for (let i = 0; i < rows.length; i++) {
-      const text = rows[i].textContent.toLowerCase();
-      rows[i].style.display = text.includes(query) ? "" : "none";
-    }
-  }
-
-  function refreshData() {
-    if (currentUser && currentUser.role === 'admin' && typeof refreshAdminData === 'function') {
-      refreshAdminData();
-    } else {
-      fetchData();
-    }
-  }
-
-  function exportToCSV() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
-
-    filteredData.forEach(row => {
-      let r = [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad];
-      csvContent += r.join(",") + "\r\n";
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "pqrsf_data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
+  // --- Utils ---
+  function getBogotaDateStr() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+  function countBy(arr, key) { return arr.reduce((acc, obj) => { const val = obj[key] || 'Sin definir'; acc[val] = (acc[val] || 0) + 1; return acc; }, {}); }
+  function copiarCampo(id) { const el = document.getElementById(id); el.select(); document.execCommand('copy'); showNotification('success', 'Copiado', 'Contenido copiado al portapapeles.'); }
+  function toggleLoader(show) { const loader = document.getElementById('loader'); if(loader) loader.style.display = show ? 'flex' : 'none'; }
+  function getStatusClass(status) { const s = (status || "").toLowerCase(); if (s.includes('contactado')) return 'green'; if (s.includes('no contesta') || s.includes('corte') || s.includes('corta')) return 'red'; return 'warning'; }
   function exportToPDF() { window.print(); }
-
-  function sortTable(n) {
-    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
-    const key = columns[n];
-
-    if (currentSort.column === key) {
-      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-      currentSort.column = key;
-      currentSort.direction = 'asc';
-    }
-
-    filteredData.sort((a, b) => {
-      let valA = a[key] || "";
-      let valB = b[key] || "";
-      if (typeof valA === 'string') valA = valA.toLowerCase();
-      if (typeof valB === 'string') valB = valB.toLowerCase();
-      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    currentPage = 1;
-    renderTable();
+  function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,Radicado,Nombre,Empresa,Estado,Canal,Efectividad
+";
+    filteredData.forEach(row => { csvContent += [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad].join(",") + "
+"; });
+    const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "pqrsf_data.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }
+
+  // --- Theme ---
+  function toggleTheme() {
+    const body = document.body; const currentTheme = body.getAttribute('data-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', newTheme); localStorage.setItem('pqrsf_theme', newTheme); updateThemeIcon(newTheme);
+    if (currentUser && currentUser.role === 'admin') renderAdminCharts();
+  }
+  function updateThemeIcon(theme) {
+    const adminIcon = document.getElementById('themeIcon'); if (adminIcon) adminIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+    const agentIcon = document.querySelector('.theme-icon-agent'); if (agentIcon) agentIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+    lucide.createIcons();
+  }
+
+  // --- Feature Logic ---
+  function toggleAdvancedSearch() { const panel = document.getElementById('advancedSearchPanel'); if(!panel) return; panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; lucide.createIcons(); }
+  function resetAdvancedSearch() { if(document.getElementById('searchDateFrom')) document.getElementById('searchDateFrom').value = ''; if(document.getElementById('searchDateTo')) document.getElementById('searchDateTo').value = ''; if(document.getElementById('searchName')) document.getElementById('searchName').value = ''; if(document.getElementById('searchPhone')) document.getElementById('searchPhone').value = ''; applyFilters(); }
   function renderDailyStats() {
-    const dateInput = document.getElementById('dailyStatsDate').value;
-    const statsContent = document.getElementById('dailyStatsContent');
-    const statsEmpty = document.getElementById('dailyStatsEmpty');
-
-    if (!dateInput) {
-      statsContent.style.display = 'none';
-      statsEmpty.style.display = 'block';
-      return;
-    }
-
-    const dayData = allData.filter(d => d.recibidoPeople === dateInput);
-    const managedDay = dayData.filter(d => d.isManaged);
-    const total = dayData.length;
-    const managed = managedDay.length;
-    const effective = managedDay.filter(d => (d.efectividad || "").toLowerCase().trim().includes('si')).length;
-    const effPerc = managed > 0 ? ((effective / managed) * 100).toFixed(1) : 0;
-
-    document.getElementById('dailyTotal').textContent = total;
-    document.getElementById('dailyManaged').textContent = managed;
-    document.getElementById('dailyEff').textContent = effPerc + '%';
-
-    // Summary by advisor
-    const advisorStats = managedDay.reduce((acc, d) => {
-       if (!acc[d.asesor]) acc[d.asesor] = { count: 0, effective: 0 };
-       acc[d.asesor].count++;
-       if ((d.efectividad || "").toLowerCase().trim().includes('si')) acc[d.asesor].effective++;
-       return acc;
-    }, {});
-
-    const tbody = document.getElementById('dailyAdvisorTable');
-    tbody.innerHTML = Object.entries(advisorStats).map(([name, stat]) => `
-      <tr>
-        <td>${name}</td>
-        <td class="text-center fw-bold">${stat.count}</td>
-        <td class="text-end text-success">${((stat.effective/stat.count)*100).toFixed(0)}%</td>
-      </tr>
-    `).join('') || '<tr><td colspan="3" class="text-center py-2">Sin gestiones este día</td></tr>';
-
-    statsContent.style.display = 'block';
-    statsEmpty.style.display = 'none';
+    const dateVal = document.getElementById('dailyStatsDate').value; const content = document.getElementById('dailyStatsContent'); const empty = document.getElementById('dailyStatsEmpty'); const table = document.getElementById('dailyAdvisorTable');
+    if (!dateVal) { content.style.display = 'none'; empty.style.display = 'block'; return; }
+    const dayData = allData.filter(d => d.recibidoPeople === dateVal); const managed = dayData.filter(d => d.isManaged); const total = dayData.length; const effective = managed.filter(d => { const val = (d.efectividad || "").toLowerCase().trim(); return val === 'sí' || val === 'si'; }).length;
+    document.getElementById('dailyTotal').textContent = total; document.getElementById('dailyManaged').textContent = managed.length; document.getElementById('dailyEff').textContent = total > 0 ? ((effective / total) * 100).toFixed(0) + '%' : '0%';
+    const advisorStats = managed.reduce((acc, d) => { if (!acc[d.asesor]) acc[d.asesor] = { count: 0, eff: 0 }; acc[d.asesor].count++; const val = (d.efectividad || "").toLowerCase().trim(); if (val === 'sí' || val === 'si') acc[d.asesor].eff++; return acc; }, {});
+    table.innerHTML = Object.entries(advisorStats).map(([name, stats]) => `<tr><td class="text-truncate" style="max-width: 100px;">${name}</td><td class="text-center">${stats.count}</td><td class="text-end fw-bold text-success">${((stats.eff / stats.count) * 100).toFixed(0)}%</td></tr>`).join('');
+    if (Object.keys(advisorStats).length === 0) table.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Sin gestiones</td></tr>';
+    content.style.display = 'block'; empty.style.display = 'none';
   }
 </script>
 
