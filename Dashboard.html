@@ -1,155 +1,107 @@
-<div id="loader" class="loader-overlay">
-  <div class="loader-content">
-    <div class="spinner"></div>
-    <p>Cargando Dashboard PQRSF...</p>
-  </div>
-</div>
+<div id="dashboard-view">
+  <div class="dashboard-container">
+    <aside class="sidebar">
+      <div style="margin-bottom: 3rem; padding-left: 1rem;">
+        <h2 style="color: var(--accent); font-weight: 800; letter-spacing: -1px;">People BPO</h2>
+        <p style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Control Center</p>
+      </div>
 
-<div class="app-container">
-  <!-- Sidebar / Header -->
-  <header class="main-header">
-    <div class="header-content">
-      <div class="brand">
-        <div class="logo-icon">P</div>
+      <nav style="flex: 1;">
+        <div class="nav-item active" onclick="showSection('overview')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Panel General
+        </div>
+        <div class="nav-item" onclick="showSection('ranking')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+          Ranking & Errores
+        </div>
+        <div class="nav-item" onclick="showSection('turnos')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Gestión de Turnos
+        </div>
+      </nav>
+
+      <div style="padding: 1rem; border-top: 1px solid var(--border);">
+        <div class="nav-item" onclick="logout()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Cerrar Sesión
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem;">
         <div>
-          <h1>GESTIONES PQRSF <span class="brand-company">(People BPO)</span></h1>
-          <p class="subtitle">Intelligence Dashboard • <span class="signature">By Duvan Ramos</span></p>
+          <h1 style="font-size: 1.8rem; font-weight: 700;">Panel Ejecutivo</h1>
+          <p id="header-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Analizando desempeño operativo en tiempo real.</p>
         </div>
-      </div>
-      <div class="header-actions">
-        <button class="btn btn-primary" onclick="refreshData()">
-          <i data-lucide="refresh-cw"></i> Actualizar Datos
-        </button>
-        <button class="btn btn-outline" onclick="exportToPDF()">
-          <i data-lucide="file-text"></i> Exportar PDF
-        </button>
-        <button class="btn btn-outline" onclick="handleLogout()">
-          <i data-lucide="log-out"></i>
-        </button>
-      </div>
-    </div>
-  </header>
+        <div id="sync-status" style="font-size: 0.75rem; color: var(--text-muted); background: var(--border); padding: 6px 12px; border-radius: 6px;">
+          Sincronizado: --:--:--
+        </div>
+      </header>
 
-  <main class="dashboard-content">
-
-    <!-- Smart Search & Quick Filters Row -->
-    <section class="controls-row">
-      <div class="search-card card">
-        <div class="card-header">
-          <h3><i data-lucide="search"></i> Buscador Inteligente</h3>
-        </div>
-        <div class="search-input-group">
-          <input type="text" id="smartSearch" placeholder="Buscar por RADICADO..." onkeyup="handleSearch(event)">
-          <button class="btn btn-icon" onclick="executeSearch()">
-            <i data-lucide="arrow-right"></i>
-          </button>
-        </div>
-        <div id="searchResult" class="search-result-container">
-          <!-- Smart Search result will appear here -->
-        </div>
+      <!-- Global Search -->
+      <div class="search-container">
+        <svg class="search-icon-abs" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="global-search-input" class="search-input" placeholder="Buscar Radicado o PQRS (Enter)..." onkeypress="handleSearch(event)">
+        <div id="search-result-area" style="display:none"></div>
       </div>
 
-      <div class="filters-card card">
-        <div class="card-header">
-          <h3><i data-lucide="filter"></i> Filtros Dinámicos</h3>
+      <!-- Section: Overview -->
+      <div id="section-overview" class="fade-in">
+        <!-- Insights Mandatory Block -->
+        <div id="insights-area" class="insights-container">
+          <!-- Insights pills here -->
         </div>
-        <div class="filter-grid">
-          <div class="filter-group">
-            <label>Mes (Cofrem)</label>
-            <select id="filterMonth" onchange="applyFilters()">
-              <option value="">Todos los meses</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Empresa</label>
-            <select id="filterCompany" onchange="applyFilters()">
-              <option value="">Todas las empresas</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Canal</label>
-            <select id="filterChannel" onchange="applyFilters()">
-              <option value="">Todos los canales</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Estado</label>
-            <select id="filterStatus" onchange="applyFilters()">
-              <option value="">Todos los estados</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Tipo Gestión</label>
-            <select id="filterIsManaged" onchange="applyFilters()">
-              <option value="">Todos</option>
-              <option value="true">Gestionados</option>
-              <option value="false">Por Comunicar</option>
-            </select>
-          </div>
-          <div class="filter-group">
-            <label>Recibido People (Desde)</label>
-            <input type="date" id="filterDatePeopleStart" onchange="applyFilters()">
-          </div>
-          <div class="filter-group">
-            <label>Recibido People (Hasta)</label>
-            <input type="date" id="filterDatePeopleEnd" onchange="applyFilters()">
-          </div>
-        </div>
-      </div>
-    </section>
 
-    <!-- KPI Row -->
-    <section class="kpi-grid">
-      <div class="kpi-card card">
-        <div class="kpi-header">
-          <span class="kpi-label">Gestiones Hoy</span>
-          <i data-lucide="calendar" class="text-blue"></i>
+        <!-- KPIs Trend Block -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-label">Gestiones Hoy</div>
+            <div id="kpi-today" class="kpi-value">0</div>
+            <div class="kpi-trend">Jornada actual</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">T. Promedio Respuesta</div>
+            <div id="kpi-avg-time" class="kpi-value">0d</div>
+            <div class="kpi-trend">Días (Carga vs Gestión)</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Gestionados</div>
+            <div id="kpi-managed" class="kpi-value" style="color: var(--success);">0</div>
+            <div id="kpi-managed-perc" class="kpi-trend">0% del total</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Por Comunicar</div>
+            <div id="kpi-pending" class="kpi-value" style="color: var(--warning);">0</div>
+            <div id="kpi-pending-perc" class="kpi-trend">0% del total</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">Atrasos (>3 días)</div>
+            <div id="kpi-delayed" class="kpi-value" style="color: var(--error);">0</div>
+            <div class="kpi-trend">Casos fuera de tiempo</div>
+          </div>
         </div>
-        <div class="kpi-value" id="kpiToday">0</div>
-        <div class="kpi-trend">Realizadas en la jornada</div>
-      </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
-          <span class="kpi-label">T. Promedio Respuesta</span>
-          <i data-lucide="clock" class="text-blue"></i>
-        </div>
-        <div class="kpi-value" id="kpiAvgTime">0d</div>
-        <div class="kpi-trend">Días (Carga vs Gestión)</div>
-      </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
-          <span class="kpi-label">Gestionados</span>
-          <i data-lucide="check-circle" class="text-green"></i>
-        </div>
-        <div class="kpi-value" id="kpiManaged">0</div>
-        <div class="kpi-trend text-green" id="kpiManagedPerc">0% del total</div>
-      </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
-          <span class="kpi-label">Por Comunicar</span>
-          <i data-lucide="alert-circle" class="text-red"></i>
-        </div>
-        <div class="kpi-value" id="kpiPending">0</div>
-        <div class="kpi-trend text-red" id="kpiPendingPerc">0% del total</div>
-      </div>
-      <div class="kpi-card card">
-        <div class="kpi-header">
-          <span class="kpi-label">Atrasos (>3 días)</span>
-          <i data-lucide="alert-triangle" class="text-red"></i>
-        </div>
-        <div class="kpi-value" id="kpiDelayed">0</div>
-        <div class="kpi-trend">Casos fuera de tiempo</div>
-      </div>
-    </section>
 
-    <!-- Secondary KPIs / Insights -->
-    <section class="insights-row">
-      <div class="card insight-card" style="flex: 2;">
-        <div class="card-header">
-           <h3><i data-lucide="users"></i> Radiografía de Agentes</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Distribución por Canal</div>
+              <div style="height: 250px;"><canvas id="chart-canales"></canvas></div>
+           </div>
+           <div class="table-card">
+              <div class="table-title" style="margin-bottom: 20px;">Estados de PQRS</div>
+              <div style="height: 250px;"><canvas id="chart-estados"></canvas></div>
+           </div>
         </div>
-        <div class="table-responsive">
-          <table style="font-size: 0.8rem;">
+      </div>
+
+      <!-- Section: Ranking -->
+      <div id="section-ranking" style="display:none" class="fade-in">
+        <div class="table-card">
+          <div class="table-header">
+            <div class="table-title">Radiografía de Agentes</div>
+          </div>
+          <table>
             <thead>
               <tr>
                 <th>Asesor</th>
@@ -158,106 +110,24 @@
                 <th>T. Promedio</th>
               </tr>
             </thead>
-            <tbody id="agentRadiographyBody">
-              <!-- Injected by JS -->
-            </tbody>
+            <tbody id="radiography-body"></tbody>
           </table>
         </div>
-      </div>
-      <div class="card dynamic-insight" id="autoInsight" style="flex: 1;">
-        <!-- Automated insights will be generated here -->
-        Cargando insights automáticos...
-      </div>
-    </section>
 
-    <!-- Charts Grid -->
-    <section class="charts-grid">
-      <div class="chart-container card">
-        <div class="card-header"><h3>Estado de Gestión</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartStatus"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Canal de Contacto</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartChannel"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Gestión vs Pendiente</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartManaged"></canvas></div>
-      </div>
-      <div class="chart-container card">
-        <div class="card-header"><h3>Efectividad</h3></div>
-        <div class="canvas-wrapper"><canvas id="chartEffectiveness"></canvas></div>
-      </div>
-    </section>
-
-    <!-- Trend Chart -->
-    <section class="trend-section card">
-      <div class="card-header"><h3>Tendencia de Tiempo de Respuesta (Últimos 7 Días)</h3></div>
-      <div class="canvas-wrapper trend-wrapper"><canvas id="chartTrend"></canvas></div>
-    </section>
-
-    <!-- Volume Chart -->
-    <section class="trend-section card">
-      <div class="card-header"><h3>Volumen de Gestión por Fecha Real</h3></div>
-      <div class="canvas-wrapper trend-wrapper"><canvas id="chartVolume"></canvas></div>
-    </section>
-
-    <!-- Detailed Table -->
-    <section class="table-section card">
-      <div class="card-header table-header">
-        <h3>Detalle de Registros</h3>
-        <div class="table-actions">
-           <input type="text" id="tableSearch" placeholder="Filtrar tabla..." onkeyup="filterTable()">
-           <button class="btn btn-outline btn-sm" onclick="exportToCSV()">
-             <i data-lucide="download"></i> CSV
-           </button>
+        <div class="table-card" style="border-color: var(--error);">
+           <div class="table-title" style="color: var(--error); margin-bottom: 20px;">Asesores con más errores</div>
+           <div id="worst-performers-list" style="display: flex; gap: 16px; flex-wrap: wrap;"></div>
         </div>
       </div>
-      <div class="table-responsive">
-        <table id="pqrsfTable">
-          <thead>
-            <tr>
-              <th onclick="sortTable(0)">Radicado <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(1)">Nombre <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(2)">Empresa <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(3)">Estado <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(4)">Canal <i data-lucide="chevrons-up-down"></i></th>
-              <th onclick="sortTable(5)">Efectividad <i data-lucide="chevrons-up-down"></i></th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- Rows injected by JS -->
-          </tbody>
-        </table>
-      </div>
-      <div class="table-pagination">
-        <div id="paginationInfo">Mostrando 0 de 0 registros</div>
-        <div class="pagination-controls">
-          <button class="btn btn-outline btn-sm" id="btnPrev" onclick="changePage(-1)">Anterior</button>
-          <button class="btn btn-outline btn-sm" id="btnNext" onclick="changePage(1)">Siguiente</button>
-        </div>
-      </div>
-    </section>
 
-    <!-- Report Section (Moved to bottom) -->
-    <section class="report-row">
-      <div class="card report-card compact-report">
-        <div class="card-header">
-          <h3><i data-lucide="mail"></i> Enviar Reporte PDF</h3>
-        </div>
-        <div class="report-controls">
-          <input type="email" id="reportEmail" placeholder="correo@ejemplo.com">
-          <button class="btn btn-primary" onclick="handleSendReport()">
-            <i data-lucide="send"></i> Enviar Reporte
-          </button>
-        </div>
-        <p class="report-hint">Se enviará un consolidado basado en los filtros actuales.</p>
+      <!-- Section: Turnos -->
+      <div id="section-turnos" style="display:none" class="fade-in">
+        <header style="margin-bottom: 24px;">
+           <h2 class="table-title">Estado de Turnos Real-Time</h2>
+           <p style="color: var(--text-muted); font-size: 0.8rem;">Monitoreo de disponibilidad del equipo.</p>
+        </header>
+        <div id="turnos-grid-area" class="turnos-grid"></div>
       </div>
-    </section>
-
-  </main>
-
-  <footer class="main-footer">
-    <p>GESTIONES PQRSF — People BPO — By Duvan Ramos 2026</p>
-  </footer>
+    </main>
+  </div>
 </div>

@@ -1,16 +1,16 @@
-<div class="agent-dashboard">
+<div class="agent-dashboard premium-theme">
   <header class="main-header">
     <div class="header-content">
       <div class="brand">
         <div class="logo-icon">P</div>
         <div>
-          <h1>PORTAL AGENTE <span class="brand-company">(PQRSF)</span></h1>
-          <p class="subtitle">Bienvenido, <span id="agentName" class="signature">...</span></p>
+          <h1 style="color: var(--accent);">PORTAL AGENTE <span class="brand-company">(PQRSF)</span></h1>
+          <p class="subtitle" style="color: white;">Bienvenido, <span id="agentName" class="signature" style="color: var(--accent);">...</span></p>
         </div>
       </div>
       <div class="header-actions">
-        <button class="btn btn-outline" onclick="handleLogout()">
-          <i data-lucide="log-out"></i> Cerrar Sesión
+        <button class="btn btn-outline" onclick="logout()" style="background: rgba(255,255,255,0.1); color: white; border-color: rgba(255,255,255,0.2);">
+          Cerrar Sesión
         </button>
       </div>
     </div>
@@ -93,13 +93,8 @@
             </div>
 
             <div class="form-group" style="margin-top: 1rem;">
-              <label id="mgmtObservacionLabel">Observaciones / Solución (Para IA)</label>
-              <textarea id="mgmtObservacion" rows="3" placeholder="Describe brevemente la solución brindada para generar respuesta..."></textarea>
-            </div>
-
-            <div class="form-group" style="margin-top: 1rem;">
-              <label>Notas de Gestión (Columna Q)</label>
-              <textarea id="mgmtNotas" rows="2" placeholder="Notas internas de la gestión..."></textarea>
+              <label id="mgmtObservacionLabel">Observaciones / Solución</label>
+              <textarea id="mgmtObservacion" rows="3" placeholder="Describe brevemente la solución brindada..."></textarea>
             </div>
 
             <div class="form-group" id="emailContactGroup" style="display: none; margin-top: 1rem;">

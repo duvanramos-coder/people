@@ -1,42 +1,28 @@
-<div id="loginView" class="view-container active">
-  <div class="login-wrapper">
-    <div class="login-card card">
-      <div class="brand-centered">
-        <div class="logo-icon-large">P</div>
-        <h2>¡Bienvenido!</h2>
-        <p class="welcome-text">Prepárate para gestionar comunicación PQRSF</p>
-      </div>
+<div class="login-screen">
+    <div class="login-card">
+        <h1>Admin Portal</h1>
+        <p>Inicia sesión para gestionar el dashboard corporativo</p>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label for="agentSelect">Selecciona tu nombre</label>
-          <div class="input-wrapper">
-            <i data-lucide="users"></i>
-            <select id="agentSelect" required>
-              <option value="" disabled selected>Cargando agentes...</option>
-            </select>
-          </div>
+        <div id="login-error" style="color: var(--error); font-size: 0.875rem; text-align: center; margin-bottom: 1rem; display: none;">
+            Credenciales incorrectas. Intenta de nuevo.
         </div>
 
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <div class="input-wrapper">
-            <i data-lucide="lock"></i>
-            <input type="password" id="password" placeholder="••••••••" required>
-          </div>
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" id="username" required placeholder="tu.usuario">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="password" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn-primary" id="login-btn">
+                Entrar al Sistema
+            </button>
+        </form>
+
+        <div style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted);">
+            &copy; 2026 People BPO Admin Portal. By Duvan Ramos.
         </div>
-
-        <button type="submit" class="btn btn-primary btn-block" id="btnLogin">
-          <span>Ingresar al Sistema</span>
-          <i data-lucide="arrow-right"></i>
-        </button>
-      </form>
-
-      <div id="loginError" class="login-error" style="display: none;"></div>
-
-      <div class="login-footer">
-        <p class="signature">By Duvan Ramos — 2026</p>
-      </div>
     </div>
-  </div>
 </div>

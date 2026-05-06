@@ -1,146 +1,77 @@
 <script>
-  let allData = [];
-  let filteredData = [];
-  let charts = {};
-  let currentPage = 1;
-  const rowsPerPage = 10;
-  let currentSort = { column: null, direction: 'asc' };
-  let currentUser = null;
+let charts = {};
+let dashboardInterval;
 
-  // Page initialization
-  document.addEventListener('DOMContentLoaded', () => {
-    lucide.createIcons();
-    checkSession();
-    loadLoginUsers();
-  });
+window.onload = () => {
+  const session = localStorage.getItem('admin_session');
+  if (session) {
+    const data = JSON.parse(session);
+    startDashboard(data.username, data.role);
+  } else {
+    document.getElementById('loader').style.display = 'none';
+  }
+};
 
-  function checkSession() {
-    const session = localStorage.getItem('pqrsf_session');
-    if (session) {
-      currentUser = JSON.parse(session);
-      showViewByRole(currentUser.role);
+function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+
+  btn.innerText = 'Autenticando...';
+  btn.disabled = true;
+
+  google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+      localStorage.setItem('admin_session', JSON.stringify({username: res.nombre, role: res.role}));
+      startDashboard(res.nombre, res.role);
     } else {
-      showView('loginView');
+      document.getElementById('login-error').style.display = 'block';
+      btn.innerText = 'Entrar al Sistema';
+      btn.disabled = false;
+      document.getElementById('login-error').style.display = 'block';
     }
+  }).login(u, p);
+}
+
+function startDashboard(user, role) {
+  document.getElementById('auth-container').style.display = 'none';
+
+  if (role === 'admin') {
+    document.getElementById('dashboard-container').style.display = 'block';
+    document.getElementById('loader').style.display = 'flex';
+    refreshDashboard();
+    dashboardInterval = setInterval(refreshDashboard, 60000); // Polling 1 min
+  } else {
+    document.getElementById('agent-container').style.display = 'block';
+    initAgentPortal(user);
   }
+}
 
-  function loadLoginUsers() {
-    google.script.run
-      .withSuccessHandler(users => {
-        const select = document.getElementById('agentSelect');
-        if (!select) return;
-        select.innerHTML = '<option value="" disabled selected>Selecciona tu nombre...</option>';
-        users.forEach(u => {
-          const opt = document.createElement('option');
-          opt.value = u.nombre;
-          opt.textContent = u.nombre;
-          select.appendChild(opt);
-        });
-      })
-      .obtenerUsuarios();
-  }
+// Agent Portal functions
+let activeCase = null;
+let gestionesHoy = 0;
+let currentUser = { nombre: "" };
 
-  function handleLogin(e) {
-    e.preventDefault();
-    const user = document.getElementById('agentSelect').value;
-    const pass = document.getElementById('password').value;
-    const errorDiv = document.getElementById('loginError');
-    const btn = document.getElementById('btnLogin');
+function initAgentPortal(user) {
+  currentUser.nombre = user;
+  document.getElementById('agentName').textContent = user;
+  updateAgentStats();
+}
 
-    errorDiv.style.display = 'none';
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Ingresando...';
+function updateAgentStats() {
+  document.getElementById('agentCountToday').textContent = gestionesHoy;
+}
 
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          currentUser = res;
-          localStorage.setItem('pqrsf_session', JSON.stringify(res));
-          showViewByRole(res.role);
-        } else {
-          errorDiv.textContent = res.message;
-          errorDiv.style.display = 'block';
-          btn.disabled = false;
-          btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
-          lucide.createIcons();
-        }
-      })
-      .withFailureHandler(err => {
-        errorDiv.textContent = "Error de conexión: " + err.message;
-        errorDiv.style.display = 'block';
-        btn.disabled = false;
-        btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
-        lucide.createIcons();
-      })
-      .validarLogin(user, pass);
-  }
-
-  function showViewByRole(role) {
-    if (role === 'admin') {
-      showView('adminView');
-      fetchData();
-    } else {
-      showView('agentView');
-      // Initialize Agent view if needed
-      if (typeof initAgentPortal === 'function') initAgentPortal();
-    }
-  }
-
-  function showView(viewId) {
-    document.querySelectorAll('.view-container').forEach(v => {
-      v.style.display = 'none';
-      v.classList.remove('active');
-    });
-    const target = document.getElementById(viewId);
-    if (!target) return;
-    target.style.display = 'block';
-    target.classList.add('active');
-
-    if (viewId === 'loginView') {
-      const form = document.getElementById('loginForm');
-      if (form) form.reset();
-      const errorDiv = document.getElementById('loginError');
-      if (errorDiv) errorDiv.style.display = 'none';
-      const btn = document.getElementById('btnLogin');
-      if (btn) {
-        btn.disabled = false;
-        btn.innerHTML = '<span>Ingresar</span> <i data-lucide="chevron-right"></i>';
-      }
-    }
-    lucide.createIcons();
-  }
-
-  function handleLogout() {
-    localStorage.removeItem('pqrsf_session');
-    currentUser = null;
-    activeCase = null;
-    showView('loginView');
-  }
-
-  // --- Agent Portal Logic ---
-  let activeCase = null;
-  let gestionesHoy = 0;
-
-  function initAgentPortal() {
-    document.getElementById('agentName').textContent = currentUser.nombre;
-    updateAgentStats();
-  }
-
-  function updateAgentStats() {
-    // In a real app, fetch from server. For now, local counter.
-    document.getElementById('agentCountToday').textContent = gestionesHoy;
-  }
-
-  function claimNextCase() {
+function claimNextCase() {
     const btn = document.getElementById('btnClaim');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+    btn.innerHTML = 'Solicitando...';
 
     google.script.run
       .withSuccessHandler(res => {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
-        lucide.createIcons();
+        btn.innerHTML = 'Solicitar Radicado';
 
         if (res.success) {
           activeCase = res.data;
@@ -151,14 +82,13 @@
       })
       .withFailureHandler(err => {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
-        lucide.createIcons();
+        btn.innerHTML = 'Solicitar Radicado';
         alert("Error: " + err.message);
       })
       .claimNextCase(currentUser.nombre);
-  }
+}
 
-  function showActiveCase() {
+function showActiveCase() {
     document.getElementById('claimCaseCard').style.display = 'none';
     document.getElementById('activeCaseCard').style.display = 'block';
 
@@ -167,11 +97,9 @@
     document.getElementById('caseTelefono').textContent = activeCase.telefono;
     document.getElementById('caseEmpresa').textContent = activeCase.empresa;
     document.getElementById('caseFecha').textContent = activeCase.fecha;
+}
 
-    lucide.createIcons();
-  }
-
-  function saveManagement(e) {
+function saveManagement(e) {
     e.preventDefault();
     const btn = document.getElementById('btnSaveMgmt');
     const data = {
@@ -188,13 +116,12 @@
     };
 
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-sm"></span> Guardando...';
+    btn.innerHTML = 'Guardando...';
 
     google.script.run
       .withSuccessHandler(res => {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-        lucide.createIcons();
+        btn.innerHTML = 'Guardar Gestión';
 
         if (res.success) {
           gestionesHoy++;
@@ -207,637 +134,278 @@
       })
       .withFailureHandler(err => {
         btn.disabled = false;
-        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
-        lucide.createIcons();
+        btn.innerHTML = 'Guardar Gestión';
         alert("Error de conexión: " + err.message);
       })
       .saveManagement(data);
-  }
+}
 
-  function resetManagement() {
+function resetManagement() {
     activeCase = null;
     document.getElementById('activeCaseCard').style.display = 'none';
     document.getElementById('claimCaseCard').style.display = 'block';
     document.getElementById('managementForm').reset();
-    document.getElementById('aiInput').value = '';
-    document.getElementById('aiOutputContainer').style.display = 'none';
-  }
+}
 
-  function toggleMgmtFields() {
+function toggleMgmtFields() {
     const estado = document.getElementById('mgmtEstado').value;
     const emailGroup = document.getElementById('emailContactGroup');
-    const obsLabel = document.getElementById('mgmtObservacionLabel');
-    const obsTextarea = document.getElementById('mgmtObservacion');
-
     if (estado === 'No contesta') {
       emailGroup.style.display = 'block';
-      obsLabel.textContent = 'Notas del Intento';
-      obsTextarea.placeholder = 'Ej: Se llamó 3 veces, buzón de voz...';
     } else {
       emailGroup.style.display = 'none';
-      obsLabel.textContent = 'Observaciones / Solución';
-      obsTextarea.placeholder = 'Describe brevemente la solución brindada...';
     }
-  }
+}
 
-  function improveText(tipo) {
-    const prompt = document.getElementById('aiInput').value.trim();
-    if (!prompt) {
-      alert("Por favor ingresa algunas notas para mejorar.");
-      return;
+function refreshDashboard() {
+  google.script.run.withSuccessHandler(data => {
+    processAndRenderData(data);
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('sync-status').innerText = 'Sincronizado: ' + new Date().toLocaleTimeString();
+  }).getPQRSFData();
+
+  google.script.run.withSuccessHandler(turnos => {
+    renderTurnos(turnos);
+  }).getTurnosStatus();
+}
+
+function processAndRenderData(allData) {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  const managed = allData.filter(d => d.isManaged);
+  const pending = allData.filter(d => !d.isManaged);
+  const gestionesHoy = allData.filter(d => d.isManaged && d.fechaComunicacion === todayStr).length;
+
+  // KPIs
+  let totalDays = 0, managedWithDates = 0, delayedCount = 0;
+  allData.forEach(d => {
+    if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
+      const diff = Math.floor((new Date(d.fechaComunicacionRaw) - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+      totalDays += diff;
+      managedWithDates++;
+    } else if (!d.isManaged && d.recibidoPeopleRaw) {
+      const diff = Math.floor((now - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+      if (diff > 3) delayedCount++;
     }
+  });
 
-    if (!activeCase) {
-      alert("Debes tener un caso activo para generar una respuesta.");
-      return;
-    }
+  const avgTime = managedWithDates > 0 ? (totalDays / managedWithDates).toFixed(1) : 0;
+  const total = allData.length;
+  const managedPerc = total > 0 ? ((managed.length / total) * 100).toFixed(1) : 0;
+  const pendingPerc = total > 0 ? ((pending.length / total) * 100).toFixed(1) : 0;
 
-    // Inject advisor name into metadata for AI context
-    const aiMetadata = { ...activeCase, asesorActual: currentUser.nombre };
+  document.getElementById('kpi-today').innerText = gestionesHoy;
+  document.getElementById('kpi-avg-time').innerText = avgTime + 'd';
+  document.getElementById('kpi-managed').innerText = managed.length;
+  document.getElementById('kpi-managed-perc').innerText = managedPerc + '% del total';
+  document.getElementById('kpi-pending').innerText = pending.length;
+  document.getElementById('kpi-pending-perc').innerText = pendingPerc + '% del total';
+  document.getElementById('kpi-delayed').innerText = delayedCount;
 
-    const outputContainer = document.getElementById('aiOutputContainer');
-    const outputBox = document.getElementById('aiOutput');
+  // Charts
+  const stats = {
+    canales: countBy(allData, 'canal'),
+    estados: countBy(allData, 'estado')
+  };
+  renderCharts(stats);
 
-    outputContainer.style.display = 'block';
-    outputBox.innerHTML = '<span class="spinner-sm" style="border-top-color:var(--primary)"></span> Procesando con IA...';
+  // Radiography
+  renderRadiography(allData);
 
-    google.script.run
-      .withSuccessHandler(res => {
-        if (res.success) {
-          outputBox.textContent = res.text;
-        } else {
-          outputBox.textContent = "Error: " + res.message;
-        }
-      })
-      .withFailureHandler(err => {
-        outputBox.textContent = "Error de servidor: " + err.message;
-      })
-      .generarRespuestaIA(prompt, tipo, aiMetadata);
-  }
+  // Insights (Simplified)
+  const insights = [];
+  if (delayedCount > 5) insights.push({ type: 'warning', text: '⚠️ Existen ' + delayedCount + ' casos con más de 3 días de atraso.' });
+  if (pending.length > 20) insights.push({ type: 'info', text: 'ℹ️ El backlog de pendientes supera los 20 casos.' });
+  renderInsights(insights);
+}
 
-  function copyToClipboard() {
-    const text = document.getElementById('aiOutput').textContent;
-    navigator.clipboard.writeText(text).then(() => {
-      alert("Copiado al portapapeles");
-    });
-  }
+function countBy(arr, key) {
+  return arr.reduce((acc, obj) => {
+    const val = obj[key] || 'Sin definir';
+    acc[val] = (acc[val] || 0) + 1;
+    return acc;
+  }, {});
+}
 
-  function fetchData() {
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(data => {
-        allData = data;
-        filteredData = [...allData];
-        initializeFilters();
-        updateDashboard();
-        toggleLoader(false);
-      })
-      .withFailureHandler(err => {
-        alert("Error al cargar datos: " + err.message);
-        toggleLoader(false);
-      })
-      .getPQRSFData();
-  }
+function renderRadiography(allData) {
+  const tbody = document.getElementById('radiography-body');
+  const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))];
+  const now = new Date();
 
-  function toggleLoader(show) {
-    document.getElementById('loader').style.display = show ? 'flex' : 'none';
-  }
-
-  function initializeFilters() {
-    const months = [...new Set(allData.map(d => {
-      if(!d.fechaCofrem) return null;
-      const date = new Date(d.fechaCofrem);
-      return date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
-    }).filter(Boolean))].sort();
-
-    const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
-    const channels = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
-    const statuses = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
-
-    populateSelect('filterMonth', months);
-    populateSelect('filterCompany', companies);
-    populateSelect('filterChannel', channels);
-    populateSelect('filterStatus', statuses);
-  }
-
-  function populateSelect(id, values) {
-    const select = document.getElementById(id);
-    const currentValue = select.value;
-    select.innerHTML = `<option value="">Todos</option>`;
-    values.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v;
-      opt.textContent = v.charAt(0).toUpperCase() + v.slice(1);
-      select.appendChild(opt);
-    });
-    select.value = currentValue;
-  }
-
-  function applyFilters() {
-    const month = document.getElementById('filterMonth').value;
-    const company = document.getElementById('filterCompany').value;
-    const channel = document.getElementById('filterChannel').value;
-    const status = document.getElementById('filterStatus').value;
-    const isManaged = document.getElementById('filterIsManaged').value;
-
-    const peopleStart = document.getElementById('filterDatePeopleStart').value;
-    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
-
-    filteredData = allData.filter(d => {
-      const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
-
-      let peopleMatch = true;
-      if (d.recibidoPeople) {
-        if (peopleStart && d.recibidoPeople < peopleStart) peopleMatch = false;
-        if (peopleEnd && d.recibidoPeople > peopleEnd) peopleMatch = false;
-      } else if (peopleStart || peopleEnd) {
-        peopleMatch = false;
-      }
-
-      return (!month || dMonth === month) &&
-             peopleMatch &&
-             (!company || d.empresa === company) &&
-             (!channel || d.canal === channel) &&
-             (!status || d.estado === status) &&
-             (!isManaged || String(d.isManaged) === isManaged);
-    });
-
-    currentPage = 1;
-    updateDashboard();
-  }
-
-  function updateDashboard() {
-    renderKPIs();
-    renderCharts();
-    renderTable();
-    generateInsights();
-    renderRadiography();
-  }
-
-  function renderKPIs() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const gestionesHoy = filteredData.filter(d => d.isManaged && d.fechaComunicacion === todayStr).length;
-
-    const total = filteredData.length;
-    const managed = filteredData.filter(d => d.isManaged).length;
-    const pending = total - managed;
-
-    // Calculo de tiempo promedio y atrasos
-    let totalDays = 0;
-    let managedWithDates = 0;
-    let delayedCount = 0;
-    const now = new Date();
-
-    filteredData.forEach(d => {
-      if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
-        const dateCom = new Date(d.fechaComunicacionRaw);
-        const dateRec = new Date(d.recibidoPeopleRaw);
-        const diff = Math.floor((dateCom - dateRec) / (1000 * 60 * 60 * 24));
-        totalDays += diff;
-        managedWithDates++;
-      } else if (!d.isManaged && d.recibidoPeopleRaw) {
-        const dateRec = new Date(d.recibidoPeopleRaw);
-        const diff = Math.floor((now - dateRec) / (1000 * 60 * 60 * 24));
-        if (diff > 3) delayedCount++;
+  const stats = advisors.map(name => {
+    const agentCases = allData.filter(d => d.asesor === name);
+    const p = agentCases.filter(d => !d.isManaged).length;
+    let del = 0, tDays = 0, mCount = 0;
+    agentCases.forEach(d => {
+      if (!d.isManaged && d.recibidoPeopleRaw) {
+        if (Math.floor((now - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24)) > 3) del++;
+      } else if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
+        tDays += Math.floor((new Date(d.fechaComunicacionRaw) - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+        mCount++;
       }
     });
+    return { name, p, del, avg: mCount > 0 ? (tDays / mCount).toFixed(1) : 0 };
+  }).sort((a, b) => b.p - a.p);
 
-    const avgTime = managedWithDates > 0 ? (totalDays / managedWithDates).toFixed(1) : 0;
+  tbody.innerHTML = stats.map(s => `
+    <tr>
+      <td style="font-weight: 600;">${s.name}</td>
+      <td>${s.p}</td>
+      <td><span class="badge ${s.del > 0 ? 'badge-error' : ''}">${s.del}</span></td>
+      <td>${s.avg}d</td>
+    </tr>
+  `).join('');
+}
 
-    document.getElementById('kpiToday').textContent = gestionesHoy;
-    document.getElementById('kpiAvgTime').textContent = avgTime + "d";
-    document.getElementById('kpiManaged').textContent = managed;
-    document.getElementById('kpiPending').textContent = pending;
-    document.getElementById('kpiDelayed').textContent = delayedCount;
-
-    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
-    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
-
-    document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
-    document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
+function renderTrend(id, trend) {
+  const el = document.getElementById(id);
+  const val = parseFloat(trend);
+  if (val > 0) {
+    el.innerHTML = `<span class="trend-up">↑ ${val}%</span> vs ayer`;
+  } else if (val < 0) {
+    el.innerHTML = `<span class="trend-down">↓ ${Math.abs(val)}%</span> vs ayer`;
+  } else {
+    el.innerHTML = `<span style="color: var(--text-muted)">--% vs ayer</span>`;
   }
+}
 
-  function renderCharts() {
-    // 1. Status Chart
-    const statusCounts = countBy(filteredData, 'estado');
-    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#000000', '#ef4444', '#f59e0b', '#6b7280'], 'Estados');
+function renderInsights(insights) {
+  const area = document.getElementById('insights-area');
+  area.innerHTML = insights.map(i => `
+    <div class="insight-pill insight-${i.type} fade-in">
+      ${i.text}
+    </div>
+  `).join('');
+}
 
-    // 2. Channel Chart
-    const channelCounts = countBy(filteredData, 'canal');
-    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#3b82f6', '#b7d400'], 'Canales');
+function renderRanking(ranking) {
+  const body = document.getElementById('ranking-body');
+  body.innerHTML = ranking.map(a => `
+    <tr>
+      <td style="font-weight: 600;">${a.nombre}</td>
+      <td>${a.radicados}</td>
+      <td>${a.errores}</td>
+      <td><span class="badge ${a.errorRate > 5 ? 'badge-error' : 'badge-success'}">${a.errorRate}%</span></td>
+      <td><span class="badge badge-info">En línea</span></td>
+    </tr>
+  `).join('');
+}
 
-    // 3. Managed vs Pending
-    const managedCounts = {
-      'Gestionados': filteredData.filter(d => d.isManaged).length,
-      'Por Comunicar': filteredData.filter(d => !d.isManaged).length
-    };
-    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#10b981', '#ef4444'], 'Gestión');
+function renderWorst(worst) {
+  const list = document.getElementById('worst-performers-list');
+  list.innerHTML = worst.map(a => `
+    <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 10px; min-width: 150px;">
+      <div style="font-size: 0.75rem; color: var(--text-muted);">${a.nombre}</div>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--error);">${a.errorRate}% Error</div>
+    </div>
+  `).join('');
+}
 
-    // 4. Effectiveness
-    const effCounts = countBy(filteredData, 'efectividad');
-    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#f3f4f6'], 'Casos');
+function renderCharts(stats) {
+  const colors = ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'];
 
-    // 5. Trend (Last 7 Days Response Time)
-    const trendData = getResponseTimeTrend(filteredData);
-    updateChart('chartTrend', 'line', trendData.labels, trendData.values, ['#3b3561'], 'Días de Respuesta');
+  updateChart('chart-canales', 'doughnut', stats.canales, colors);
+  updateChart('chart-estados', 'pie', stats.estados, colors);
+}
 
-    // 6. Volume Chart (By Management Date)
-    const volumeData = getManagementVolume(filteredData);
-    updateChart('chartVolume', 'bar', volumeData.labels, volumeData.values, ['#b7d400'], 'Casos Gestionados');
-  }
+function updateChart(id, type, dataObj, colors) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
 
-  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
-    if (charts[id]) charts[id].destroy();
+  if (charts[id]) charts[id].destroy();
 
-    const ctx = document.getElementById(id).getContext('2d');
-    charts[id] = new Chart(ctx, {
-      type: type,
-      data: {
-        labels: labels,
-        datasets: [{
-          label: datasetLabel,
-          data: data,
-          backgroundColor: colors,
-          borderColor: type === 'line' ? colors[0] : '#ffffff',
-          tension: 0.3,
-          fill: type === 'line' ? 'origin' : false
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: type !== 'bar',
-            position: 'bottom',
-            labels: { boxWidth: 12, font: { size: 10 } }
-          },
-          datalabels: {
-            display: (ctx) => ctx.dataset.data[ctx.dataIndex] > 0,
-            color: (ctx) => type === 'bar' ? '#000000' : '#fff',
-            anchor: (ctx) => type === 'bar' ? 'end' : 'center',
-            align: (ctx) => type === 'bar' ? 'top' : 'center',
-            offset: 4,
-            font: { weight: 'bold', size: 10 },
-            formatter: (value, ctx) => {
-              let sum = 0;
-              let dataArr = ctx.chart.data.datasets[0].data;
-              dataArr.map(data => sum += data);
-              let percentage = (value * 100 / sum).toFixed(1) + "%";
-              return type === 'bar' ? value : percentage;
-            }
-          }
-        },
-        scales: type === 'bar' || type === 'line' ? {
-          y: {
-            beginAtZero: true,
-            grid: { display: false },
-            ticks: { font: { size: 10 } }
-          },
-          x: {
-            grid: { display: false },
-            ticks: {
-              font: { size: 10 },
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
-        } : {}
-      },
-      plugins: [ChartDataLabels]
-    });
-  }
-
-  function countBy(arr, key) {
-    return arr.reduce((acc, obj) => {
-      const val = obj[key] || 'Sin definir';
-      acc[val] = (acc[val] || 0) + 1;
-      return acc;
-    }, {});
-  }
-
-  function getResponseTimeTrend(data) {
-    const last7Days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      last7Days.push(d.toISOString().split('T')[0]);
-    }
-
-    const values = last7Days.map(day => {
-      const dayData = data.filter(d => d.fechaComunicacion === day && d.recibidoPeopleRaw);
-      if (dayData.length === 0) return 0;
-      const totalDiff = dayData.reduce((acc, d) => {
-        const dateCom = new Date(d.fechaComunicacionRaw);
-        const dateRec = new Date(d.recibidoPeopleRaw);
-        return acc + Math.floor((dateCom - dateRec) / (1000 * 60 * 60 * 24));
-      }, 0);
-      return (totalDiff / dayData.length).toFixed(1);
-    });
-
-    return { labels: last7Days, values: values };
-  }
-
-  function getManagementVolume(data) {
-    const volume = data.filter(d => d.isManaged && d.fechaComunicacion).reduce((acc, d) => {
-      acc[d.fechaComunicacion] = (acc[d.fechaComunicacion] || 0) + 1;
-      return acc;
-    }, {});
-
-    const sortedLabels = Object.keys(volume).sort().slice(-10); // Last 10 days with data
-    const values = sortedLabels.map(l => volume[l]);
-
-    return { labels: sortedLabels, values: values };
-  }
-
-  function renderTable() {
-    const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = '';
-
-    // Calculate pagination
-    const totalRows = filteredData.length;
-    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
-    if (currentPage > totalPages) currentPage = totalPages;
-
-    const startIdx = (currentPage - 1) * rowsPerPage;
-    const endIdx = startIdx + rowsPerPage;
-    const displayData = filteredData.slice(startIdx, endIdx);
-
-    displayData.forEach(row => {
-      const tr = document.createElement('tr');
-      const effVal = (row.efectividad || "").toLowerCase().trim();
-      const isEffective = effVal === 'sí' || effVal === 'si';
-
-      tr.innerHTML = `
-        <td><strong>${row.radicado}</strong></td>
-        <td>${row.nombre}</td>
-        <td>${row.empresa}</td>
-        <td><span class="badge ${getStatusBadge(row.estado)}">${row.estado || '---'}</span></td>
-        <td>${row.canal || '---'}</td>
-        <td><span class="badge ${isEffective ? 'badge-success' : 'badge-danger'}">${row.efectividad || 'No'}</span></td>
-      `;
-      tbody.appendChild(tr);
-    });
-
-    // Update pagination info
-    document.getElementById('paginationInfo').textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(endIdx, totalRows)} de ${totalRows} registros.`;
-    document.getElementById('btnPrev').disabled = currentPage === 1;
-    document.getElementById('btnNext').disabled = currentPage === totalPages;
-  }
-
-  function changePage(delta) {
-    currentPage += delta;
-    renderTable();
-  }
-
-  function getStatusBadge(status) {
-    const s = (status || "").toLowerCase();
-    if (s.includes('contactado')) return 'badge-success';
-    if (s.includes('no contesta') || s.includes('corte')) return 'badge-danger';
-    return 'badge-warning';
-  }
-
-  function handleSearch(e) {
-    if (e.key === 'Enter') executeSearch();
-  }
-
-  function executeSearch() {
-    const rad = document.getElementById('smartSearch').value.trim();
-    const resultDiv = document.getElementById('searchResult');
-
-    if (!rad) {
-      resultDiv.innerHTML = 'Ingrese un radicado';
-      return;
-    }
-
-    const found = allData.find(d => d.radicado === rad);
-
-    if (found) {
-      resultDiv.innerHTML = `
-        <div class="search-card-premium">
-          <h4>${found.nombre}</h4>
-          <div class="search-card-grid">
-            <div><span>Radicado:</span> ${found.radicado}</div>
-            <div><span>Asesor:</span> ${found.asesor || 'Sin asignar'}</div>
-            <div><span>Empresa:</span> ${found.empresa}</div>
-            <div><span>Estado:</span> ${found.estado}</div>
-            <div><span>Canal:</span> ${found.canal}</div>
-            <div><span>Efectividad:</span> ${found.efectividad}</div>
-            <div><span>Fecha:</span> ${found.fechaCofrem}</div>
-          </div>
-        </div>
-      `;
-    } else {
-      resultDiv.innerHTML = '<span class="text-red">Radicado no encontrado</span>';
-    }
-  }
-
-  function renderRadiography() {
-    const tbody = document.getElementById('agentRadiographyBody');
-    if (!tbody) return;
-
-    const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))];
-    const now = new Date();
-
-    const stats = advisors.map(name => {
-      const agentCases = allData.filter(d => d.asesor === name);
-      const pending = agentCases.filter(d => !d.isManaged).length;
-
-      let delayed = 0;
-      let totalDays = 0;
-      let managedCount = 0;
-
-      agentCases.forEach(d => {
-        if (!d.isManaged && d.recibidoPeopleRaw) {
-          const diff = Math.floor((now - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
-          if (diff > 3) delayed++;
-        } else if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
-          const diff = Math.floor((new Date(d.fechaComunicacionRaw) - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
-          totalDays += diff;
-          managedCount++;
+  charts[id] = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: 'transparent',
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 10, weight: '500' }, padding: 20 }
         }
-      });
-
-      return {
-        name,
-        pending,
-        delayed,
-        avg: managedCount > 0 ? (totalDays / managedCount).toFixed(1) : 0
-      };
-    }).sort((a, b) => b.pending - a.pending);
-
-    if (stats.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" class="text-center">Sin datos</td></tr>';
-      return;
+      }
     }
+  });
+}
 
-    tbody.innerHTML = stats.map(s => `
-      <tr>
-        <td>${s.name}</td>
-        <td>${s.pending}</td>
-        <td><span class="badge ${s.delayed > 0 ? 'badge-danger' : ''}">${s.delayed}</span></td>
-        <td>${s.avg}d</td>
-      </tr>
-    `).join('');
-  }
-
-  function generateInsights() {
-    const total = filteredData.length;
-    if (total === 0) {
-      document.getElementById('autoInsight').textContent = "No hay datos suficientes para generar insights.";
-      return;
-    }
-
-    const unmanaged = filteredData.filter(d => !d.isManaged).length;
-    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
-
-    const channelCounts = countBy(filteredData, 'canal');
-    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
-
-    const statusCounts = countBy(filteredData, 'estado');
-    const topStatus = Object.keys(statusCounts).reduce((a, b) => (statusCounts[a] || 0) > (statusCounts[b] || 0) ? a : b) || 'Ninguno';
-
-    let html = `
-      <div style="display:flex; align-items:center; gap:10px">
-        <i data-lucide="zap"></i>
-        <div>
-          <p>El <strong>${unmanagedPerc}%</strong> de los PQRSF no han sido gestionados.</p>
-          <p>El canal más utilizado es <strong>${topChannel}</strong> con ${channelCounts[topChannel] || 0} casos.</p>
-          <p>El estado predominante es <strong>${topStatus}</strong>.</p>
-        </div>
+function renderTurnos(turnos) {
+  const grid = document.getElementById('turnos-grid-area');
+  grid.innerHTML = turnos.map(t => `
+    <div class="turno-card fade-in">
+      <div class="turno-info">
+        <h4>${t.nombre}</h4>
+        <p>${t.horario}</p>
       </div>
-    `;
-    document.getElementById('autoInsight').innerHTML = html;
-    lucide.createIcons();
-  }
+      <div class="badge" style="background: ${t.color}20; color: ${t.color}; border: 1px solid ${t.color}40;">
+        ${t.status}
+      </div>
+    </div>
+  `).join('');
+}
 
-  function filterTable() {
-    const query = document.getElementById('tableSearch').value.toLowerCase();
-    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+function showSection(section) {
+  ['overview', 'ranking', 'turnos'].forEach(s => {
+    document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+  });
 
-    for (let i = 0; i < rows.length; i++) {
-      const text = rows[i].textContent.toLowerCase();
-      rows[i].style.display = text.includes(query) ? "" : "none";
-    }
-  }
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.innerText.toLowerCase().includes(section === 'overview' ? 'general' : section));
+  });
+}
 
-  function refreshData() {
-    fetchData();
-  }
+function handleSearch(e) {
+  if (e.key === 'Enter') {
+    const val = e.target.value;
+    if (!val) return;
 
-  function exportToCSV() {
-    let csvContent = "data:text/csv;charset=utf-8,";
-    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
+    const area = document.getElementById('search-result-area');
+    area.innerHTML = '<div style="margin-top: 10px; color: var(--text-muted);">Buscando...</div>';
+    area.style.display = 'block';
 
-    filteredData.forEach(row => {
-      let r = [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad];
-      csvContent += r.join(",") + "\r\n";
-    });
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "pqrsf_data.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  function exportToPDF() {
-    window.print();
-  }
-
-  function handleSendReport() {
-    const email = document.getElementById('reportEmail').value.trim();
-    if (!email || !email.includes('@')) {
-      alert("Por favor ingrese un correo válido.");
-      return;
-    }
-
-    const total = filteredData.length;
-    const managed = filteredData.filter(d => d.isManaged).length;
-    const pending = total - managed;
-    const effective = filteredData.filter(d => {
-      const val = (d.efectividad || "").toLowerCase().trim();
-      return val === 'sí' || val === 'si';
-    }).length;
-
-    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
-    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
-    const effectivenessPerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
-
-    const reportData = {
-      total,
-      managed,
-      managedPerc,
-      pending,
-      pendingPerc,
-      effectivenessPerc,
-      channels: countBy(filteredData, 'canal'),
-      status: countBy(filteredData, 'estado')
-    };
-
-    const today = new Date().toLocaleDateString('es-ES');
-    const peopleStart = document.getElementById('filterDatePeopleStart').value;
-    const peopleEnd = document.getElementById('filterDatePeopleEnd').value;
-
-    let reportDate = today;
-    if (peopleStart && peopleEnd) {
-      reportDate = `${peopleStart} a ${peopleEnd}`;
-    } else if (peopleStart || peopleEnd) {
-      reportDate = peopleStart || peopleEnd;
-    }
-
-    toggleLoader(true);
-    google.script.run
-      .withSuccessHandler(() => {
-        toggleLoader(false);
-        alert("Reporte enviado con éxito.");
-      })
-      .withFailureHandler(err => {
-        toggleLoader(false);
-        alert("Error al enviar reporte: " + err.message);
-      })
-      .sendEmailReport(email, reportData, reportDate);
-  }
-
-  function sortTable(n) {
-    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
-    const key = columns[n];
-
-    // Update sort state
-    if (currentSort.column === key) {
-      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-    } else {
-      currentSort.column = key;
-      currentSort.direction = 'asc';
-    }
-
-    // Sort data
-    filteredData.sort((a, b) => {
-      let valA = a[key] || "";
-      let valB = b[key] || "";
-
-      if (typeof valA === 'string') valA = valA.toLowerCase();
-      if (typeof valB === 'string') valB = valB.toLowerCase();
-
-      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-      return 0;
-    });
-
-    // Update UI headers
-    const headers = document.querySelectorAll('th i');
-    headers.forEach((icon, idx) => {
-      if (idx === n) {
-        icon.setAttribute('data-lucide', currentSort.direction === 'asc' ? 'chevron-up' : 'chevron-down');
+    google.script.run.withSuccessHandler(res => {
+      if (res) {
+        area.innerHTML = `
+          <div class="ficha-card fade-in">
+            <div style="grid-column: 1 / -1; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <span class="badge badge-info">${res.type}</span>
+              <span style="color: var(--text-muted); cursor: pointer;" onclick="closeSearch()">✕</span>
+            </div>
+            ${Object.entries(res.data).map(([k, v]) => `
+              <div class="ficha-item">
+                <label>${k}</label>
+                <span>${v}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
       } else {
-        icon.setAttribute('data-lucide', 'chevrons-up-down');
+        area.innerHTML = '<div style="margin-top: 10px; color: var(--error);">No se encontró información.</div>';
       }
-    });
-    lucide.createIcons();
-
-    currentPage = 1;
-    renderTable();
+    }).searchGlobal(val);
   }
+}
+
+function closeSearch() {
+  const area = document.getElementById('search-result-area');
+  area.style.display = 'none';
+  document.getElementById('global-search-input').value = '';
+}
+
+function logout() {
+  localStorage.removeItem('admin_session');
+  clearInterval(dashboardInterval);
+  location.reload();
+}
 </script>
