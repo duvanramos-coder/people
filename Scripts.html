@@ -854,7 +854,8 @@ Línea gratuita nacional: 01 8000 111 879`
           canal:        found.canal,
           efectividad:  found.efectividad,
           otraSolucion: found.requiereOtraSolucion,
-          seEncontro:   found.seEncontroPqrs
+          seEncontro:   found.seEncontroPqrs,
+          observacionManual: found.observacionManual
         });
         return;
       }
@@ -877,65 +878,85 @@ Línea gratuita nacional: 01 8000 111 879`
     const body  = document.getElementById('adminEditModalBody');
     modal.style.display = 'flex';
     body.innerHTML = `
-      <div class="case-info-grid-premium" style="margin-top:0;">
-        <div class="info-tile">
-          <label>USUARIO</label>
+      <div class="premium-modal-header-info">
+        <div class="info-pill">
+          <span class="pill-label">RADICADO</span>
+          <span class="pill-value">${data.radicado}</span>
+        </div>
+      </div>
+
+      <div class="case-info-card-premium">
+        <div class="info-item">
+          <label>Usuario</label>
           <p>${data.nombre}</p>
         </div>
-        <div class="info-tile">
-          <label>ASESOR ORIGINAL</label>
+        <div class="info-item">
+          <label>Asesor Original</label>
           <p>${data.asesor || 'Sin asignar'}</p>
         </div>
       </div>
-      <div class="input-row-grid mt-1" style="grid-template-columns:repeat(2,1fr);">
-        <div class="form-group">
-          <label>Estado de Gestión</label>
-          <select id="editEstado" class="premium-select" style="padding-left:1rem;">
-            <option value="Contactado"          ${data.estado === 'Contactado'          ? 'selected' : ''}>Contactado</option>
-            <option value="No contesta"         ${data.estado === 'No contesta'         ? 'selected' : ''}>No contesta</option>
-            <option value="Corta llamada"       ${data.estado === 'Corta llamada'       ? 'selected' : ''}>Corta llamada</option>
-            <option value="Solucion Incorrecta" ${data.estado === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
-          </select>
+
+      <div class="form-grid-premium">
+        <div class="form-group-premium">
+          <label class="premium-label">ESTADO DE GESTIÓN</label>
+          <div class="premium-select-wrapper">
+            <select id="editEstado" class="premium-select-custom">
+              <option value="Contactado"          ${data.estado === 'Contactado'          ? 'selected' : ''}>Contactado</option>
+              <option value="No contesta"         ${data.estado === 'No contesta'         ? 'selected' : ''}>No contesta</option>
+              <option value="Corta llamada"       ${data.estado === 'Corta llamada'       ? 'selected' : ''}>Corta llamada</option>
+              <option value="Solucion Incorrecta" ${data.estado === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>Canal</label>
-          <select id="editCanal" class="premium-select" style="padding-left:1rem;">
-            <option value="Llamada"             ${data.canal === 'Llamada'             ? 'selected' : ''}>Llamada</option>
-            <option value="Correo"              ${data.canal === 'Correo'              ? 'selected' : ''}>Correo</option>
-            <option value="Web"                 ${data.canal === 'Web'                 ? 'selected' : ''}>Web</option>
-            <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
-            <option value="Por gestionar"       ${data.canal === 'Por gestionar'       ? 'selected' : ''}>Por gestionar</option>
-          </select>
+        <div class="form-group-premium">
+          <label class="premium-label">CANAL</label>
+          <div class="premium-select-wrapper">
+            <select id="editCanal" class="premium-select-custom">
+              <option value="Llamada"             ${data.canal === 'Llamada'             ? 'selected' : ''}>Llamada</option>
+              <option value="Correo"              ${data.canal === 'Correo'              ? 'selected' : ''}>Correo</option>
+              <option value="Web"                 ${data.canal === 'Web'                 ? 'selected' : ''}>Web</option>
+              <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
+              <option value="Por gestionar"       ${data.canal === 'Por gestionar'       ? 'selected' : ''}>Por gestionar</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>¿Fue efectivo?</label>
-          <select id="editEfectividad" class="premium-select" style="padding-left:1rem;">
-            <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
-            <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
-          </select>
+        <div class="form-group-premium">
+          <label class="premium-label">¿FUE EFECTIVO?</label>
+          <div class="premium-select-wrapper">
+            <select id="editEfectividad" class="premium-select-custom">
+              <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
+              <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>¿Requiere otra solución?</label>
-          <select id="editOtraSolucion" class="premium-select" style="padding-left:1rem;">
-            <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
-            <option value="No" ${data.otraSolucion === 'No' ? 'selected' : ''}>No</option>
-          </select>
+        <div class="form-group-premium">
+          <label class="premium-label">¿REQUIERE OTRA SOLUCIÓN?</label>
+          <div class="premium-select-wrapper">
+            <select id="editOtraSolucion" class="premium-select-custom">
+              <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
+              <option value="No" ${data.otraSolucion === 'No' ? 'selected' : ''}>No</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label>¿Se encontró PQRS?</label>
-          <select id="editSeEncontro" class="premium-select" style="padding-left:1rem;">
-            <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
-            <option value="NO" ${data.seEncontro && data.seEncontro.toUpperCase() === 'NO' ? 'selected' : ''}>No</option>
-          </select>
+        <div class="form-group-premium" style="grid-column: span 2;">
+          <label class="premium-label">¿SE ENCONTRÓ PQRS?</label>
+          <div class="premium-select-wrapper">
+            <select id="editSeEncontro" class="premium-select-custom">
+              <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
+              <option value="NO" ${data.seEncontro && data.seEncontro.toUpperCase() === 'NO' ? 'selected' : ''}>No</option>
+            </select>
+          </div>
         </div>
       </div>
-      <div class="form-group mt-1">
-        <label>Observaciones (Opcional)</label>
-        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
+
+      <div class="form-group-premium mt-3">
+        <label class="premium-label">OBSERVACIONES (OPCIONAL)</label>
+        <textarea id="editObservacion" rows="3" class="premium-textarea-custom" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
       </div>
-      <div class="form-footer-actions mt-1">
-        <button class="btn-save-premium" onclick="guardarEdicionAdmin(${data.rowId})" style="width:100%;justify-content:center;">
-          <i data-lucide="refresh-cw"></i> ACTUALIZAR COMUNICACIÓN
+
+      <div class="modal-footer-premium">
+        <button class="btn-update-premium" onclick="guardarEdicionAdmin(${data.rowId})">
+          <i data-lucide="refresh-cw"></i> <span>ACTUALIZAR COMUNICACIÓN</span>
         </button>
       </div>
     `;
