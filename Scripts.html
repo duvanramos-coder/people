@@ -633,7 +633,6 @@ Línea gratuita nacional: 01 8000 111 879`
     }
   }
 
-
   function startOnlineAgentsPolling() {
     if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
     updateOnlineAgents();
@@ -898,7 +897,7 @@ Línea gratuita nacional: 01 8000 111 879`
 
       <div class="form-grid-premium">
         <div class="form-group-premium">
-          <label class="premium-label">ESTADO DE GESTIÓN</label>
+          <label class="premium-label-small">ESTADO DE GESTIÓN</label>
           <div class="premium-select-wrapper">
             <select id="editEstado" class="premium-select-custom">
               <option value="Contactado"          ${data.estado === 'Contactado'          ? 'selected' : ''}>Contactado</option>
@@ -909,7 +908,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium">
-          <label class="premium-label">CANAL</label>
+          <label class="premium-label-small">CANAL</label>
           <div class="premium-select-wrapper">
             <select id="editCanal" class="premium-select-custom">
               <option value="Llamada"             ${data.canal === 'Llamada'             ? 'selected' : ''}>Llamada</option>
@@ -921,7 +920,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium">
-          <label class="premium-label">¿FUE EFECTIVO?</label>
+          <label class="premium-label-small">¿FUE EFECTIVO?</label>
           <div class="premium-select-wrapper">
             <select id="editEfectividad" class="premium-select-custom">
               <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
@@ -930,7 +929,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium">
-          <label class="premium-label">¿REQUIERE OTRA SOLUCIÓN?</label>
+          <label class="premium-label-small">¿REQUIERE OTRA SOLUCIÓN?</label>
           <div class="premium-select-wrapper">
             <select id="editOtraSolucion" class="premium-select-custom">
               <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
@@ -939,7 +938,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium" style="grid-column: span 2;">
-          <label class="premium-label">¿SE ENCONTRÓ PQRS?</label>
+          <label class="premium-label-small">¿SE ENCONTRÓ PQRS?</label>
           <div class="premium-select-wrapper">
             <select id="editSeEncontro" class="premium-select-custom">
               <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
@@ -949,9 +948,9 @@ Línea gratuita nacional: 01 8000 111 879`
         </div>
       </div>
 
-      <div class="form-group-premium mt-3">
-        <label class="premium-label">OBSERVACIONES (OPCIONAL)</label>
-        <textarea id="editObservacion" rows="3" class="premium-textarea-custom" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
+      <div class="form-group-premium">
+        <label class="premium-label-small">OBSERVACIONES (OPCIONAL)</label>
+        <textarea id="editObservacion" rows="4" class="premium-textarea-custom" placeholder="Escriba aquí los detalles adicionales de la comunicación...">${data.observacionManual || ""}</textarea>
       </div>
 
       <div class="modal-footer-premium">
@@ -1180,7 +1179,11 @@ Línea gratuita nacional: 01 8000 111 879`
   }
 
   function refreshData() {
-    fetchData();
+    if (currentUser && currentUser.role === 'admin' && typeof refreshAdminData === 'function') {
+      refreshAdminData();
+    } else {
+      fetchData();
+    }
   }
 
   function exportToCSV() {
@@ -1217,11 +1220,7 @@ Línea gratuita nacional: 01 8000 111 879`
       return 0;
     });
     currentPage = 1;
-    if (currentUser && currentUser.role === 'admin' && typeof renderAdminTable === 'function') {
-      renderAdminTable();
-    } else {
-      renderTable();
-    }
+    renderTable();
   }
 
   function renderDailyStats() {

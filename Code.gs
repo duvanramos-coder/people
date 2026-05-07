@@ -218,7 +218,7 @@ function getPQRSFData() {
     const data = sheet.getDataRange().getValues();
     if (data.length <= 1) return [];
 
-    const timeZone = "America/Bogota";
+    const timeZone = Session.getScriptTimeZone();
 
     return data.slice(1).map((row, i) => {
       const formatDate = v => (v instanceof Date)
@@ -325,7 +325,7 @@ function buscarRadicadoAdmin(numero) {
         const row = data[i];
         const fechaVal = row[3];
         const fechaDisplay = (fechaVal instanceof Date)
-          ? Utilities.formatDate(fechaVal, "America/Bogota", "dd/MM/yyyy")
+          ? Utilities.formatDate(fechaVal, "GMT-5", "dd/MM/yyyy")
           : String(fechaVal || "N/A");
 
         return {
@@ -401,7 +401,7 @@ function obtenerAsignadosAsesor(nombreAsesor) {
         nombre:   String(r[5] || ""),
         empresa:  String(r[8] || ""),
         fecha:    r[1] instanceof Date
-                    ? Utilities.formatDate(r[1], "America/Bogota", "dd/MM/yyyy")
+                    ? Utilities.formatDate(r[1], "GMT-5", "dd/MM/yyyy")
                     : String(r[1] || ""),
         fechaRaw: r[1] instanceof Date
                     ? r[1].getTime()
@@ -438,7 +438,7 @@ function obtenerHistorialAsesor(nombreAsesor) {
       .map(r => ({
         radicado:    String(r[2]),
         nombre:      String(r[5]),
-        fecha:       r[1] instanceof Date ? Utilities.formatDate(r[1], "America/Bogota", "dd/MM/yyyy") : String(r[1]),
+        fecha:       r[1] instanceof Date ? Utilities.formatDate(r[1], "GMT-5", "dd/MM/yyyy") : String(r[1]),
         estado:      String(r[9]),
         canal:       String(r[10]),
         efectividad: String(r[11])
@@ -548,7 +548,7 @@ function claimNextCase(agentName) {
     let fechaDisplay = "N/A";
     if (fullRow[3]) {
       fechaDisplay = (fullRow[3] instanceof Date)
-        ? Utilities.formatDate(fullRow[3], "America/Bogota", "dd/MM/yyyy")
+        ? Utilities.formatDate(fullRow[3], "GMT-5", "dd/MM/yyyy")
         : String(fullRow[3]);
     }
 
