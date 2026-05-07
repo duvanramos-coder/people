@@ -1,0 +1,3114 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <?!= include('Styles'); ?>
+  </head>
+  <body>
+    <div id="mainApp">
+      <?!= include('Login'); ?>
+
+      <div id="adminView" class="view-container" style="display: none;">
+        <?!= include('Dashboard'); ?>
+      </div>
+
+      <div id="agentView" class="view-container" style="display: none;">
+        <?!= include('AgentPortal'); ?>
+      </div>
+    </div>
+
+    <?!= include('Scripts'); ?>
+
+    <!-- Modal de Edición Global -->
+    <div id="adminEditModal" class="modal-overlay" style="display: none;">
+      <div class="modal-content glass">
+        <div class="modal-header">
+          <h3><i data-lucide="edit-3"></i> Editar Comunicación</h3>
+          <button class="btn-close-modal" onclick="cerrarModalAdmin()"><i data-lucide="x"></i></button>
+        </div>
+        <div id="adminEditModalBody" class="modal-body">
+          <!-- Contenido dinámico -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Notificación Global -->
+    <div id="notificationModal" class="modal-overlay" style="display: none;">
+      <div class="notification-card glass">
+        <div id="notifIcon" class="notif-icon"></div>
+        <h2 id="notifTitle" class="notif-title">Título</h2>
+        <p id="notifMessage" class="notif-message">Mensaje breve explicativo.</p>
+        <button class="btn-notif-action" onclick="closeNotification()">Continuar</button>
+      </div>
+    </div>
+
+  </body>
+</html><!-- Bootstrap 5 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --brand-indigo: #342D50;
+    --brand-indigo-dark: #1E1B33;
+    --bg-gray: #F4F7FE;
+    --card-shadow: 0px 20px 40px rgba(112, 144, 176, 0.06);
+    --text-navy: #1B2559;
+    --text-gray: #A3AED0;
+    --border-light: #E9EDF7;
+    --success: #B7D400;
+    --danger: #EE5D50;
+    --warning: #FFB800;
+  }
+
+  .admin-dashboard-view {
+    background-color: var(--bg-gray);
+    font-family: 'Inter', sans-serif;
+    color: var(--text-navy);
+    min-height: 100vh;
+    padding: 2rem;
+  }
+
+  /* Typography */
+  h1, h2, h3, .card-title {
+    color: var(--text-navy);
+    font-weight: 700;
+  }
+
+  /* Header */
+  .db-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .db-title h1 {
+    font-size: 1.5rem;
+    margin: 0;
+    letter-spacing: -0.5px;
+  }
+
+  .db-filters {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .filter-select {
+    border: 1px solid var(--border-light);
+    background: #FFFFFF;
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-navy);
+    outline: none;
+    transition: all 0.2s;
+    cursor: pointer;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  .filter-select:focus {
+    border-color: var(--brand-indigo);
+    box-shadow: 0px 4px 12px rgba(67, 24, 255, 0.1);
+  }
+
+  .btn-icon-header {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    border: none;
+    background: #FFFFFF;
+    color: var(--text-navy);
+    transition: all 0.2s;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  .btn-icon-header:hover {
+    background: var(--brand-indigo);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+  }
+
+  /* KPI Cards */
+  .kpi-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 1.25rem;
+    box-shadow: var(--card-shadow);
+    border: none;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .kpi-icon-wrapper {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--bg-gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-indigo);
+    flex-shrink: 0;
+  }
+
+  .kpi-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kpi-label {
+    font-size: 0.75rem;
+    color: var(--text-gray);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .kpi-trend {
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  .trend-up { color: var(--success); }
+  .trend-down { color: var(--danger); }
+
+  /* Grid Layout Extensions */
+  .col-5-custom {
+    flex: 0 0 20%;
+    max-width: 20%;
+  }
+
+  /* Glass Cards */
+  .glass-card {
+    background: #FFFFFF;
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+    border: none;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .card-title i {
+    color: var(--brand-indigo);
+    width: 20px;
+  }
+
+  /* Charts */
+  .chart-container {
+    position: relative;
+    height: 220px;
+  }
+
+  /* Table Style */
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .premium-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 0;
+  }
+
+  .premium-table th {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--text-gray);
+    text-transform: uppercase;
+    padding: 1.25rem 1rem;
+    border-bottom: none; /* No internal borders as requested */
+  }
+
+  .premium-table tbody tr {
+    transition: all 0.2s;
+    border-radius: 12px;
+  }
+
+  .premium-table tbody tr:hover {
+    background: #FAFBFF;
+    transform: translateY(-2px);
+    box-shadow: 0px 4px 12px rgba(112, 144, 176, 0.08);
+  }
+
+  .premium-table td {
+    padding: 1.25rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-bottom: none; /* No internal borders as requested */
+  }
+
+  .premium-table tbody tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+  .premium-table tbody tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+  /* Badges */
+  .badge-premium {
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    display: inline-block;
+  }
+
+  .bg-success-pastel { background: #E2F9F2; color: #05CD99; }
+  .bg-danger-pastel { background: #FDEEEE; color: #EE5D50; }
+  .bg-warning-pastel { background: #FFF9E6; color: #FFB800; }
+  .bg-info-pastel { background: #E9EDF7; color: #4318FF; }
+
+  /* Sidebar */
+  .ai-insights-card {
+    background: linear-gradient(135deg, var(--brand-indigo) 0%, var(--brand-indigo-dark) 100%);
+    color: #FFFFFF;
+  }
+
+  .ai-insights-card .card-title { color: #FFFFFF; }
+  .ai-insights-card .card-title i { color: #FFFFFF; }
+  .ai-insights-card p { font-size: 0.8rem; line-height: 1.6; opacity: 0.9; font-weight: 500; }
+
+  .advisor-item {
+    margin-bottom: 1.25rem;
+  }
+
+  .advisor-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .advisor-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  .advisor-count {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--brand-indigo);
+  }
+
+  .progress-sm {
+    height: 6px;
+    background: var(--bg-gray);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .progress-bar-premium {
+    background: var(--brand-indigo);
+    height: 100%;
+    border-radius: 10px;
+  }
+
+  /* Inputs & Buttons */
+  .premium-input {
+    background: var(--bg-gray);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    width: 100%;
+    margin-bottom: 1rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+
+  .premium-input:focus {
+    background: #FFFFFF;
+    border-color: var(--brand-indigo);
+    box-shadow: 0px 4px 12px rgba(67, 24, 255, 0.05);
+  }
+
+  .btn-premium-action {
+    background: var(--brand-indigo);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 0.8rem 1.5rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    width: 100%;
+    transition: all 0.3s;
+    box-shadow: 0px 10px 20px rgba(67, 24, 255, 0.15);
+  }
+
+  .btn-premium-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0px 10px 20px rgba(67, 24, 255, 0.25);
+    background: var(--brand-indigo-dark);
+  }
+
+  /* Pagination */
+  .db-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+
+  .pagination-info {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-gray);
+  }
+
+  .pagination-btns {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-page {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+    background: #FFFFFF;
+    color: var(--text-navy);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-page:hover:not(:disabled) {
+    background: var(--brand-indigo);
+    color: #FFFFFF;
+    border-color: var(--brand-indigo);
+  }
+
+  .btn-page:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Online Agents */
+  .agent-online-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 12px;
+    background: var(--bg-gray);
+    margin-bottom: 0.5rem;
+  }
+
+  .online-indicator {
+    width: 8px;
+    height: 8px;
+    background: var(--success);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  .agent-online-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  @media (max-width: 1200px) {
+    .col-5-custom {
+      flex: 0 0 33.33%;
+      max-width: 33.33%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .db-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1.5rem;
+    }
+    .db-filters {
+      width: 100%;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+    }
+    .col-5-custom {
+      flex: 0 0 100%;
+      max-width: 100%;
+    }
+  }
+</style>
+
+<div class="admin-dashboard-view fade-in">
+  <!-- Header -->
+  <header class="db-header">
+    <div class="db-title">
+      <h1>Dashboard Admin</h1>
+    </div>
+    <div class="db-filters">
+      <select id="filterMonth" onchange="applyFilters()" class="filter-select">
+        <option value="">Mes</option>
+      </select>
+      <select id="filterCompany" onchange="applyFilters()" class="filter-select">
+        <option value="">Empresa</option>
+      </select>
+      <select id="filterChannel" onchange="applyFilters()" class="filter-select">
+        <option value="">Canal</option>
+      </select>
+      <select id="filterStatus" onchange="applyFilters()" class="filter-select">
+        <option value="">Estado</option>
+      </select>
+      <select id="filterAdvisor" onchange="applyFilters()" class="filter-select">
+        <option value="">Asesor</option>
+      </select>
+      <button class="btn-icon-header" onclick="toggleAdvancedSearch()" title="Búsqueda Avanzada">
+        <i data-lucide="search-code" style="width: 18px;"></i>
+      </button>
+      <button class="btn-icon-header" onclick="refreshData()" title="Actualizar Datos">
+        <i data-lucide="refresh-cw" style="width: 18px;"></i>
+      </button>
+      <button class="btn-icon-header" onclick="handleLogout()" title="Cerrar Sesión">
+        <i data-lucide="power" style="width: 18px;"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Advanced Search Panel -->
+  <div id="advancedSearchPanel" class="glass-card mb-4" style="display: none; border: 1px solid var(--brand-indigo);">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3 class="card-title mb-0"><i data-lucide="search-code"></i> Búsqueda Avanzada</h3>
+      <button class="btn-close-modal" onclick="toggleAdvancedSearch()"><i data-lucide="x" style="width: 18px;"></i></button>
+    </div>
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="premium-label">FECHA DESDE</label>
+        <input type="date" id="searchDateFrom" class="premium-input" onchange="applyFilters()">
+      </div>
+      <div class="col-md-3">
+        <label class="premium-label">FECHA HASTA</label>
+        <input type="date" id="searchDateTo" class="premium-input" onchange="applyFilters()">
+      </div>
+      <div class="col-md-3">
+        <label class="premium-label">NOMBRE USUARIO</label>
+        <input type="text" id="searchName" class="premium-input" placeholder="Nombre..." onkeyup="applyFilters()">
+      </div>
+      <div class="col-md-3">
+        <label class="premium-label">TELÉFONO</label>
+        <input type="text" id="searchPhone" class="premium-input" placeholder="Teléfono..." onkeyup="applyFilters()">
+      </div>
+    </div>
+    <div class="mt-2 text-end">
+      <button class="btn-premium-action" style="width: auto;" onclick="resetAdvancedSearch()">LIMPIAR BÚSQUEDA</button>
+    </div>
+  </div>
+
+  <!-- KPI Row -->
+  <div class="row g-4 mb-4">
+    <div class="col-5-custom">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper"><i data-lucide="calendar"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-label">Gestiones Hoy</span>
+          <h2 class="kpi-value" id="kpiToday">0</h2>
+          <span class="kpi-trend text-gray">En esta jornada</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-5-custom">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper"><i data-lucide="database"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-label">Total PQRSF</span>
+          <h2 class="kpi-value" id="kpiTotal">0</h2>
+          <span class="kpi-trend">Global</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-5-custom">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper"><i data-lucide="check-circle"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-label">Gestionados</span>
+          <h2 class="kpi-value" id="kpiManaged">0</h2>
+          <span class="kpi-trend trend-up" id="kpiManagedPerc">0% total</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-5-custom">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper" style="color: var(--danger);"><i data-lucide="alert-circle"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-label">Pendientes</span>
+          <h2 class="kpi-value" id="kpiPending">0</h2>
+          <span class="kpi-trend trend-down" id="kpiPendingPerc">0% total</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-5-custom">
+      <div class="kpi-card">
+        <div class="kpi-icon-wrapper" style="color: var(--brand-indigo);"><i data-lucide="trending-up"></i></div>
+        <div class="kpi-content">
+          <span class="kpi-label">Efectividad</span>
+          <h2 class="kpi-value" id="kpiEffectiveness">0%</h2>
+          <span class="kpi-trend trend-up">Casos (Sí)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Body -->
+  <div class="row g-4">
+    <!-- Main Content (9 cols) -->
+    <div class="col-lg-9">
+      <div class="row g-4 mb-4">
+        <!-- Status Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="bar-chart-2"></i> Estado de Gestión</h3>
+            <div class="chart-container">
+              <canvas id="chartStatus"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Channel Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="bar-chart-horizontal"></i> Canal de Contacto</h3>
+            <div class="chart-container">
+              <canvas id="chartChannel"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <!-- Managed Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="check-square"></i> Gestión vs Pendientes</h3>
+            <div class="chart-container">
+              <canvas id="chartManaged"></canvas>
+            </div>
+          </div>
+        </div>
+        <!-- Effectiveness Chart -->
+        <div class="col-md-6">
+          <div class="glass-card h-100">
+            <h3 class="card-title"><i data-lucide="trending-up"></i> Efectividad (Sí/No)</h3>
+            <div class="chart-container">
+              <canvas id="chartEffectiveness"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="glass-card">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="card-title mb-0"><i data-lucide="list"></i> Detalle de Registros</h3>
+          <div class="db-filters">
+            <input type="text" id="tableSearch" placeholder="Buscar..." onkeyup="filterTable()" class="filter-select" style="width: 180px;">
+            <button class="btn-icon-header" onclick="exportToCSV()" title="Descargar CSV">
+              <i data-lucide="download" style="width: 18px;"></i>
+            </button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="premium-table">
+            <thead>
+              <tr>
+                <th onclick="sortTable(0)">Radicado</th>
+                <th onclick="sortTable(1)">Nombre</th>
+                <th onclick="sortTable(2)">Empresa</th>
+                <th onclick="sortTable(3)">Estado</th>
+                <th onclick="sortTable(4)">Canal</th>
+                <th onclick="sortTable(5)">Efectividad</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div class="db-pagination">
+          <span class="pagination-info" id="paginationInfo">Mostrando 0 registros</span>
+          <div class="pagination-btns">
+            <button id="btnPrev" onclick="changePage(-1)" class="btn-page"><i data-lucide="chevron-left" style="width: 16px;"></i></button>
+            <button id="btnNext" onclick="changePage(1)" class="btn-page"><i data-lucide="chevron-right" style="width: 16px;"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar (3 cols) -->
+    <div class="col-lg-3">
+      <!-- AI Insights -->
+      <div class="glass-card ai-insights-card">
+        <h3 class="card-title"><i data-lucide="sparkles"></i> Insights IA</h3>
+        <div id="autoInsight">
+          <p>Analizando patrones de gestión para generar sugerencias estratégicas...</p>
+        </div>
+      </div>
+
+      <!-- Action: Search -->
+      <div class="glass-card">
+        <h3 class="card-title"><i data-lucide="search"></i> Buscar Radicado</h3>
+        <input type="text" id="adminSearchInput" placeholder="Ingrese número (Ej: 12345)" class="premium-input">
+        <button class="btn-premium-action" onclick="ejecutarBusquedaAdmin()">BUSCAR Y EDITAR</button>
+      </div>
+
+      <!-- Action: Assign -->
+      <div class="glass-card">
+        <h3 class="card-title"><i data-lucide="user-plus"></i> Asignar Radicado</h3>
+        <select id="assignAgentSelect" class="premium-input"></select>
+        <input type="text" id="assignRadicadoInput" placeholder="Número de radicado..." class="premium-input">
+        <button class="btn-premium-action" onclick="ejecutarAsignacion()">ASIGNAR AHORA</button>
+      </div>
+
+      <!-- Top Advisors -->
+      <div class="glass-card">
+        <h3 class="card-title"><i data-lucide="award"></i> Top Asesores</h3>
+        <div id="rankingContainer"></div>
+      </div>
+
+      <!-- Online Status -->
+      <div class="glass-card">
+        <h3 class="card-title"><i data-lucide="users"></i> Agentes en Línea</h3>
+        <div id="onlineAgentsContainer"></div>
+      </div>
+
+      <!-- Daily Management Stats -->
+      <div class="glass-card">
+        <h3 class="card-title"><i data-lucide="calendar-days"></i> Gestión por Día</h3>
+        <div class="form-group mb-3">
+          <label class="premium-label">SELECCIONAR FECHA</label>
+          <input type="date" id="dailyStatsDate" class="premium-input" onchange="renderDailyStats()">
+        </div>
+        <div id="dailyStatsContent" style="display: none;">
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <div class="p-2 border rounded bg-light text-center">
+                <small class="kpi-label">Llegaron</small>
+                <div class="fw-bold" id="dailyTotal">0</div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="p-2 border rounded bg-light text-center">
+                <small class="kpi-label">Gestionados</small>
+                <div class="fw-bold" id="dailyManaged">0</div>
+              </div>
+            </div>
+            <div class="col-12 mt-2">
+              <div class="p-2 border rounded bg-light text-center">
+                <small class="kpi-label">Efectividad</small>
+                <div class="fw-bold text-success" id="dailyEff">0%</div>
+              </div>
+            </div>
+          </div>
+          <label class="premium-label">RESUMEN POR ASESOR</label>
+          <div class="table-responsive" style="max-height: 200px;">
+            <table class="table table-sm table-borderless" style="font-size: 0.75rem;">
+              <thead class="sticky-top bg-white">
+                <tr>
+                  <th>Asesor</th>
+                  <th class="text-center">Cant.</th>
+                  <th class="text-end">Eff.</th>
+                </tr>
+              </thead>
+              <tbody id="dailyAdvisorTable"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="dailyStatsEmpty" class="text-center text-muted py-3" style="font-size: 0.8rem;">
+          Seleccione una fecha para ver el detalle.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Real-time Notifications Container -->
+<div id="toastContainer" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // OVERRIDE GLOBAL FUNCTIONS FOR CUSTOM UI
+
+  function updateAdminDashboard() {
+    renderAdminKPIs();
+    renderAdminCharts();
+    renderAdminTable();
+    generateAdminInsights();
+    renderAdminRanking();
+  }
+
+  function renderAdminKPIs() {
+    const todayStr = getBogotaDateStr();
+    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
+
+    document.getElementById('kpiToday').textContent = gestionesHoy;
+    document.getElementById('kpiTotal').textContent = total;
+    document.getElementById('kpiManaged').textContent = managed;
+    document.getElementById('kpiPending').textContent = pending;
+
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+
+    document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
+    document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
+    document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
+
+    lucide.createIcons();
+  }
+
+  function renderAdminCharts() {
+    const statusCounts = countBy(filteredData, 'estado');
+    // Colores: Morado (#342D50), Lima (#B7D400), Rojo (#EE5D50)
+    const statusColors = Object.keys(statusCounts).map(key => {
+      const s = key.toLowerCase();
+      if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50';
+      if (s.includes('contactado')) return '#B7D400';
+      return '#342D50';
+    });
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos', true);
+
+    const channelCounts = countBy(filteredData, 'canal');
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#342D50', '#B7D400', '#1E1B33', '#A2BC00'], 'Casos', false);
+
+    const managedCounts = {
+      'Gestionados': filteredData.filter(d => d.isManaged).length,
+      'Pendientes': filteredData.filter(d => !d.isManaged).length
+    };
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#B7D400', '#342D50'], 'Casos', true);
+
+    const effCounts = countBy(filteredData, 'efectividad');
+    const effColors = Object.keys(effCounts).map(key => {
+      const e = key.toLowerCase();
+      if (e.includes('si')) return '#B7D400';
+      if (e.includes('no')) return '#EE5D50';
+      return '#342D50';
+    });
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos', false);
+  }
+
+  function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id);
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const options = {
+      indexAxis: isHorizontal ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false, // For bar charts, legend is usually redundant if bars have labels
+        },
+        tooltip: {
+          backgroundColor: '#1B2559',
+          titleFont: { size: 13, family: 'Inter', weight: '700' },
+          bodyFont: { size: 12, family: 'Inter' },
+          padding: 12,
+          cornerRadius: 12,
+          displayColors: false
+        },
+        datalabels: {
+          anchor: 'end',
+          align: 'end',
+          color: '#1B2559',
+          offset: 4,
+          font: { weight: '800', family: 'Inter', size: 11 },
+          formatter: (value, context) => {
+            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+            const percentage = ((value / total) * 100).toFixed(1) + '%';
+            return `${value} (${percentage})`;
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: isHorizontal, color: '#E9EDF7', drawBorder: false },
+          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } },
+          beginAtZero: true
+        },
+        y: {
+          grid: { display: !isHorizontal, color: '#E9EDF7', drawBorder: false },
+          ticks: { color: '#A3AED0', font: { weight: '700', size: 10 } }
+        }
+      },
+      layout: {
+        padding: {
+          right: isHorizontal ? 60 : 0, // Extra space for datalabels on horizontal bars
+          top: !isHorizontal ? 30 : 0
+        }
+      }
+    };
+
+    charts[id] = new Chart(ctx, {
+      type: 'bar', // Always bar now
+      data: {
+        labels: labels,
+        datasets: [{
+          label: datasetLabel,
+          data: data,
+          backgroundColor: colors,
+          hoverBackgroundColor: colors.map(c => c + 'CC'), // Slightly transparent on hover
+          borderRadius: 10,
+          borderWidth: 0,
+          barThickness: 24,
+          maxBarThickness: 30
+        }]
+      },
+      options: options,
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  function renderAdminTable() {
+    const tbody = document.getElementById('tableBody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    const totalRows = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
+
+    displayData.forEach(row => {
+      const tr = document.createElement('tr');
+      const isEffective = (row.efectividad || "").toLowerCase().includes('si');
+      tr.innerHTML = `
+        <td><span style="color: var(--brand-indigo); font-weight: 800;">${row.radicado}</span></td>
+        <td>${row.nombre}</td>
+        <td>${row.empresa}</td>
+        <td><span class="badge-premium ${getStatusBadgeClass(row.estado)}">${row.estado || '---'}</span></td>
+        <td>${row.canal || '---'}</td>
+        <td><span class="badge-premium ${isEffective ? 'bg-success-pastel' : 'bg-danger-pastel'}">${row.efectividad || 'No'}</span></td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    const pagInfo = document.getElementById('paginationInfo');
+    if(pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros`;
+
+    document.getElementById('btnPrev').disabled = currentPage === 1;
+    document.getElementById('btnNext').disabled = currentPage === totalPages;
+    lucide.createIcons();
+  }
+
+  function getStatusBadgeClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes('contactado')) return 'bg-success-pastel';
+    if (s.includes('no contesta') || s.includes('corta')) return 'bg-danger-pastel';
+    if (s.includes('incorrecta')) return 'bg-warning-pastel';
+    return 'bg-info-pastel';
+  }
+
+  function renderAdminRanking() {
+    const container = document.getElementById('rankingContainer');
+    if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const max = sorted.length > 0 ? sorted[0][1] : 1;
+
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-gray text-center mt-1">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `
+      <div class="advisor-item">
+        <div class="advisor-info">
+          <span class="advisor-name">${name}</span>
+          <span class="advisor-count">${count}</span>
+        </div>
+        <div class="progress-sm">
+          <div class="progress-bar-premium" style="width: ${(count/max)*100}%"></div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function generateAdminInsights() {
+    const insightDiv = document.getElementById('autoInsight');
+    if(!insightDiv) return;
+    const total = filteredData.length;
+    if (total === 0) { insightDiv.innerHTML = "<p>No hay datos suficientes para análisis.</p>"; return; }
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+
+    insightDiv.innerHTML = `
+      <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
+      <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
+      <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
+    `;
+    lucide.createIcons();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+  });
+</script>
+<script>
+  let allData = [];
+  let filteredData = [];
+  let charts = {};
+  let currentPage = 1;
+  const rowsPerPage = 10;
+  let currentSort = { column: null, direction: 'asc' };
+  let currentUser = null;
+  let heartbeatInterval = null;
+  let onlineAgentsPolling = null;
+  let assignedCheckInterval = null;
+  let lastAssignedCount = 0;
+  let historialCargado = false; // ✅ Flag para lazy loading del historial
+  let seenActivityIds = new Set();
+  let notificationPolling = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    checkSession();
+    loadLoginUsers();
+  });
+
+  function checkSession() {
+    const session = localStorage.getItem('pqrsf_session');
+    if (session) {
+      currentUser = JSON.parse(session);
+      showViewByRole(currentUser.role);
+      startHeartbeat();
+    } else {
+      showView('loginView');
+    }
+  }
+
+  function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (!currentUser) return;
+    google.script.run.registrarSesion(currentUser.nombre);
+    heartbeatInterval = setInterval(() => {
+      google.script.run.registrarSesion(currentUser.nombre);
+    }, 5 * 60 * 1000);
+  }
+
+  function loadLoginUsers() {
+    google.script.run
+      .withSuccessHandler(users => {
+        const selectLogin = document.getElementById('agentSelect');
+        if (selectLogin) {
+          selectLogin.innerHTML = '<option value="" disabled selected>Selecciona tu perfil...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectLogin.appendChild(opt);
+          });
+        }
+        const selectAssign = document.getElementById('assignAgentSelect');
+        if (selectAssign) {
+          selectAssign.innerHTML = '<option value="" disabled selected>Seleccionar asesor...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectAssign.appendChild(opt);
+          });
+        }
+      })
+      .obtenerUsuarios();
+  }
+
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('agentSelect').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('btnLogin');
+
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Autenticando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          currentUser = res;
+          localStorage.setItem('pqrsf_session', JSON.stringify(res));
+          showViewByRole(res.role);
+          startHeartbeat();
+        } else {
+          errorDiv.textContent = res.message;
+          errorDiv.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Autenticar y Entrar</span> <i data-lucide="log-in"></i>';
+          lucide.createIcons();
+        }
+      })
+      .withFailureHandler(err => {
+        errorDiv.textContent = "Error de conexión: " + err.message;
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Autenticar y Entrar</span> <i data-lucide="log-in"></i>';
+        lucide.createIcons();
+      })
+      .validarLogin(user, pass);
+  }
+
+  function showViewByRole(role) {
+    if (role === 'admin') {
+      showView('adminView');
+      fetchData();
+      startOnlineAgentsPolling();
+      if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    } else {
+      showView('agentView');
+      fetchAgentInitialData();   // ✅ Ahora llama a getQuickStats, no getPQRSFData
+      startAssignedPolling();
+    }
+  }
+
+  function startAssignedPolling() {
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    let isFirstPoll = true;
+
+    assignedCheckInterval = setInterval(() => {
+      google.script.run
+        .withSuccessHandler(assigned => {
+          const badge = document.getElementById('assignedCountBadge');
+          const currentCount = assigned.length;
+
+          if (currentCount > 0) {
+            badge.textContent = currentCount;
+            badge.style.display = 'inline-block';
+          } else {
+            badge.textContent = '0';
+            badge.style.display = 'none';
+          }
+
+          if (!isFirstPoll && currentCount > lastAssignedCount) {
+            const nuevos = currentCount - lastAssignedCount;
+            showNotification(
+              'success',
+              'Nuevo Radicado Asignado',
+              `Se te ha asignado ${nuevos} nuevo(s) radicado(s). Revisa la pestaña "Asignados".`
+            );
+          }
+
+          lastAssignedCount = currentCount;
+          isFirstPoll = false;
+        })
+        .withFailureHandler(err => {
+          console.error('Error en polling de asignados:', err.message);
+        })
+        .obtenerAsignadosAsesor(currentUser.nombre);
+    }, 60000);
+  }
+
+  function showView(viewId) {
+    document.querySelectorAll('.view-container').forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('active');
+    });
+    const target = document.getElementById(viewId);
+    if (!target) return;
+    target.style.display = 'block';
+    target.classList.add('active');
+    lucide.createIcons();
+  }
+
+  function handleLogout() {
+    if (currentUser) {
+      google.script.run.eliminarSesion(currentUser.nombre);
+    }
+    localStorage.removeItem('pqrsf_session');
+    if (heartbeatInterval)      clearInterval(heartbeatInterval);
+    if (onlineAgentsPolling)    clearInterval(onlineAgentsPolling);
+    if (assignedCheckInterval)  clearInterval(assignedCheckInterval);
+    if (notificationPolling)    clearInterval(notificationPolling);
+    currentUser     = null;
+    activeCase      = null;
+    historialCargado = false; // ✅ Resetear flag al cerrar sesión
+    showView('loginView');
+  }
+
+  function togglePassword() {
+    const passInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      toggleBtn.textContent = 'HIDE';
+    } else {
+      passInput.type = 'password';
+      toggleBtn.textContent = 'SHOW';
+    }
+  }
+
+  function showNotification(type, title, message, btnText = 'Continuar') {
+    const modal   = document.getElementById('notificationModal');
+    const iconDiv = document.getElementById('notifIcon');
+    const titleEl = document.getElementById('notifTitle');
+    const msgEl   = document.getElementById('notifMessage');
+    const btn     = modal.querySelector('.btn-notif-action');
+
+    iconDiv.className = 'notif-icon ' + type;
+
+    if (type === 'success') {
+      iconDiv.innerHTML = '<i data-lucide="check-circle-2" style="width: 45px; height: 45px;"></i>';
+    } else {
+      iconDiv.innerHTML = '<i data-lucide="alert-circle" style="width: 45px; height: 45px;"></i>';
+    }
+
+    titleEl.textContent = title;
+    msgEl.textContent   = message;
+    btn.textContent     = btnText;
+
+    modal.style.display = 'flex';
+    lucide.createIcons();
+  }
+
+  function closeNotification() {
+    document.getElementById('notificationModal').style.display = 'none';
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // PORTAL DE AGENTE
+  // ─────────────────────────────────────────────────────────────────────
+  let activeCase = null;
+
+  /**
+   * ✅ OPTIMIZADA — usa getQuickStats en lugar de cargar toda la hoja
+   */
+  function fetchAgentInitialData() {
+    document.getElementById('agentName').textContent = currentUser.nombre;
+
+    google.script.run
+      .withSuccessHandler(stats => {
+        document.getElementById('pendingToCommunicate').textContent = stats.pendingTotal;
+        document.getElementById('agentCountToday').textContent      = stats.managedToday;
+
+        const badge = document.getElementById('assignedCountBadge');
+        if (stats.myAssigned > 0) {
+          badge.textContent   = stats.myAssigned;
+          badge.style.display = 'inline-block';
+        } else {
+          badge.style.display = 'none';
+        }
+      })
+      .withFailureHandler(err => {
+        console.error('Error en getQuickStats:', err.message);
+      })
+      .getQuickStats(currentUser.nombre);
+  }
+
+  function getBogotaDateStr() {
+    return new Intl.DateTimeFormat('sv-SE', {
+      timeZone: 'America/Bogota',
+      year:  'numeric',
+      month: '2-digit',
+      day:   '2-digit'
+    }).format(new Date());
+  }
+
+  function claimNextCase() {
+    const btn = document.getElementById('btnClaim');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+
+        if (res.success) {
+          activeCase = res.data;
+          showActiveCase();
+        } else {
+          showNotification('error', 'Sin radicados', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado';
+        lucide.createIcons();
+        showNotification('error', 'Error Técnico', err.message);
+      })
+      .claimNextCase(currentUser.nombre);
+  }
+
+  function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display  = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent          = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent        = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent         = activeCase.empresa;
+    document.getElementById('caseFecha').textContent           = activeCase.fecha;
+
+    lucide.createIcons();
+  }
+
+  function saveManagement(e) {
+    e.preventDefault();
+    const btn  = document.getElementById('btnSaveMgmt');
+    const card = document.querySelector('.active-case-view');
+    const data = {
+      rowId:              activeCase.rowId,
+      asesor:             currentUser.nombre,
+      estado:             document.getElementById('mgmtEstado').value,
+      canal:              document.getElementById('mgmtCanal').value,
+      efectividad:        document.getElementById('mgmtEfectividad').value,
+      otraSolucion:       document.getElementById('mgmtOtraSolucion').value,
+      seEncontro:         document.getElementById('mgmtSeEncontro').value,
+      notas:              document.getElementById('mgmtNotas').value,
+      observacionManual:  document.getElementById('mgmtObservacionManual').value,
+      emailContacto:      document.getElementById('mgmtEmailContact').value
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> PROCESANDO...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          if (card) card.classList.add('animate-success');
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+            lucide.createIcons();
+            historialCargado = false; // ✅ Invalidar caché del historial
+            fetchAgentInitialData();
+            resetManagement();
+            showNotification('success', 'Gestión Exitosa', '¡La gestión se ha guardado con éxito!');
+          }, 600);
+        } else {
+          btn.disabled = false;
+          btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+          lucide.createIcons();
+          showNotification('error', 'Error al guardar', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión';
+        lucide.createIcons();
+        showNotification('error', 'Error de Conexión', err.message);
+      })
+      .saveManagement(data);
+  }
+
+  function resetManagement() {
+    activeCase = null;
+    document.getElementById('activeCaseCard').style.display  = 'none';
+    document.getElementById('claimCaseCard').style.display   = 'block';
+    document.getElementById('managementForm').reset();
+    document.getElementById('aiInput').value                 = '';
+    document.getElementById('aiOutputContainer').style.display = 'none';
+  }
+
+  function liberarRadicadoActivo() {
+    if (!activeCase) return;
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showNotification('success', 'Radicado Liberado', 'El radicado ha sido liberado y está disponible para otros asesores.');
+          resetManagement();
+          fetchAgentInitialData();
+        } else {
+          showNotification('error', 'Error al liberar', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        showNotification('error', 'Error de conexión', err.message);
+      })
+      .liberarRadicado(activeCase.rowId);
+  }
+
+  function toggleMgmtFields() {
+    const estado      = document.getElementById('mgmtEstado').value;
+    const efectividad = document.getElementById('mgmtEfectividad').value;
+    const emailGroup  = document.getElementById('emailContactGroup');
+    const notasLabel  = document.getElementById('mgmtNotasLabel');
+    const notasTextarea = document.getElementById('mgmtNotas');
+
+    if (estado === 'No contesta' || estado === 'Corta llamada') {
+      emailGroup.style.display = 'block';
+      notasLabel.textContent   = 'Notas del intento (Automático)';
+      if (efectividad === 'No') {
+        notasTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario; por lo cual, queda sin lograr comunicación exitosa.";
+      } else {
+        notasTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. En razón a lo anterior, se procede a enviar comunicación al correo electrónico registrado para dar continuidad a la gestión.";
+      }
+    } else if (estado === 'Contactado') {
+      emailGroup.style.display = 'none';
+      notasLabel.textContent   = 'Notas del intento (Automático)';
+      notasTextarea.value      = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud.";
+    } else {
+      emailGroup.style.display = 'none';
+      notasLabel.textContent   = 'Notas del intento (Automático)';
+      notasTextarea.value      = "";
+    }
+  }
+
+  function improveText(tipo) {
+    if (!activeCase) {
+      showNotification('error', 'Acción denegada', 'Debes tener un caso activo.');
+      return;
+    }
+
+    const radicado = activeCase.radicado;
+    const agente   = currentUser.nombre;
+    const correo   = document.getElementById('mgmtEmailContact').value || "";
+
+    const outputContainer = document.getElementById('aiOutputContainer');
+    const headerBox       = document.getElementById('headerOutput');
+    const bodyBox         = document.getElementById('bodyOutput');
+
+    outputContainer.style.display = 'block';
+    headerBox.value = "Procesando...";
+    bodyBox.value   = "Procesando...";
+
+    if (tipo === "PQRSF-RES") {
+      const prompt = document.getElementById('aiInput').value.trim();
+      if (!prompt) {
+        showNotification('error', 'Campo Requerido', 'Por favor escribe la solución.');
+        headerBox.value = "";
+        bodyBox.value   = "";
+        return;
+      }
+      const metadata = { nombre: activeCase.nombre };
+      google.script.run
+        .withSuccessHandler(res => {
+          if (res.success) {
+            const final = construirRespuestaFront("PQRSF-RES", { radicado, agente, cuerpoIA: res.text });
+            mostrarResultado(final);
+          } else {
+            headerBox.value = "Error";
+            bodyBox.value   = "Error: " + res.message;
+          }
+        })
+        .withFailureHandler(err => {
+          headerBox.value = "Error";
+          bodyBox.value   = "Error: " + err.message;
+        })
+        .generarRespuestaIA(prompt, metadata);
+    } else if (tipo === "PQRSF-NC") {
+      if (!correo) {
+        showNotification('error', 'Correo Faltante', 'Debes ingresar el correo del usuario.');
+        headerBox.value = "";
+        bodyBox.value   = "";
+        return;
+      }
+      const final = construirRespuestaFront("PQRSF-NC", { radicado, agente, correo });
+      mostrarResultado(final);
+    }
+  }
+
+  function mostrarResultado(data) {
+    document.getElementById('headerOutput').value = data.header;
+    document.getElementById('bodyOutput').value   = data.body;
+    document.getElementById('aiOutputContainer').style.display = 'block';
+  }
+
+  function construirRespuestaFront(tipo, data) {
+    if (tipo === "PQRSF-RES") {
+      return {
+        header: `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`,
+        body: `Cordial saludo,
+Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
+
+En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:
+
+${data.cuerpoIA}
+
+Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio.
+
+Cordialmente,
+
+${data.agente}
+Asesora de Servicio al Cliente
+Teléfono: (608) 681 83 20
+Línea gratuita nacional: 01 8000 111 879`
+      };
+    }
+    if (tipo === "PQRSF-NC") {
+      return {
+        header: `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`,
+        body: `Cordial saludo,
+
+Hemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.
+
+En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.
+
+La información asociada a su solicitud fue enviada al siguiente correo electrónico:
+
+📧 ${data.correo}
+
+Agradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio. En caso de requerir información adicional, puede comunicarse a través de nuestros canales de atención.
+
+Cordialmente,
+
+${data.agente}
+Asesora de Servicio al Cliente
+Teléfono: (608) 681 83 20
+Línea gratuita nacional: 01 8000 111 879`
+      };
+    }
+  }
+
+  function copiarCampo(id) {
+    const el = document.getElementById(id);
+    el.select();
+    document.execCommand('copy');
+    showNotification('success', 'Copiado', 'Contenido copiado al portapapeles.');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // DASHBOARD ADMIN
+  // ─────────────────────────────────────────────────────────────────────
+
+  function fetchData() {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(data => {
+        allData      = data;
+        filteredData = [...allData];
+        initializeFilters();
+        updateDashboard();
+        toggleLoader(false);
+      })
+      .withFailureHandler(err => {
+        showNotification('error', 'Error de Carga', err.message);
+        toggleLoader(false);
+      })
+      .getPQRSFData();
+  }
+
+  function toggleLoader(show) {
+    const loader = document.getElementById('loader');
+    if (loader) loader.style.display = show ? 'flex' : 'none';
+  }
+
+  function initializeFilters() {
+    const months    = [...new Set(allData.map(d => {
+      if (!d.fechaCofrem) return null;
+      const date = new Date(d.fechaCofrem);
+      return date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    }).filter(Boolean))].sort();
+
+    const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
+    const channels  = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
+    const statuses  = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
+    const advisors  = [...new Set(allData.map(d => d.asesor).filter(Boolean))].sort();
+
+    populateSelect('filterMonth',   months,    "Mes (Cofrem)");
+    populateSelect('filterCompany', companies, "Empresa");
+    populateSelect('filterChannel', channels,  "Canal");
+    populateSelect('filterStatus',  statuses,  "Estado");
+    populateSelect('filterAdvisor', advisors,  "Asesor");
+  }
+
+  function populateSelect(id, values, label) {
+    const select       = document.getElementById(id);
+    const currentValue = select.value;
+    select.innerHTML   = `<option value="">Todos los ${label}</option>`;
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value       = v;
+      opt.textContent = v.charAt(0).toUpperCase() + v.slice(1);
+      select.appendChild(opt);
+    });
+    select.value = currentValue;
+  }
+
+  function applyFilters() {
+    const month   = document.getElementById('filterMonth').value;
+    const company = document.getElementById('filterCompany').value;
+    const channel = document.getElementById('filterChannel').value;
+    const status  = document.getElementById('filterStatus').value;
+    const advisor = document.getElementById('filterAdvisor').value;
+    const dateFrom    = document.getElementById('searchDateFrom').value;
+    const dateTo      = document.getElementById('searchDateTo').value;
+    const searchName  = document.getElementById('searchName').value.toLowerCase().trim();
+    const searchPhone = document.getElementById('searchPhone').value.trim();
+
+    filteredData = allData.filter(d => {
+      const dMonth = d.fechaCofrem
+        ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' })
+        : null;
+      const matchMonth   = !month   || dMonth === month;
+      const matchCompany = !company || d.empresa === company;
+      const matchChannel = !channel || d.canal   === channel;
+      const matchStatus  = !status  || d.estado  === status;
+      const matchAdvisor = !advisor || d.asesor  === advisor;
+      let matchAdvanced  = true;
+      if (dateFrom) matchAdvanced = matchAdvanced && (d.fechaCofrem >= dateFrom || d.recibidoPeople >= dateFrom);
+      if (dateTo)   matchAdvanced = matchAdvanced && (d.fechaCofrem <= dateTo   || d.recibidoPeople <= dateTo);
+      if (searchName)  matchAdvanced = matchAdvanced && d.nombre.toLowerCase().includes(searchName);
+      if (searchPhone) matchAdvanced = matchAdvanced && d.telefono.includes(searchPhone);
+      return matchMonth && matchCompany && matchChannel && matchStatus && matchAdvisor && matchAdvanced;
+    });
+
+    currentPage = 1;
+    updateDashboard();
+  }
+
+  function toggleAdvancedSearch() {
+    const panel    = document.getElementById('advancedSearchPanel');
+    const isHidden = panel.style.display === 'none';
+    panel.style.display = isHidden ? 'block' : 'none';
+    lucide.createIcons();
+  }
+
+  function resetAdvancedSearch() {
+    document.getElementById('searchDateFrom').value = '';
+    document.getElementById('searchDateTo').value   = '';
+    document.getElementById('searchName').value     = '';
+    document.getElementById('searchPhone').value    = '';
+    applyFilters();
+  }
+
+  function updateDashboard() {
+    if (currentUser && currentUser.role === 'admin' && typeof updateAdminDashboard === 'function') {
+      updateAdminDashboard();
+    } else {
+      renderKPIs();
+      renderCharts();
+      renderTable();
+      generateInsights();
+      renderRanking();
+    }
+  }
+
+
+  function startOnlineAgentsPolling() {
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    updateOnlineAgents();
+    onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000);
+    if (notificationPolling) clearInterval(notificationPolling);
+    notificationPolling = setInterval(pollActivity, 30 * 1000);
+  }
+
+  function pollActivity() {
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success && res.eventos.length > 0) {
+          res.eventos.forEach(ev => {
+            if (!seenActivityIds.has(ev.id)) {
+              showToast(ev.mensaje);
+              seenActivityIds.add(ev.id);
+              if (seenActivityIds.size > 50) {
+                const firstId = seenActivityIds.values().next().value;
+                seenActivityIds.delete(firstId);
+              }
+            }
+          });
+        }
+      })
+      .obtenerActividadReciente();
+  }
+
+  function showToast(message) {
+    const container = document.getElementById('toastContainer');
+    const toast     = document.createElement('div');
+    toast.className = 'glass-card fade-in';
+    toast.style.cssText = 'padding:12px 20px;border-left:4px solid var(--secondary);pointer-events:auto;min-width:250px;box-shadow:0 10px 30px rgba(0,0,0,0.15);';
+    toast.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;">
+        <i data-lucide="bell" style="width:18px;color:var(--secondary-dark);"></i>
+        <div style="font-size:0.85rem;font-weight:600;">${message}</div>
+      </div>
+    `;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => {
+      toast.style.opacity    = '0';
+      toast.style.transform  = 'translateX(20px)';
+      toast.style.transition = 'all 0.5s';
+      setTimeout(() => toast.remove(), 500);
+    }, 5000);
+  }
+
+  function updateOnlineAgents() {
+    google.script.run
+      .withSuccessHandler(agents => {
+        const container = document.getElementById('onlineAgentsContainer');
+        if (!container) return;
+        if (agents.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center mt-1">No hay agentes en línea</p>';
+          return;
+        }
+        container.innerHTML = agents.map(a => `
+          <div class="rank-item" style="justify-content:space-between;align-items:center;display:flex;width:100%;">
+            <div>
+              <span class="rank-name">${a.nombre}</span>
+              <div style="font-size:0.65rem;color:var(--text-muted);">${a.tiempo}</div>
+            </div>
+            <div style="display:flex;gap:5px;align-items:center;">
+              ${a.enGestion ? '<span class="status-pill warning" style="font-size:0.6rem;padding:2px 6px;">Gestión</span>' : ''}
+              <span class="status-pill green" style="font-size:0.6rem;padding:2px 6px;">Línea</span>
+            </div>
+          </div>
+        `).join('');
+      })
+      .obtenerAgentesConectados();
+  }
+
+  function showAgentSection(section) {
+    document.querySelectorAll('.agent-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    document.getElementById('agent-section-' + section).style.display = section === 'gestion' ? 'grid' : 'block';
+    document.getElementById('nav-' + section).classList.add('active');
+
+    if (section === 'historial') {
+      cargarHistorialAsesor(); // ✅ Lazy loading — solo carga si no está cargado
+    } else if (section === 'asignados') {
+      cargarAsignadosAsesor();
+    }
+    lucide.createIcons();
+  }
+
+  function cargarAsignadosAsesor(silent = false) {
+    const tbody = document.getElementById('agentAssignedBody');
+    const badge = document.getElementById('assignedCountBadge');
+    if (!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Buscando asignados...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(assigned => {
+        if (assigned.length === 0) {
+          if (!silent) tbody.innerHTML = '<tr><td colspan="5" class="text-center">No tienes radicados asignados pendientes.</td></tr>';
+          badge.style.display = 'none';
+          return;
+        }
+        badge.textContent   = assigned.length;
+        badge.style.display = 'inline-block';
+        if (!silent) {
+          tbody.innerHTML = assigned.map(h => `
+            <tr class="fade-in">
+              <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
+              <td style="padding:1rem;">${h.nombre}</td>
+              <td style="padding:1rem;">${h.empresa}</td>
+              <td style="padding:1rem;">${h.fecha}</td>
+              <td style="padding:1rem;">
+                <button class="btn-search-premium" onclick="gestionarAsignado('${h.radicado}')" style="padding:0.4rem 0.8rem;font-size:0.7rem;">
+                  GESTIONAR
+                </button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      })
+      .obtenerAsignadosAsesor(currentUser.nombre);
+  }
+
+  function gestionarAsignado(radicado) {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          activeCase = res.data;
+          showAgentSection('gestion');
+          showActiveCase();
+        } else {
+          showNotification('error', 'Error', res.message);
+        }
+      })
+      .buscarRadicadoAdmin(radicado);
+  }
+
+  /**
+   * ✅ OPTIMIZADA — Lazy loading: solo carga al hacer clic y no recarga si ya hay datos
+   */
+  function cargarHistorialAsesor() {
+    const tbody = document.getElementById('agentHistoryBody');
+
+    if (historialCargado) return; // ✅ Ya cargado, no volver a pedir al servidor
+
+    tbody.innerHTML = '<tr><td colspan="6" class="text-center"><span class="spinner-sm" style="border-top-color:var(--primary)"></span> Cargando historial...</td></tr>';
+
+    google.script.run
+      .withSuccessHandler(history => {
+        historialCargado = true; // ✅ Marcar como cargado
+
+        if (history.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center">No has realizado gestiones aún.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = history.map(h => `
+          <tr class="fade-in">
+            <td style="padding:1rem;"><strong>${h.radicado}</strong></td>
+            <td style="padding:1rem;">${h.nombre}</td>
+            <td style="padding:1rem;">${h.fecha}</td>
+            <td style="padding:1rem;"><span class="status-pill ${getStatusClass(h.estado)}">${h.estado}</span></td>
+            <td style="padding:1rem;">${h.canal}</td>
+            <td style="padding:1rem;"><span class="status-pill ${h.efectividad.toLowerCase() === 'si' ? 'green' : 'red'}">${h.efectividad}</span></td>
+          </tr>
+        `).join('');
+      })
+      .withFailureHandler(err => {
+        tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger">Error al cargar: ${err.message}</td></tr>`;
+      })
+      .obtenerHistorialAsesor(currentUser.nombre);
+  }
+
+  function ejecutarBusquedaAdmin() {
+    const numero = document.getElementById('adminSearchInput').value.trim();
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
+    buscarYMostrarEditor(numero);
+  }
+
+  function ejecutarAsignacion() {
+    const agente   = document.getElementById('assignAgentSelect').value;
+    const radicado = document.getElementById('assignRadicadoInput').value.trim();
+    if (!agente)   { showNotification('error', 'Falta Asesor',   'Seleccione un asesor para asignar.'); return; }
+    if (!radicado) { showNotification('error', 'Falta Radicado', 'Ingrese el número de radicado.');     return; }
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          showNotification('success', 'Asignación Exitosa', res.message);
+          document.getElementById('assignRadicadoInput').value = '';
+          fetchData();
+        } else {
+          showNotification('error', 'Error de Asignación', res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        toggleLoader(false);
+        showNotification('error', 'Error de Conexión', err.message);
+      })
+      .asignarRadicado(radicado, agente);
+  }
+
+  function ejecutarBusquedaAgente() {
+    const numero = document.getElementById('agentSearchInput').value.trim();
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
+    buscarYMostrarEditor(numero);
+  }
+
+  function buscarYMostrarEditor(numero) {
+    if (allData.length > 0) {
+      const found = allData.find(d => String(d.radicado).trim() === String(numero).trim());
+      if (found) {
+        mostrarEditorRadicado({
+          rowId:        found.id,
+          radicado:     found.radicado,
+          nombre:       found.nombre,
+          asesor:       found.asesor,
+          estado:       found.estado,
+          canal:        found.canal,
+          efectividad:  found.efectividad,
+          otraSolucion: found.requiereOtraSolucion,
+          seEncontro:   found.seEncontroPqrs
+        });
+        return;
+      }
+    }
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          mostrarEditorRadicado(res.data);
+        } else {
+          showNotification('error', 'No encontrado', res.message);
+        }
+      })
+      .buscarRadicadoAdmin(numero);
+  }
+
+  function mostrarEditorRadicado(data) {
+    const modal = document.getElementById('adminEditModal');
+    const body  = document.getElementById('adminEditModalBody');
+    modal.style.display = 'flex';
+    body.innerHTML = `
+      <div class="case-info-grid-premium" style="margin-top:0;">
+        <div class="info-tile">
+          <label>USUARIO</label>
+          <p>${data.nombre}</p>
+        </div>
+        <div class="info-tile">
+          <label>ASESOR ORIGINAL</label>
+          <p>${data.asesor || 'Sin asignar'}</p>
+        </div>
+      </div>
+      <div class="input-row-grid mt-1" style="grid-template-columns:repeat(2,1fr);">
+        <div class="form-group">
+          <label>Estado de Gestión</label>
+          <select id="editEstado" class="premium-select" style="padding-left:1rem;">
+            <option value="Contactado"          ${data.estado === 'Contactado'          ? 'selected' : ''}>Contactado</option>
+            <option value="No contesta"         ${data.estado === 'No contesta'         ? 'selected' : ''}>No contesta</option>
+            <option value="Corta llamada"       ${data.estado === 'Corta llamada'       ? 'selected' : ''}>Corta llamada</option>
+            <option value="Solucion Incorrecta" ${data.estado === 'Solucion Incorrecta' ? 'selected' : ''}>Solucion Incorrecta</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Canal</label>
+          <select id="editCanal" class="premium-select" style="padding-left:1rem;">
+            <option value="Llamada"             ${data.canal === 'Llamada'             ? 'selected' : ''}>Llamada</option>
+            <option value="Correo"              ${data.canal === 'Correo'              ? 'selected' : ''}>Correo</option>
+            <option value="Web"                 ${data.canal === 'Web'                 ? 'selected' : ''}>Web</option>
+            <option value="Solución Incorrecta" ${data.canal === 'Solución Incorrecta' ? 'selected' : ''}>Solución Incorrecta</option>
+            <option value="Por gestionar"       ${data.canal === 'Por gestionar'       ? 'selected' : ''}>Por gestionar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Fue efectivo?</label>
+          <select id="editEfectividad" class="premium-select" style="padding-left:1rem;">
+            <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
+            <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Requiere otra solución?</label>
+          <select id="editOtraSolucion" class="premium-select" style="padding-left:1rem;">
+            <option value="Si" ${data.otraSolucion === 'Si' ? 'selected' : ''}>Si</option>
+            <option value="No" ${data.otraSolucion === 'No' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>¿Se encontró PQRS?</label>
+          <select id="editSeEncontro" class="premium-select" style="padding-left:1rem;">
+            <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
+            <option value="NO" ${data.seEncontro && data.seEncontro.toUpperCase() === 'NO' ? 'selected' : ''}>No</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group mt-1">
+        <label>Observaciones (Opcional)</label>
+        <textarea id="editObservacion" rows="3" class="premium-textarea" placeholder="Escriba notas adicionales aquí...">${data.observacionManual || ""}</textarea>
+      </div>
+      <div class="form-footer-actions mt-1">
+        <button class="btn-save-premium" onclick="guardarEdicionAdmin(${data.rowId})" style="width:100%;justify-content:center;">
+          <i data-lucide="refresh-cw"></i> ACTUALIZAR COMUNICACIÓN
+        </button>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function cerrarModalAdmin() {
+    document.getElementById('adminEditModal').style.display = 'none';
+  }
+
+  function guardarEdicionAdmin(rowId) {
+    const data = {
+      rowId:             rowId,
+      estado:            document.getElementById('editEstado').value,
+      canal:             document.getElementById('editCanal').value,
+      efectividad:       document.getElementById('editEfectividad').value,
+      otraSolucion:      document.getElementById('editOtraSolucion').value,
+      seEncontro:        document.getElementById('editSeEncontro').value,
+      observacionManual: document.getElementById('editObservacion').value
+    };
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(res => {
+        toggleLoader(false);
+        if (res.success) {
+          const modal = document.querySelector('.modal-content');
+          if (modal) {
+            modal.classList.add('animate-success');
+            setTimeout(() => {
+              showNotification('success', 'Actualización Exitosa', '¡Información actualizada correctamente!');
+              cerrarModalAdmin();
+              const adminInput = document.getElementById('adminSearchInput');
+              if (adminInput) adminInput.value = '';
+              const agentInput = document.getElementById('agentSearchInput');
+              if (agentInput) agentInput.value = '';
+              if (currentUser.role === 'admin') {
+                fetchData();
+              } else {
+                historialCargado = false; // ✅ Invalidar caché del historial
+                fetchAgentInitialData();
+              }
+            }, 600);
+          }
+        } else {
+          showNotification('error', 'Error de Actualización', res.message);
+        }
+      })
+      .actualizarRadicadoAdmin(data);
+  }
+
+  function renderKPIs() {
+    const todayStr      = getBogotaDateStr();
+    const gestionesHoy  = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+    const total         = filteredData.length;
+    const managed       = filteredData.filter(d => d.isManaged).length;
+    const pending       = total - managed;
+    const effective     = filteredData.filter(d => {
+      const val = (d.efectividad || "").toLowerCase().trim();
+      return val === 'sí' || val === 'si';
+    }).length;
+
+    document.getElementById('kpiToday').textContent   = gestionesHoy;
+    document.getElementById('kpiTotal').textContent   = total;
+    document.getElementById('kpiManaged').textContent = managed;
+    document.getElementById('kpiPending').textContent = pending;
+
+    const managedPerc   = total > 0 ? ((managed   / total) * 100).toFixed(1) : 0;
+    const pendingPerc   = total > 0 ? ((pending   / total) * 100).toFixed(1) : 0;
+    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+
+    document.getElementById('kpiManagedPerc').textContent   = `${managedPerc}% del total`;
+    document.getElementById('kpiPendingPerc').textContent   = `${pendingPerc}% del total`;
+    document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
+  }
+
+  function renderCharts() {
+    const statusCounts  = countBy(filteredData, 'estado');
+    updateChart('chartStatus',       'pie',      Object.keys(statusCounts),  Object.values(statusCounts),  ['#3b3561','#ef4444','#facc15','#64748b'], 'Estado');
+    const channelCounts = countBy(filteredData, 'canal');
+    updateChart('chartChannel',      'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1','#b7d400'], 'Canal');
+    const managedCounts = {
+      'Gestionados': filteredData.filter(d =>  d.isManaged).length,
+      'Pendientes':  filteredData.filter(d => !d.isManaged).length
+    };
+    updateChart('chartManaged',      'pie',      Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e','#ef4444'], 'Gestión');
+    const effCounts = countBy(filteredData, 'efectividad');
+    updateChart('chartEffectiveness','bar',      Object.keys(effCounts),     Object.values(effCounts),     ['#b7d400','#e2e8f0'], 'Efectividad');
+  }
+
+  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    charts[id] = new Chart(ctx, {
+      type: type,
+      data: {
+        labels: labels,
+        datasets: [{
+          label:           datasetLabel,
+          data:            data,
+          backgroundColor: colors,
+          borderColor:     '#ffffff',
+          borderWidth:     2
+        }]
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 600 } } },
+          datalabels: {
+            color: '#1e293b', font: { weight: 'bold', size: 10 },
+            formatter: (value, ctx) => {
+              let sum = 0;
+              ctx.chart.data.datasets[0].data.map(d => sum += d);
+              const percentage = (value * 100 / sum).toFixed(1) + "%";
+              return type === 'bar' ? value : percentage;
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  function countBy(arr, key) {
+    return arr.reduce((acc, obj) => {
+      const val = obj[key] || 'Sin definir';
+      acc[val] = (acc[val] || 0) + 1;
+      return acc;
+    }, {});
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const totalRows  = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIdx    = (currentPage - 1) * rowsPerPage;
+    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
+    displayData.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><strong>${row.radicado}</strong></td>
+        <td>${row.nombre}</td>
+        <td>${row.empresa}</td>
+        <td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td>
+        <td>${row.canal || '---'}</td>
+        <td>${row.efectividad || 'No'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    const pagInfo = document.getElementById('paginationInfo');
+    if (pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros.`;
+  }
+
+  function getStatusClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes('contactado'))                          return 'green';
+    if (s.includes('no contesta') || s.includes('corta')) return 'red';
+    return 'warning';
+  }
+
+  function changePage(delta) {
+    currentPage += delta;
+    if (currentUser && currentUser.role === 'admin' && typeof renderAdminTable === 'function') {
+      renderAdminTable();
+    } else {
+      renderTable();
+    }
+  }
+
+  function renderRanking() {
+    const container = document.getElementById('rankingContainer');
+    if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => {
+      if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1;
+      return acc;
+    }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `
+      <div class="rank-item">
+        <span class="rank-name">${name}</span>
+        <span class="rank-badge">${count} casos</span>
+      </div>
+    `).join('');
+  }
+
+  function generateInsights() {
+    const insightDiv = document.getElementById('autoInsight');
+    if (!insightDiv) return;
+    const total = filteredData.length;
+    if (total === 0) { insightDiv.textContent = "No hay datos"; return; }
+    const unmanaged     = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel    = Object.keys(channelCounts).reduce((a, b) =>
+      (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+    insightDiv.innerHTML = `
+      <div style="display:flex;align-items:center;gap:12px;margin-top:10px;">
+        <i data-lucide="info" style="color:var(--secondary-dark)"></i>
+        <div style="font-size:0.85rem">
+          <p>El <strong>${unmanagedPerc}%</strong> de los radicados están pendientes.</p>
+          <p>Canal principal: <strong>${topChannel}</strong>.</p>
+        </div>
+      </div>
+    `;
+    lucide.createIcons();
+  }
+
+  function filterTable() {
+    const query = document.getElementById('tableSearch').value.toLowerCase();
+    const rows  = document.getElementById('tableBody').getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) {
+      rows[i].style.display = rows[i].textContent.toLowerCase().includes(query) ? "" : "none";
+    }
+  }
+
+  function refreshData() {
+    fetchData();
+  }
+
+  function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
+    filteredData.forEach(row => {
+      csvContent += [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad].join(",") + "\r\n";
+    });
+    const encodedUri = encodeURI(csvContent);
+    const link       = document.createElement("a");
+    link.setAttribute("href",     encodedUri);
+    link.setAttribute("download", "pqrsf_data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function exportToPDF() { window.print(); }
+
+  function sortTable(n) {
+    const columns = ['radicado','nombre','empresa','estado','canal','efectividad'];
+    const key     = columns[n];
+    if (currentSort.column === key) {
+      currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      currentSort.column    = key;
+      currentSort.direction = 'asc';
+    }
+    filteredData.sort((a, b) => {
+      let valA = (a[key] || "").toString().toLowerCase();
+      let valB = (b[key] || "").toString().toLowerCase();
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 :  1;
+      if (valA > valB) return currentSort.direction === 'asc' ?  1 : -1;
+      return 0;
+    });
+    currentPage = 1;
+    if (currentUser && currentUser.role === 'admin' && typeof renderAdminTable === 'function') {
+      renderAdminTable();
+    } else {
+      renderTable();
+    }
+  }
+
+  function renderDailyStats() {
+    const dateInput    = document.getElementById('dailyStatsDate').value;
+    const statsContent = document.getElementById('dailyStatsContent');
+    const statsEmpty   = document.getElementById('dailyStatsEmpty');
+    if (!dateInput) {
+      statsContent.style.display = 'none';
+      statsEmpty.style.display   = 'block';
+      return;
+    }
+    const dayData    = allData.filter(d => d.recibidoPeople === dateInput);
+    const managedDay = dayData.filter(d => d.isManaged);
+    const total      = dayData.length;
+    const managed    = managedDay.length;
+    const effective  = managedDay.filter(d => (d.efectividad || "").toLowerCase().trim().includes('si')).length;
+    const effPerc    = managed > 0 ? ((effective / managed) * 100).toFixed(1) : 0;
+
+    document.getElementById('dailyTotal').textContent   = total;
+    document.getElementById('dailyManaged').textContent = managed;
+    document.getElementById('dailyEff').textContent     = effPerc + '%';
+
+    const advisorStats = managedDay.reduce((acc, d) => {
+      if (!acc[d.asesor]) acc[d.asesor] = { count: 0, effective: 0 };
+      acc[d.asesor].count++;
+      if ((d.efectividad || "").toLowerCase().trim().includes('si')) acc[d.asesor].effective++;
+      return acc;
+    }, {});
+
+    const tbody = document.getElementById('dailyAdvisorTable');
+    tbody.innerHTML = Object.entries(advisorStats).map(([name, stat]) => `
+      <tr>
+        <td>${name}</td>
+        <td class="text-center fw-bold">${stat.count}</td>
+        <td class="text-end text-success">${((stat.effective / stat.count) * 100).toFixed(0)}%</td>
+      </tr>
+    `).join('') || '<tr><td colspan="3" class="text-center py-2">Sin gestiones este día</td></tr>';
+
+    statsContent.style.display = 'block';
+    statsEmpty.style.display   = 'none';
+  }
+</script><style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800&display=swap');
+
+  :root {
+    --primary: #1A1231;
+    --primary-light: #2A1F4D;
+    --secondary: #B5E61D;
+    --secondary-dark: #9AC418;
+    --accent: #6366f1;
+    --bg-main: #f1f5f9;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --white: #ffffff;
+    --border: #e2e8f0;
+    --radius-md: 14px;
+    --radius-lg: 24px;
+    --shadow-premium: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    --error: #ef4444;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3 { font-family: 'Montserrat', sans-serif; font-weight: 800; }
+
+  .fade-in { animation: fadeIn 0.5s ease-out; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* --- Login Redesign --- */
+  .login-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #241D3B;
+    padding: 1.5rem;
+    position: relative;
+  }
+
+  .login-container-premium {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    min-height: 550px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-premium);
+    z-index: 10;
+  }
+
+  .login-left-panel {
+    flex: 1;
+    background: linear-gradient(135deg, #241D3B, #3B2E60);
+    padding: 4rem 3rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: var(--white);
+    overflow: hidden;
+  }
+
+  .logo-box-premium {
+    background: var(--secondary);
+    color: var(--primary);
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 18px;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 20px rgba(181, 230, 29, 0.3);
+  }
+  .logo-box-premium i { width: 32px; height: 32px; }
+
+  .welcome-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, 0.7);
+    margin-bottom: 0.5rem;
+  }
+
+  .brand-title {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: -1px;
+    color: var(--white);
+  }
+
+  .brand-description {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 280px;
+  }
+
+  .decoration-sphere {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #3B2E60, #1A1231);
+    box-shadow: inset -10px -10px 30px rgba(0,0,0,0.5), 10px 10px 30px rgba(0,0,0,0.3);
+  }
+  .sphere-1 { width: 200px; height: 200px; bottom: -50px; left: -50px; }
+  .sphere-2 { width: 120px; height: 120px; top: 100px; right: -40px; opacity: 0.6; }
+  .sphere-3 { width: 80px; height: 80px; bottom: 150px; left: 80px; opacity: 0.4; }
+
+  .login-right-panel {
+    flex: 1;
+    padding: 4rem 3.5rem;
+    display: flex;
+    align-items: center;
+  }
+  .login-form-box { width: 100%; }
+  .form-title { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; }
+  .form-subtitle { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2.5rem; }
+  .form-group-premium { margin-bottom: 1.5rem; }
+  .premium-label { display: block; font-size: 0.75rem; font-weight: 800; color: var(--text-main); margin-bottom: 0.6rem; letter-spacing: 0.5px; }
+
+  .premium-input-wrapper { position: relative; display: flex; align-items: center; }
+  .premium-input-wrapper .input-icon { position: absolute; left: 1rem; width: 18px; height: 18px; color: var(--text-muted); }
+
+  .premium-input-wrapper input, .premium-input-wrapper select {
+    width: 100%; padding: 0.9rem 1rem 0.9rem 3rem; border: 1px solid var(--border); border-radius: 12px;
+    font-size: 0.95rem; background: #F8FAFC; transition: all 0.3s; outline: none; appearance: none;
+  }
+  .premium-input-wrapper input:focus, .premium-input-wrapper select:focus {
+    background: var(--white); border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26, 18, 49, 0.05);
+  }
+
+  .btn-toggle-pass {
+    position: absolute; right: 1rem; background: none; border: none; font-size: 0.7rem; font-weight: 800; color: var(--primary); cursor: pointer; letter-spacing: 1px;
+  }
+
+  .btn-auth-premium {
+    width: 100%; background: var(--primary); color: var(--white); border: none; padding: 1.1rem; border-radius: 12px;
+    font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; cursor: pointer; transition: all 0.3s; margin-top: 2.5rem;
+  }
+  .btn-auth-premium:hover { background: #241D3B; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(26, 18, 49, 0.2); }
+
+  .error-box-premium { margin-top: 1.5rem; padding: 1rem; background: #FEF2F2; color: var(--error); border-radius: 10px; font-size: 0.85rem; text-align: center; font-weight: 600; }
+  .login-footer-fixed { position: absolute; bottom: 2rem; font-size: 0.7rem; font-weight: 700; color: rgba(255, 255, 255, 0.4); letter-spacing: 1px; text-align: center; width: 100%; pointer-events: none; }
+
+  /* --- Agent Portal Layout --- */
+  .agent-portal-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: var(--bg-main);
+  }
+
+  .sidebar-nav {
+    width: 280px;
+    background-color: var(--primary);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.5rem;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+  }
+
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 3rem;
+  }
+
+  .brand-logo-small {
+    background: var(--secondary);
+    color: var(--primary);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1.2rem;
+  }
+
+  .brand-text h3 { font-size: 1rem; margin: 0; }
+  .brand-text p { font-size: 0.7rem; opacity: 0.6; margin: 0; }
+
+  .nav-menu { flex: 1; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.7);
+  }
+  .nav-item i { width: 18px; height: 18px; }
+  .nav-item:hover, .nav-item.active {
+    background-color: rgba(255,255,255,0.1);
+    color: var(--white);
+  }
+  .nav-item.active { background-color: var(--secondary); color: var(--primary); }
+
+  .sidebar-footer { padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); }
+  .btn-logout-minimal {
+    width: 100%;
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.6);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: color 0.2s;
+  }
+  .btn-logout-minimal:hover { color: var(--error); }
+
+  .portal-main {
+    flex: 1;
+    margin-left: 280px;
+    padding: 2.5rem 3rem;
+  }
+
+  .portal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2.5rem;
+  }
+
+  .welcome-banner h2 { font-size: 1.75rem; color: var(--primary); margin-bottom: 0.25rem; }
+  .welcome-banner p { color: var(--text-muted); font-size: 0.95rem; }
+
+  .header-search-container { width: 400px; }
+  .search-input-group-premium {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .search-icon-inside { position: absolute; left: 1rem; color: var(--text-muted); width: 18px; }
+  .search-input-premium {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.75rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  .btn-search-premium {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 0.75rem 1.25rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.7rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .quick-stats-row { display: flex; gap: 1.5rem; }
+  .mini-stat-card {
+    background: var(--white);
+    padding: 1rem 1.5rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    border: 1px solid var(--border);
+  }
+  .mini-stat-card.glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); }
+  .stat-icon {
+    width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+  }
+  .stat-icon.purple { background: rgba(99, 102, 241, 0.1); color: var(--accent); }
+  .stat-icon.lime { background: rgba(181, 230, 29, 0.1); color: var(--secondary-dark); }
+  .stat-info .stat-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+  .stat-info .stat-value { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
+
+  .portal-content { display: block; }
+  .agent-section { display: none; }
+  .agent-section.active { display: block; }
+  #agent-section-gestion.active { display: grid !important; }
+
+  .management-grid {
+    display: grid;
+    grid-template-columns: 1.8fr 1fr;
+    gap: 2rem;
+  }
+
+  .card-premium {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem;
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+  .empty-icon {
+    width: 80px; height: 80px; background: var(--bg-main); color: var(--text-muted); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem;
+  }
+  .empty-icon i { width: 36px; height: 36px; }
+  .empty-state h3 { font-size: 1.25rem; color: var(--primary); margin-bottom: 0.75rem; }
+  .empty-state p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 2rem; }
+
+  .btn-primary-premium {
+    background: var(--primary); color: var(--white); border: none; padding: 1rem 2rem; border-radius: 12px;
+    font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.75rem; transition: all 0.3s;
+  }
+  .btn-primary-premium:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(26,18,49,0.15); }
+
+  .case-header-premium {
+    display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border);
+  }
+  .badge-label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .prominent-radicado { font-size: 2.2rem; color: var(--primary); line-height: 1.1; }
+  .status-pill { padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .status-pill.warning { background: #FFF8E1; color: #F9A825; }
+  .status-pill.green { background: #E8F5E9; color: #2E7D32; }
+  .status-pill.red { background: #FFEBEE; color: #C62828; }
+
+  .btn-liberar-radicado {
+    background: none; border: 1px solid var(--border); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin-top: 0.5rem; display: flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-liberar-radicado:hover { color: var(--error); border-color: var(--error); }
+
+  .case-info-grid-premium {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; background: #F8FAFC; padding: 1.5rem; border-radius: 16px;
+  }
+  .info-tile label { display: block; font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; }
+  .info-tile p { font-size: 0.85rem; font-weight: 700; color: var(--primary); }
+
+  .input-row-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+  .premium-select, .premium-textarea, .premium-input {
+    width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border); border-radius: 10px; font-size: 0.85rem; background: #F8FAFC; outline: none; transition: border-color 0.2s;
+  }
+  .premium-select:focus, .premium-textarea:focus { border-color: var(--primary); }
+
+  .form-premium { display: block; }
+  .form-footer-actions { margin-top: 2rem; }
+
+  .btn-save-premium {
+    background: var(--secondary); color: var(--primary); border: none; padding: 1rem 2rem; border-radius: 12px; font-weight: 800; font-size: 0.9rem; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 4px 12px rgba(181, 230, 29, 0.2);
+  }
+
+  .panel-header-premium { margin-bottom: 1.5rem; }
+  .panel-header-premium h3 { font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 0.6rem; }
+  .panel-header-premium p { font-size: 0.85rem; color: var(--text-muted); }
+
+  .ai-action-buttons { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; }
+  .btn-ai-outline {
+    flex: 1; background: none; border: 1px solid var(--primary); color: var(--primary); padding: 0.75rem; border-radius: 10px; font-weight: 700; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  }
+  .btn-ai-outline:hover { background: var(--primary); color: var(--white); }
+
+  .result-box { background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 1rem; }
+  .box-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+  .box-header span { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); letter-spacing: 1px; }
+  .result-textarea { width: 100%; background: none; border: none; font-size: 0.85rem; font-family: inherit; color: var(--primary); resize: none; outline: none; }
+  .header-box { font-weight: 700; height: 40px; }
+  .body-box { height: 120px; line-height: 1.5; }
+
+  .btn-copy-mini { background: none; border: none; color: var(--text-muted); cursor: pointer; }
+  .btn-copy-mini:hover { color: var(--primary); }
+
+  .premium-table { width: 100%; border-collapse: separate; border-spacing: 0 0.75rem; }
+  .premium-table th { font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; padding: 0 1rem; border: none; }
+  .premium-table td { padding: 1.25rem 1rem; background: var(--white); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); font-size: 0.85rem; font-weight: 600; }
+  .premium-table tr td:first-child { border-left: 1px solid var(--border); border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+  .premium-table tr td:last-child { border-right: 1px solid var(--border); border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+  .table-responsive-premium { overflow-x: auto; }
+  .portal-footer-signature { margin-top: 2rem; text-align: center; }
+
+  .badge-mini { background: var(--error); color: var(--white); font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 10px; margin-left: auto; }
+
+  /* --- Administrative Specifics --- */
+
+  /* Loader */
+  .loader-overlay-premium {
+    position: fixed; inset: 0; background: rgba(26, 18, 49, 0.9); backdrop-filter: blur(8px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--white);
+  }
+  .spinner-premium {
+    width: 50px; height: 50px; border: 4px solid rgba(255, 255, 255, 0.1); border-top-color: var(--secondary); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 1.5rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Modal & Glassmorphism */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(26, 18, 49, 0.4); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000;
+    animation: fadeInOverlay 0.3s ease-out;
+  }
+
+  @keyframes fadeInOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+  .glass {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .modal-content { background: var(--white); border-radius: var(--radius-lg); width: 90%; max-width: 600px; padding: 2.5rem; box-shadow: var(--shadow-premium); position: relative; }
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-header h3 {
+    font-size: 1.25rem;
+    color: var(--primary);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .btn-close-modal {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .btn-close-modal:hover {
+    background: var(--bg-main);
+    color: var(--error);
+    transform: rotate(90deg);
+  }
+
+  .modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  /* Premium Notification Card */
+  .notification-card {
+    width: 100%;
+    max-width: 400px;
+    padding: 3rem 2rem;
+    text-align: center;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-premium);
+    animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .notif-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 2.5rem;
+  }
+
+  .notif-icon.success {
+    background: rgba(181, 230, 29, 0.15);
+    color: var(--secondary-dark);
+    box-shadow: 0 10px 20px rgba(181, 230, 29, 0.1);
+  }
+
+  .notif-icon.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--error);
+    box-shadow: 0 10px 20px rgba(239, 68, 68, 0.1);
+  }
+
+  .notif-title {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.5px;
+  }
+
+  .notif-message {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+    line-height: 1.5;
+  }
+
+  .btn-notif-action {
+    background: var(--primary);
+    color: var(--white);
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    width: 100%;
+    box-shadow: 0 10px 20px rgba(26, 18, 49, 0.15);
+  }
+
+  .btn-notif-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 25px rgba(26, 18, 49, 0.25);
+    background: #241D3B;
+  }
+
+  /* Responsive */
+  @media (max-width: 1024px) {
+    .sidebar-nav { width: 80px; padding: 2rem 0.5rem; }
+    .brand-text, .nav-item span:not(.badge-mini) { display: none; }
+    .portal-main { margin-left: 80px; }
+    .management-grid { grid-template-columns: 1fr; }
+    .case-info-grid-premium { grid-template-columns: repeat(2, 1fr); }
+  }
+</style><div id="loginView" class="view-container active">
+  <div class="login-wrapper">
+    <div class="login-container-premium">
+
+      <!-- Panel Izquierdo: Branding y Decoración -->
+      <div class="login-left-panel">
+        <div class="branding-content">
+          <div class="logo-box-premium">
+            <i data-lucide="shield-check"></i>
+          </div>
+          <p class="welcome-label">BIENVENIDO A</p>
+          <h1 class="brand-title">PEOPLE BPO</h1>
+          <p class="brand-description">
+            Sistema de Gestión Centralizado v4.0.<br>
+            Accede a tu perfil de manera segura y eficiente.
+          </p>
+        </div>
+
+        <!-- Esferas decorativas -->
+        <div class="decoration-sphere sphere-1"></div>
+        <div class="decoration-sphere sphere-2"></div>
+        <div class="decoration-sphere sphere-3"></div>
+      </div>
+
+      <!-- Panel Derecho: Formulario -->
+      <div class="login-right-panel">
+        <div class="login-form-box">
+          <h2 class="form-title">Iniciar Sesión</h2>
+          <p class="form-subtitle">Ingresa tus credenciales para acceder al panel de PQRSF.</p>
+
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group-premium">
+              <label class="premium-label">SELECCIONAR PERFIL</label>
+              <div class="premium-input-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <select id="agentSelect" required>
+                  <option value="" disabled selected>Cargando perfiles...</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group-premium">
+              <label class="premium-label">CONTRASEÑA</label>
+              <div class="premium-input-wrapper">
+                <i data-lucide="lock" class="input-icon"></i>
+                <input type="password" id="password" placeholder="••••••••" required>
+                <button type="button" id="togglePasswordBtn" class="btn-toggle-pass" onclick="togglePassword()">SHOW</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-auth-premium" id="btnLogin">
+              <span>Autenticar y Entrar</span>
+              <i data-lucide="log-in"></i>
+            </button>
+          </form>
+
+          <div id="loginError" class="error-box-premium" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Global de Login -->
+    <div class="login-footer-fixed">
+      <p>SYSTEM VERSION 4.0 — BY DUVAN RAMOS</p>
+    </div>
+  </div>
+</div><div class="agent-portal-layout fade-in">
+  <aside class="sidebar-nav">
+    <div class="sidebar-brand">
+      <div class="brand-logo-small">P</div>
+      <div class="brand-text">
+        <h3>PEOPLE BPO</h3>
+        <p>Agent Portal</p>
+      </div>
+    </div>
+
+    <nav class="nav-menu">
+      <div id="nav-gestion" class="nav-item active" onclick="showAgentSection('gestion')"><i data-lucide="layout-dashboard"></i> Gestión</div>
+      <div id="nav-asignados" class="nav-item" onclick="showAgentSection('asignados')"><i data-lucide="user-check"></i> Asignados <span id="assignedCountBadge" class="badge-mini" style="display: none;">0</span></div>
+      <div id="nav-historial" class="nav-item" onclick="showAgentSection('historial')"><i data-lucide="history"></i> Historial</div>
+    </nav>
+
+
+    <div class="sidebar-footer">
+      <button class="btn-logout-minimal" onclick="handleLogout()">
+        <i data-lucide="log-out"></i> Cerrar Sesión
+      </button>
+    </div>
+  </aside>
+
+  <main class="portal-main">
+    <header class="portal-header">
+      <div class="welcome-banner">
+        <h2>¡Hola, <span id="agentName">...</span>!</h2>
+        <p>Tienes radicados pendientes por comunicar.</p>
+      </div>
+
+      <div class="header-search-container">
+        <div class="search-input-group-premium">
+          <i data-lucide="search" class="search-icon-inside"></i>
+          <input type="text" id="agentSearchInput" placeholder="Buscar radicado para editar..." class="search-input-premium">
+          <button class="btn-search-premium" onclick="ejecutarBusquedaAgente()">
+            <span>BUSCAR Y EDITAR</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="quick-stats-row">
+        <div class="mini-stat-card glass">
+          <div class="stat-icon purple"><i data-lucide="clock"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Por comunicar</span>
+            <h4 id="pendingToCommunicate" class="stat-value">0</h4>
+          </div>
+        </div>
+        <div class="mini-stat-card glass">
+          <div class="stat-icon lime"><i data-lucide="check-circle-2"></i></div>
+          <div class="stat-info">
+            <span class="stat-label">Gestiones hoy</span>
+            <h4 id="agentCountToday" class="stat-value">0</h4>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="portal-content">
+      <!-- Section Asignados -->
+      <div id="agent-section-asignados" class="agent-section" style="display: none;">
+        <div class="card-premium fade-in">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="user-check"></i> Radicados Asignados</h3>
+            <p>Radicados asignados por el administrador para tu gestión inmediata.</p>
+          </div>
+          <div class="table-responsive-premium mt-1">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="text-align: left; border-bottom: 2px solid var(--bg-main);">
+                  <th style="padding: 1rem;">Radicado</th>
+                  <th style="padding: 1rem;">Usuario</th>
+                  <th style="padding: 1rem;">Empresa</th>
+                  <th style="padding: 1rem;">Fecha Registro</th>
+                  <th style="padding: 1rem;">Acción</th>
+                </tr>
+              </thead>
+              <tbody id="agentAssignedBody">
+                <!-- Inyectado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div id="agent-section-gestion" class="management-grid agent-section active">
+        <!-- Active Case Card -->
+        <div class="case-card card-premium">
+          <div id="claimCaseCard" class="claim-placeholder">
+            <div class="empty-state">
+              <div class="empty-icon"><i data-lucide="clipboard-list"></i></div>
+              <h3>Listo para gestionar</h3>
+              <p>Pulse el botón para obtener el siguiente radicado disponible y comience su gestión de inmediato.</p>
+              <button class="btn-primary-premium" onclick="claimNextCase()" id="btnClaim">
+                <i data-lucide="grab"></i> SOLICITAR RADICADO
+              </button>
+            </div>
+          </div>
+
+          <div id="activeCaseCard" style="display: none;" class="active-case-view">
+            <div class="case-header-premium">
+              <div class="case-id-badge">
+                <span class="badge-label">RADICADO EN GESTIÓN</span>
+                <h1 id="activeRadicadoLabel" class="prominent-radicado">RAD-00000</h1>
+              </div>
+              <div class="case-meta-tags">
+                <span class="status-pill warning"><i data-lucide="activity"></i> En Proceso</span>
+                <button class="btn-liberar-radicado" onclick="liberarRadicadoActivo()">
+                   <i data-lucide="unlock"></i> LIBERAR RADICADO
+                </button>
+              </div>
+            </div>
+
+            <div class="case-info-grid-premium">
+              <div class="info-tile">
+                <label>Nombre del Usuario</label>
+                <p id="caseNombre">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Teléfono de Contacto</label>
+                <p id="caseTelefono">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Empresa</label>
+                <p id="caseEmpresa">...</p>
+              </div>
+              <div class="info-tile">
+                <label>Fecha Registro</label>
+                <p id="caseFecha">...</p>
+              </div>
+            </div>
+
+            <form id="managementForm" onsubmit="saveManagement(event)" class="form-premium">
+              <div class="input-row-grid">
+                <div class="form-group">
+                  <label>Estado de Gestión</label>
+                  <select id="mgmtEstado" required onchange="toggleMgmtFields()" class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Contactado">Contactado</option>
+                    <option value="No contesta">No contesta</option>
+                    <option value="Corta llamada">Corta llamada</option>
+                    <option value="Solucion Incorrecta">Solucion Incorrecta</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Canal de Contacto</label>
+                  <select id="mgmtCanal" required class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Llamada">Llamada</option>
+                    <option value="Correo">Correo</option>
+                    <option value="Web">Web</option>
+                    <option value="Solución Incorrecta">Solución Incorrecta</option>
+                    <option value="Por gestionar">Por gestionar</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Fue efectivo?</label>
+                  <select id="mgmtEfectividad" required onchange="toggleMgmtFields()" class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Si">Si</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Requiere otra solución?</label>
+                  <select id="mgmtOtraSolucion" required class="premium-select">
+                    <option value="">Seleccionar...</option>
+                    <option value="Si">Si</option>
+                    <option value="No">No</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>¿Se encontró PQRS?</label>
+                  <select id="mgmtSeEncontro" required class="premium-select">
+                    <option value="NO">No</option>
+                    <option value="SI">Si</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group mt-1">
+                <label id="mgmtNotasLabel">Notas del intento (Automático)</label>
+                <textarea id="mgmtNotas" rows="3" readonly class="premium-textarea" style="background-color: var(--bg-main); color: var(--text-muted); cursor: not-allowed;"></textarea>
+              </div>
+
+              <div class="form-group mt-1">
+                <label>Observación adicional (Opcional)</label>
+                <textarea id="mgmtObservacionManual" rows="2" placeholder="Escriba aquí cualquier detalle adicional de la gestión..." class="premium-textarea"></textarea>
+              </div>
+
+              <div class="form-group id-contact-group" id="emailContactGroup" style="display: none;">
+                <label>Correo Electrónico de Contacto</label>
+                <input type="email" id="mgmtEmailContact" placeholder="usuario@ejemplo.com" class="premium-input">
+              </div>
+
+              <div class="form-footer-actions">
+                <button type="submit" class="btn-save-premium" id="btnSaveMgmt">
+                  <i data-lucide="save"></i> Guardar Gestión
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- AI Panel -->
+        <div class="ai-panel-card card-premium">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="sparkles"></i> Response Converter</h3>
+            <p>Formaliza tus respuestas con IA</p>
+          </div>
+          <div class="ai-flow-container">
+            <textarea id="aiInput" rows="4" placeholder="Escribe aquí las notas rápidas de tu gestión..." class="premium-textarea ai-input-field"></textarea>
+            <div class="ai-action-buttons">
+              <button class="btn-ai-outline" onclick="improveText('PQRSF-RES')">
+                <i data-lucide="check-check"></i> Formato Respuesta
+              </button>
+              <button class="btn-ai-outline" onclick="improveText('PQRSF-NC')">
+                <i data-lucide="phone-off"></i> Formato No Contesta
+              </button>
+            </div>
+
+            <div id="aiOutputContainer" style="display: none;" class="ai-results-fade">
+              <div class="result-box">
+                <div class="box-header">
+                  <span>ENCABEZADO</span>
+                  <button class="btn-copy-mini" onclick="copiarCampo('headerOutput')"><i data-lucide="copy"></i></button>
+                </div>
+                <textarea id="headerOutput" readonly class="result-textarea header-box"></textarea>
+              </div>
+
+              <div class="result-box mt-1">
+                <div class="box-header">
+                  <span>CUERPO DE LA RESPUESTA</span>
+                  <button class="btn-copy-mini" onclick="copiarCampo('bodyOutput')"><i data-lucide="copy"></i></button>
+                </div>
+                <textarea id="bodyOutput" readonly class="result-textarea body-box"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Historial Section -->
+      <div id="agent-section-historial" class="agent-section" style="display: none;">
+        <div class="card-premium fade-in">
+          <div class="panel-header-premium">
+            <h3><i data-lucide="history"></i> Mi Historial Reciente</h3>
+            <p>Últimos 20 radicados gestionados</p>
+          </div>
+          <div class="table-responsive-premium mt-1">
+            <table class="premium-table" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="text-align: left; border-bottom: 2px solid var(--bg-main);">
+                  <th style="padding: 1rem;">Radicado</th>
+                  <th style="padding: 1rem;">Usuario</th>
+                  <th style="padding: 1rem;">Fecha</th>
+                  <th style="padding: 1rem;">Estado</th>
+                  <th style="padding: 1rem;">Canal</th>
+                  <th style="padding: 1rem;">Efectividad</th>
+                </tr>
+              </thead>
+              <tbody id="agentHistoryBody">
+                <!-- Inyectado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="portal-footer-signature" style="margin-top: 2rem; text-align: center; font-size: 0.75rem; color: var(--text-muted); border-top: 1px solid var(--border); padding-top: 1rem;">
+      <p>GESTIÓN PQRSF • <span style="font-weight: 700; color: var(--primary);">By Duvan Ramos</span> • 2026</p>
+    </footer>
+  </main>
+</div>
