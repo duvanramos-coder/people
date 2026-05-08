@@ -879,19 +879,19 @@ Línea gratuita nacional: 01 8000 111 879`
     body.innerHTML = `
       <div class="premium-modal-header-info">
         <div class="info-pill">
-          <span class="pill-label">RADICADO</span>
+          <span class="pill-label">ID RADICADO</span>
           <span class="pill-value">${data.radicado}</span>
         </div>
       </div>
 
       <div class="case-info-card-premium">
         <div class="info-item">
-          <label>Usuario</label>
+          <label>USUARIO</label>
           <p>${data.nombre}</p>
         </div>
         <div class="info-item">
-          <label>Asesor Original</label>
-          <p>${data.asesor || 'Sin asignar'}</p>
+          <label>ASESOR ASIGNADO</label>
+          <p>${data.asesor || 'No asignado'}</p>
         </div>
       </div>
 
@@ -899,7 +899,7 @@ Línea gratuita nacional: 01 8000 111 879`
         <div class="form-group-premium">
           <label class="premium-label-small">ESTADO DE GESTIÓN</label>
           <div class="premium-select-wrapper">
-            <select id="editEstado" class="premium-select-custom">
+            <select id="editEstado" class="premium-select-custom" onchange="toggleEditConsistency()">
               <option value="Contactado"          ${data.estado === 'Contactado'          ? 'selected' : ''}>Contactado</option>
               <option value="No contesta"         ${data.estado === 'No contesta'         ? 'selected' : ''}>No contesta</option>
               <option value="Corta llamada"       ${data.estado === 'Corta llamada'       ? 'selected' : ''}>Corta llamada</option>
@@ -908,7 +908,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium">
-          <label class="premium-label-small">CANAL</label>
+          <label class="premium-label-small">CANAL UTILIZADO</label>
           <div class="premium-select-wrapper">
             <select id="editCanal" class="premium-select-custom">
               <option value="Llamada"             ${data.canal === 'Llamada'             ? 'selected' : ''}>Llamada</option>
@@ -920,9 +920,9 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium">
-          <label class="premium-label-small">¿FUE EFECTIVO?</label>
+          <label class="premium-label-small">¿COMUNICACIÓN EFECTIVA?</label>
           <div class="premium-select-wrapper">
-            <select id="editEfectividad" class="premium-select-custom">
+            <select id="editEfectividad" class="premium-select-custom" onchange="toggleEditConsistency()">
               <option value="Si" ${data.efectividad === 'Si' ? 'selected' : ''}>Si</option>
               <option value="No" ${data.efectividad === 'No' ? 'selected' : ''}>No</option>
             </select>
@@ -938,7 +938,7 @@ Línea gratuita nacional: 01 8000 111 879`
           </div>
         </div>
         <div class="form-group-premium" style="grid-column: span 2;">
-          <label class="premium-label-small">¿SE ENCONTRÓ PQRS?</label>
+          <label class="premium-label-small">¿SE IDENTIFICÓ PQRS?</label>
           <div class="premium-select-wrapper">
             <select id="editSeEncontro" class="premium-select-custom">
               <option value="SI" ${data.seEncontro && data.seEncontro.toUpperCase() === 'SI' ? 'selected' : ''}>Si</option>
@@ -949,17 +949,34 @@ Línea gratuita nacional: 01 8000 111 879`
       </div>
 
       <div class="form-group-premium">
-        <label class="premium-label-small">OBSERVACIONES (OPCIONAL)</label>
-        <textarea id="editObservacion" rows="4" class="premium-textarea-custom" placeholder="Escriba aquí los detalles adicionales de la comunicación...">${data.observacionManual || ""}</textarea>
+        <label class="premium-label-small">DETALLE DE LA GESTIÓN (OPCIONAL)</label>
+        <textarea id="editObservacion" rows="4" class="premium-textarea-custom" placeholder="Ingrese notas adicionales sobre el resultado de esta comunicación...">${data.observacionManual || ""}</textarea>
       </div>
 
       <div class="modal-footer-premium">
         <button class="btn-update-premium" onclick="guardarEdicionAdmin(${data.rowId})">
-          <i data-lucide="refresh-cw"></i> <span>ACTUALIZAR COMUNICACIÓN</span>
+          <i data-lucide="refresh-cw"></i> <span>SINCRONIZAR CAMBIOS</span>
         </button>
       </div>
     `;
     lucide.createIcons();
+    toggleEditConsistency();
+  }
+
+  function toggleEditConsistency() {
+    const estado = document.getElementById('editEstado').value;
+    const efectividad = document.getElementById('editEfectividad');
+    const seEncontro = document.getElementById('editSeEncontro');
+
+    if (estado === 'No contesta' || estado === 'Corta llamada') {
+      efectividad.value = 'No';
+      seEncontro.value = 'NO';
+      efectividad.style.backgroundColor = '#F1F5F9';
+      seEncontro.style.backgroundColor = '#F1F5F9';
+    } else {
+      efectividad.style.backgroundColor = '#F8FAFC';
+      seEncontro.style.backgroundColor = '#F8FAFC';
+    }
   }
 
   function cerrarModalAdmin() {
