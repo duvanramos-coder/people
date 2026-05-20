@@ -1,0 +1,411 @@
+<script>
+let charts = {};
+let dashboardInterval;
+
+window.onload = () => {
+  const session = localStorage.getItem('admin_session');
+  if (session) {
+    const data = JSON.parse(session);
+    startDashboard(data.username, data.role);
+  } else {
+    document.getElementById('loader').style.display = 'none';
+  }
+};
+
+function handleLogin(e) {
+  e.preventDefault();
+  const u = document.getElementById('username').value;
+  const p = document.getElementById('password').value;
+  const btn = document.getElementById('login-btn');
+
+  btn.innerText = 'Autenticando...';
+  btn.disabled = true;
+
+  google.script.run.withSuccessHandler(res => {
+    if (res.success) {
+      localStorage.setItem('admin_session', JSON.stringify({username: res.nombre, role: res.role}));
+      startDashboard(res.nombre, res.role);
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      btn.innerText = 'Entrar al Sistema';
+      btn.disabled = false;
+      document.getElementById('login-error').style.display = 'block';
+    }
+  }).login(u, p);
+}
+
+function startDashboard(user, role) {
+  document.getElementById('auth-container').style.display = 'none';
+
+  if (role === 'admin') {
+    document.getElementById('dashboard-container').style.display = 'block';
+    document.getElementById('loader').style.display = 'flex';
+    refreshDashboard();
+    dashboardInterval = setInterval(refreshDashboard, 60000); // Polling 1 min
+  } else {
+    document.getElementById('agent-container').style.display = 'block';
+    initAgentPortal(user);
+  }
+}
+
+// Agent Portal functions
+let activeCase = null;
+let gestionesHoy = 0;
+let currentUser = { nombre: "" };
+
+function initAgentPortal(user) {
+  currentUser.nombre = user;
+  document.getElementById('agentName').textContent = user;
+  updateAgentStats();
+}
+
+function updateAgentStats() {
+  document.getElementById('agentCountToday').textContent = gestionesHoy;
+}
+
+function claimNextCase() {
+    const btn = document.getElementById('btnClaim');
+    btn.disabled = true;
+    btn.innerHTML = 'Solicitando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = 'Solicitar Radicado';
+
+        if (res.success) {
+          activeCase = res.data;
+          showActiveCase();
+        } else {
+          alert(res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = 'Solicitar Radicado';
+        alert("Error: " + err.message);
+      })
+      .claimNextCase(currentUser.nombre);
+}
+
+function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
+    document.getElementById('caseFecha').textContent = activeCase.fecha;
+}
+
+function saveManagement(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveMgmt');
+    const data = {
+      rowId: activeCase.rowId,
+      asesor: currentUser.nombre,
+      estado: document.getElementById('mgmtEstado').value,
+      canal: document.getElementById('mgmtCanal').value,
+      efectividad: document.getElementById('mgmtEfectividad').value,
+      otraSolucion: document.getElementById('mgmtOtraSolucion').value,
+      seEncontro: document.getElementById('mgmtSeEncontro').value,
+      observacion: document.getElementById('mgmtObservacion').value,
+      notas: document.getElementById('mgmtNotas').value,
+      emailContacto: document.getElementById('mgmtEmailContact').value
+    };
+
+    btn.disabled = true;
+    btn.innerHTML = 'Guardando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerHTML = 'Guardar Gestión';
+
+        if (res.success) {
+          gestionesHoy++;
+          updateAgentStats();
+          resetManagement();
+          alert("Gestión guardada con éxito.");
+        } else {
+          alert("Error: " + res.message);
+        }
+      })
+      .withFailureHandler(err => {
+        btn.disabled = false;
+        btn.innerHTML = 'Guardar Gestión';
+        alert("Error de conexión: " + err.message);
+      })
+      .saveManagement(data);
+}
+
+function resetManagement() {
+    activeCase = null;
+    document.getElementById('activeCaseCard').style.display = 'none';
+    document.getElementById('claimCaseCard').style.display = 'block';
+    document.getElementById('managementForm').reset();
+}
+
+function toggleMgmtFields() {
+    const estado = document.getElementById('mgmtEstado').value;
+    const emailGroup = document.getElementById('emailContactGroup');
+    if (estado === 'No contesta') {
+      emailGroup.style.display = 'block';
+    } else {
+      emailGroup.style.display = 'none';
+    }
+}
+
+function refreshDashboard() {
+  google.script.run.withSuccessHandler(data => {
+    processAndRenderData(data);
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('sync-status').innerText = 'Sincronizado: ' + new Date().toLocaleTimeString();
+  }).getPQRSFData();
+
+  google.script.run.withSuccessHandler(turnos => {
+    renderTurnos(turnos);
+  }).getTurnosStatus();
+}
+
+function processAndRenderData(allData) {
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+
+  const managed = allData.filter(d => d.isManaged);
+  const pending = allData.filter(d => !d.isManaged);
+  const gestionesHoy = allData.filter(d => d.isManaged && d.fechaComunicacion === todayStr).length;
+
+  // KPIs
+  let totalDays = 0, managedWithDates = 0, delayedCount = 0;
+  allData.forEach(d => {
+    if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
+      const diff = Math.floor((new Date(d.fechaComunicacionRaw) - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+      totalDays += diff;
+      managedWithDates++;
+    } else if (!d.isManaged && d.recibidoPeopleRaw) {
+      const diff = Math.floor((now - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+      if (diff > 3) delayedCount++;
+    }
+  });
+
+  const avgTime = managedWithDates > 0 ? (totalDays / managedWithDates).toFixed(1) : 0;
+  const total = allData.length;
+  const managedPerc = total > 0 ? ((managed.length / total) * 100).toFixed(1) : 0;
+  const pendingPerc = total > 0 ? ((pending.length / total) * 100).toFixed(1) : 0;
+
+  document.getElementById('kpi-today').innerText = gestionesHoy;
+  document.getElementById('kpi-avg-time').innerText = avgTime + 'd';
+  document.getElementById('kpi-managed').innerText = managed.length;
+  document.getElementById('kpi-managed-perc').innerText = managedPerc + '% del total';
+  document.getElementById('kpi-pending').innerText = pending.length;
+  document.getElementById('kpi-pending-perc').innerText = pendingPerc + '% del total';
+  document.getElementById('kpi-delayed').innerText = delayedCount;
+
+  // Charts
+  const stats = {
+    canales: countBy(allData, 'canal'),
+    estados: countBy(allData, 'estado')
+  };
+  renderCharts(stats);
+
+  // Radiography
+  renderRadiography(allData);
+
+  // Insights (Simplified)
+  const insights = [];
+  if (delayedCount > 5) insights.push({ type: 'warning', text: '⚠️ Existen ' + delayedCount + ' casos con más de 3 días de atraso.' });
+  if (pending.length > 20) insights.push({ type: 'info', text: 'ℹ️ El backlog de pendientes supera los 20 casos.' });
+  renderInsights(insights);
+}
+
+function countBy(arr, key) {
+  return arr.reduce((acc, obj) => {
+    const val = obj[key] || 'Sin definir';
+    acc[val] = (acc[val] || 0) + 1;
+    return acc;
+  }, {});
+}
+
+function renderRadiography(allData) {
+  const tbody = document.getElementById('radiography-body');
+  const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))];
+  const now = new Date();
+
+  const stats = advisors.map(name => {
+    const agentCases = allData.filter(d => d.asesor === name);
+    const p = agentCases.filter(d => !d.isManaged).length;
+    let del = 0, tDays = 0, mCount = 0;
+    agentCases.forEach(d => {
+      if (!d.isManaged && d.recibidoPeopleRaw) {
+        if (Math.floor((now - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24)) > 3) del++;
+      } else if (d.isManaged && d.fechaComunicacionRaw && d.recibidoPeopleRaw) {
+        tDays += Math.floor((new Date(d.fechaComunicacionRaw) - new Date(d.recibidoPeopleRaw)) / (1000 * 60 * 60 * 24));
+        mCount++;
+      }
+    });
+    return { name, p, del, avg: mCount > 0 ? (tDays / mCount).toFixed(1) : 0 };
+  }).sort((a, b) => b.p - a.p);
+
+  tbody.innerHTML = stats.map(s => `
+    <tr>
+      <td style="font-weight: 600;">${s.name}</td>
+      <td>${s.p}</td>
+      <td><span class="badge ${s.del > 0 ? 'badge-error' : ''}">${s.del}</span></td>
+      <td>${s.avg}d</td>
+    </tr>
+  `).join('');
+}
+
+function renderTrend(id, trend) {
+  const el = document.getElementById(id);
+  const val = parseFloat(trend);
+  if (val > 0) {
+    el.innerHTML = `<span class="trend-up">↑ ${val}%</span> vs ayer`;
+  } else if (val < 0) {
+    el.innerHTML = `<span class="trend-down">↓ ${Math.abs(val)}%</span> vs ayer`;
+  } else {
+    el.innerHTML = `<span style="color: var(--text-muted)">--% vs ayer</span>`;
+  }
+}
+
+function renderInsights(insights) {
+  const area = document.getElementById('insights-area');
+  area.innerHTML = insights.map(i => `
+    <div class="insight-pill insight-${i.type} fade-in">
+      ${i.text}
+    </div>
+  `).join('');
+}
+
+function renderRanking(ranking) {
+  const body = document.getElementById('ranking-body');
+  body.innerHTML = ranking.map(a => `
+    <tr>
+      <td style="font-weight: 600;">${a.nombre}</td>
+      <td>${a.radicados}</td>
+      <td>${a.errores}</td>
+      <td><span class="badge ${a.errorRate > 5 ? 'badge-error' : 'badge-success'}">${a.errorRate}%</span></td>
+      <td><span class="badge badge-info">En línea</span></td>
+    </tr>
+  `).join('');
+}
+
+function renderWorst(worst) {
+  const list = document.getElementById('worst-performers-list');
+  list.innerHTML = worst.map(a => `
+    <div style="background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 10px; min-width: 150px;">
+      <div style="font-size: 0.75rem; color: var(--text-muted);">${a.nombre}</div>
+      <div style="font-size: 1.1rem; font-weight: 700; color: var(--error);">${a.errorRate}% Error</div>
+    </div>
+  `).join('');
+}
+
+function renderCharts(stats) {
+  const colors = ['#38bdf8', '#818cf8', '#c084fc', '#fb7185', '#fbbf24', '#34d399'];
+
+  updateChart('chart-canales', 'doughnut', stats.canales, colors);
+  updateChart('chart-estados', 'pie', stats.estados, colors);
+}
+
+function updateChart(id, type, dataObj, colors) {
+  const ctx = document.getElementById(id).getContext('2d');
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
+
+  if (charts[id]) charts[id].destroy();
+
+  charts[id] = new Chart(ctx, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        data: values,
+        backgroundColor: colors,
+        borderColor: 'transparent',
+        hoverOffset: 10
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: '#94a3b8', font: { size: 10, weight: '500' }, padding: 20 }
+        }
+      }
+    }
+  });
+}
+
+function renderTurnos(turnos) {
+  const grid = document.getElementById('turnos-grid-area');
+  grid.innerHTML = turnos.map(t => `
+    <div class="turno-card fade-in">
+      <div class="turno-info">
+        <h4>${t.nombre}</h4>
+        <p>${t.horario}</p>
+      </div>
+      <div class="badge" style="background: ${t.color}20; color: ${t.color}; border: 1px solid ${t.color}40;">
+        ${t.status}
+      </div>
+    </div>
+  `).join('');
+}
+
+function showSection(section) {
+  ['overview', 'ranking', 'turnos'].forEach(s => {
+    document.getElementById('section-' + s).style.display = s === section ? 'block' : 'none';
+  });
+
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    nav.classList.toggle('active', nav.innerText.toLowerCase().includes(section === 'overview' ? 'general' : section));
+  });
+}
+
+function handleSearch(e) {
+  if (e.key === 'Enter') {
+    const val = e.target.value;
+    if (!val) return;
+
+    const area = document.getElementById('search-result-area');
+    area.innerHTML = '<div style="margin-top: 10px; color: var(--text-muted);">Buscando...</div>';
+    area.style.display = 'block';
+
+    google.script.run.withSuccessHandler(res => {
+      if (res) {
+        area.innerHTML = `
+          <div class="ficha-card fade-in">
+            <div style="grid-column: 1 / -1; margin-bottom: 10px; display: flex; justify-content: space-between;">
+              <span class="badge badge-info">${res.type}</span>
+              <span style="color: var(--text-muted); cursor: pointer;" onclick="closeSearch()">✕</span>
+            </div>
+            ${Object.entries(res.data).map(([k, v]) => `
+              <div class="ficha-item">
+                <label>${k}</label>
+                <span>${v}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } else {
+        area.innerHTML = '<div style="margin-top: 10px; color: var(--error);">No se encontró información.</div>';
+      }
+    }).searchGlobal(val);
+  }
+}
+
+function closeSearch() {
+  const area = document.getElementById('search-result-area');
+  area.style.display = 'none';
+  document.getElementById('global-search-input').value = '';
+}
+
+function logout() {
+  localStorage.removeItem('admin_session');
+  clearInterval(dashboardInterval);
+  location.reload();
+}
+</script>
