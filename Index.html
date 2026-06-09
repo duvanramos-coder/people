@@ -1,406 +1,1329 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>People BPO | Panel Operativo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0e14;
+      --sidebar: #11141d;
+      --card: #161b26;
+      --card-hover: #1c2331;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.3);
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --error: #ef4444;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.06);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 20px;
+      --radius-xl: 28px;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
 
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+    }
 
-.card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
-}
+    /* --- LOGIN VIEW --- */
+    .login-wrapper {
+      position: fixed;
+      inset: 0;
+      z-index: 5000;
+      background: radial-gradient(circle at top right, #1e1b4b 0%, #0b0e14 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
 
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-}
+    .login-box {
+      width: 100%;
+      max-width: 440px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 48px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
 
-.header-info { text-align: center; }
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+    }
 
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
+    .login-box h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 28px;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
 
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
-}
+    .login-box p {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
 
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-}
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
 
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      margin-left: 4px;
+    }
 
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
+    .input-field {
+      width: 100%;
+      background: #0f1218;
+      border: 1px solid var(--border);
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      color: white;
+      font-family: inherit;
+      font-size: 15px;
+      transition: var(--transition);
+    }
 
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px var(--primary-glow);
+    }
 
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
+    .btn-primary {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius-md);
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
 
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
+    .btn-primary:hover {
+      background: #4f46e5;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+    }
 
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    .btn-primary:active { transform: translateY(0); }
 
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-}
+    /* --- APP LAYOUT --- */
+    #app {
+      display: none;
+      width: 100%;
+      height: 100vh;
+    }
 
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
+    /* --- SIDEBAR --- */
+    .sidebar {
+      width: 280px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 32px 20px;
+      transition: var(--transition);
+    }
 
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 12px 40px;
+    }
 
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      color: white;
+      font-size: 18px;
+    }
 
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
-}
+    .brand-name {
+      font-family: 'Poppins', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
 
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-}
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
+    .nav-list {
+      flex: 1;
+      list-style: none;
+    }
 
-.drive-icon { width: 14px; height: 14px; }
-</style>
+    .nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .nav-link:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: white;
+    }
+
+    .nav-link.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .nav-badge {
+      background: var(--error);
+      color: white;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 20px;
+      display: none;
+    }
+
+    .nav-badge.active { display: block; }
+
+    .sidebar-user {
+      margin-top: auto;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: white;
+    }
+
+    .user-meta { flex: 1; overflow: hidden; }
+    .user-meta h4 { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-meta p { font-size: 11px; color: var(--text-muted); }
+
+    /* --- MAIN CONTENT --- */
+    .main-canvas {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .top-bar {
+      height: 80px;
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title h2 { font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700; }
+
+    .scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 40px;
+    }
+
+    .view-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: none;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    .view-container.active { display: block; }
+
+    /* --- DASHBOARD WIDGETS --- */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 32px;
+      border-radius: var(--radius-xl);
+      position: relative;
+      transition: var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      transform: translateY(-4px);
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+      display: block;
+    }
+
+    .stat-card .value {
+      font-size: 42px;
+      font-weight: 800;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .stat-card .sub-text {
+      font-size: 13px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* --- DATA TABLE / LISTS --- */
+    .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-header h3 { font-size: 18px; font-weight: 700; }
+
+    .history-row {
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .history-row:last-child { border-bottom: none; }
+    .history-row:hover { background: rgba(255, 255, 255, 0.02); }
+
+    .row-main { flex: 1; }
+    .row-main b { font-size: 15px; display: block; margin-bottom: 2px; }
+    .row-main span { font-size: 12px; color: var(--text-muted); }
+
+    .status-pill {
+      padding: 6px 12px;
+      border-radius: 30px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-pill.success { background: rgba(16, 185, 129, 0.1); color: var(--secondary); }
+    .status-pill.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+
+    /* --- FORMS --- */
+    .form-box {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 40px;
+      border-radius: var(--radius-xl);
+    }
+
+    .form-title { margin-bottom: 32px; text-align: center; }
+    .form-title h2 { font-family: 'Poppins', sans-serif; font-size: 24px; margin-bottom: 8px; }
+    .form-title p { color: var(--text-muted); font-size: 14px; }
+
+    .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0f1218;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: var(--transition);
+      margin-bottom: 12px;
+    }
+
+    .checkbox-item:hover { border-color: var(--primary); }
+
+    .checkbox-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+    }
+
+    .checkbox-item span { font-size: 14px; font-weight: 500; }
+
+    /* --- CHAT SYSTEM --- */
+    .chat-container {
+      height: 600px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    #chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .chat-msg {
+      max-width: 75%;
+      padding: 14px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-msg.own {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .chat-msg.other {
+      align-self: flex-start;
+      background: #0f1218;
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .chat-info {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+      opacity: 0.6;
+    }
+
+    .chat-input-area {
+      padding: 24px 32px;
+      background: #0f1218;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    /* --- TOAST --- */
+    #toast {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      background: #fff;
+      color: #000;
+      padding: 16px 24px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: 6000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #toast.active { transform: translateY(0); opacity: 1; }
+    #toast.error { background: var(--error); color: white; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* --- WFM STYLES --- */
+    .wfm-card {
+      background: linear-gradient(135deg, var(--card) 0%, #1a1f2e 100%) !important;
+      border: 1px solid var(--primary) !important;
+    }
+    .status-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .status-online { background: var(--secondary); box-shadow: 0 0 10px var(--secondary); }
+    .status-break { background: var(--accent); box-shadow: 0 0 10px var(--accent); }
+    .status-lunch { background: #f97316; box-shadow: 0 0 10px #f97316; }
+    .status-offline { background: var(--error); box-shadow: 0 0 10px var(--error); }
+
+    .countdown-timer {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: 'Poppins', sans-serif;
+      color: var(--primary);
+      margin-top: 10px;
+    }
+
+    .fullscreen-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(11, 14, 20, 0.95);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+    }
+
+    .alert-box {
+      background: var(--card);
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-xl);
+      padding: 60px;
+      text-align: center;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 50px var(--primary-glow);
+      animation: pulseAlert 2s infinite;
+    }
+
+    @keyframes pulseAlert {
+      0% { box-shadow: 0 0 20px var(--primary-glow); }
+      50% { box-shadow: 0 0 60px var(--primary-glow); }
+      100% { box-shadow: 0 0 20px var(--primary-glow); }
+    }
+
+    /* --- SCROLLBAR --- */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+  </style>
 </head>
-
 <body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-  </div>
+  <audio id="alert-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
+  <div id="toast">Operación exitosa</div>
+
+  <!-- LOGIN VIEW -->
+  <div id="login-view" class="login-wrapper">
+    <div class="login-box">
+      <div class="brand-section" style="justify-content: center; padding-bottom: 24px;">
+        <div class="brand-logo">P</div>
+        <div class="brand-name">People BPO</div>
+      </div>
+      <h1>Bienvenido</h1>
+      <p>Accede al panel de gestión operativa</p>
+
+      <div class="input-group">
+        <label>Funcionario</label>
+        <select id="login-user" class="input-field">
+          <option value="">Cargando funcionarios...</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Contraseña</label>
+        <input type="password" id="login-pass" class="input-field" placeholder="••••••••">
+      </div>
+
+      <button class="btn-primary" id="btn-login-action" onclick="handleLogin()">
+        <span>Entrar al sistema</span>
       </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
-      </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
-    </div>
 
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
+      <div style="margin-top: 32px; font-size: 11px; color: var(--text-muted);">
+        People BPO © 2026 · By Duvan Ramos
       </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
-
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
-      </div>
-    </div>
-
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
-
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
     </div>
   </div>
-</div>
 
-<script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
+  <!-- MAIN APP -->
+  <div id="app">
+    <aside class="sidebar">
+      <div class="brand-section">
+        <div class="brand-logo">P</div>
+        <div class="brand-name">People BPO</div>
+      </div>
 
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
-    });
-  }).obtenerUsuarios();
-}
-cargarUsuarios();
+      <nav class="nav-list">
+        <div class="nav-link active" onclick="switchView('dashboard', this)">
+          <span>Panel de Control</span>
+        </div>
+        <div class="nav-link" onclick="switchView('registry', this)">
+          <span>Registro Radicado</span>
+        </div>
+        <div class="nav-link" onclick="switchView('snc', this)">
+          <span>Gestión Calidad</span>
+        </div>
+        <div class="nav-link" onclick="switchView('search', this)">
+          <span>Búsqueda Global</span>
+        </div>
+        <div class="nav-link" onclick="switchView('notifications', this)">
+          <span>Notificaciones</span>
+          <span id="badge-notif" class="nav-badge">0</span>
+        </div>
+        <div class="nav-link" onclick="switchView('chat', this)">
+          <span>Canal Interno</span>
+          <span id="badge-chat" class="nav-badge">0</span>
+        </div>
+      </nav>
 
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
-  };
+      <div class="sidebar-user">
+        <div class="user-avatar" id="user-avatar">DR</div>
+        <div class="user-meta">
+          <h4 id="user-name">Duvan Ramos</h4>
+          <p>Funcionario Activo</p>
+        </div>
+      </div>
+      <button class="btn-primary" style="margin-top: 16px; background: rgba(255,255,255,0.05); color: white; padding: 12px; font-size: 13px;" onclick="logout()">Cerrar Sesión</button>
+    </aside>
 
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
-  }
+    <main class="main-canvas">
+      <header class="top-bar">
+        <div class="page-title">
+          <h2 id="current-view-name">Panel de Control</h2>
+        </div>
+        <div style="display: flex; gap: 20px; align-items: center;">
+          <div style="text-align: right;">
+            <div style="font-size: 12px; font-weight: 600; color: var(--text-muted);" id="live-date">24 Mar, 2026</div>
+          </div>
+        </div>
+      </header>
 
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
-}
+      <div class="scroll-area">
 
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
-}
+        <!-- VIEW: DASHBOARD -->
+        <section id="view-dashboard" class="view-container active">
+          <div class="stats-grid">
+            <div class="stat-card wfm-card">
+              <span class="label">Turno del Día</span>
+              <div style="display:flex; align-items:center; margin-bottom:10px;">
+                <span id="wfm-status-dot" class="status-dot status-offline"></span>
+                <span id="wfm-status-text" style="font-weight:700; font-size:14px;">Cargando...</span>
+              </div>
+              <div style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">
+                Jornada: <b id="wfm-jornada" style="color:var(--text-main)">--:--</b>
+              </div>
+              <span class="label" style="font-size:10px;">Próximo: <span id="wfm-next">--</span></span>
+              <div class="countdown-timer" id="wfm-countdown">00:00</div>
+            </div>
+            <div class="stat-card">
+              <span class="label">Exitosos</span>
+              <div class="value" id="stat-efectivos" style="color: var(--secondary)">0</div>
+              <div class="sub-text" style="color: var(--secondary)">Gestiones de hoy</div>
+            </div>
+            <div class="stat-card">
+              <span class="label">Devueltos</span>
+              <div class="value" id="stat-devueltos" style="color: var(--error)">0</div>
+              <div class="sub-text" style="color: var(--error)">Errores hoy</div>
+            </div>
+            <div class="stat-card">
+              <span class="label">Eficiencia</span>
+              <div class="value" id="stat-total">0%</div>
+              <div class="sub-text" style="color: var(--primary)">Rendimiento global</div>
+            </div>
+          </div>
 
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
+          <div class="section-card">
+            <div class="section-header">
+              <h3>Historial Reciente</h3>
+            </div>
+            <div id="history-list">
+              <!-- Activity rows -->
+            </div>
+          </div>
+        </section>
 
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
+        <!-- VIEW: REGISTRY -->
+        <section id="view-registry" class="view-container">
+          <div class="form-box">
+            <div class="form-title">
+              <h2>Nueva Radicación</h2>
+              <p>Completa los datos del radicado procesado</p>
+            </div>
+            <div class="input-group">
+              <label>Código de Radicado</label>
+              <input type="text" id="reg-radicado" class="input-field" placeholder="PQ-XXXXXXX">
+            </div>
+            <div class="input-group">
+              <label>Fecha del Caso</label>
+              <input type="date" id="reg-fecha" class="input-field">
+            </div>
+            <div class="checkbox-item" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-devuelto">
+              <span>¿Devuelto por errores?</span>
+            </div>
+            <div class="checkbox-item" onclick="this.querySelector('input').click()">
+              <input type="checkbox" id="reg-snc">
+              <span>Requiere seguimiento de calidad (SNC)</span>
+            </div>
+            <div class="input-group">
+              <label>Observaciones</label>
+              <textarea id="reg-obs" class="input-field" style="min-height: 120px; resize: none;" placeholder="Escribe detalles adicionales..."></textarea>
+            </div>
+            <button class="btn-primary" id="btn-save-reg" onclick="submitRegistration()">
+              <span>Registrar Radicado</span>
+            </button>
+          </div>
+        </section>
 
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
+        <!-- VIEW: SNC -->
+        <section id="view-snc" class="view-container">
+          <div class="form-box" style="margin-bottom: 32px;">
+            <div class="input-group">
+              <label>Buscar Radicado SNC</label>
+              <div style="display: flex; gap: 12px;">
+                <input type="text" id="snc-search" class="input-field" placeholder="CÓDIGO RADICADO">
+                <button class="btn-primary" style="width: auto; padding: 0 24px;" onclick="handleSncSearch()">Buscar</button>
+              </div>
+            </div>
+          </div>
+          <div id="snc-result" style="display: none;"></div>
+        </section>
 
-    let pec=res.pec*100; let penc=res.penc*100;
+        <!-- VIEW: SEARCH -->
+        <section id="view-search" class="view-container">
+          <div class="form-box" style="margin-bottom: 32px;">
+            <div class="input-group">
+              <label>Búsqueda en Base de Datos</label>
+              <div style="display: flex; gap: 12px;">
+                <input type="text" id="db-search" class="input-field" placeholder="INGRESE EL RADICADO">
+                <button class="btn-primary" style="width: auto; padding: 0 24px;" onclick="handleDbSearch()">Consultar</button>
+              </div>
+            </div>
+          </div>
+          <div id="search-result" style="display: none;"></div>
+        </section>
 
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
+        <!-- VIEW: NOTIFICATIONS -->
+        <section id="view-notifications" class="view-container">
+          <div id="notifications-list" style="display: grid; gap: 16px;">
+            <!-- Notifications items -->
+          </div>
+        </section>
 
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
+        <!-- VIEW: CHAT -->
+        <section id="view-chat" class="view-container">
+          <div class="chat-container">
+            <div id="chat-messages"></div>
+            <div class="chat-input-area">
+              <select id="chat-dest" class="input-field" style="width: 140px; padding: 10px;">
+                <option value="TODOS">Canal Grupal</option>
+              </select>
+              <input type="text" id="chat-msg" class="input-field" placeholder="Escribe un mensaje para el equipo...">
+              <button class="btn-primary" style="width: auto; padding: 12px 24px;" onclick="handleChatSend()">Enviar</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <div id="wfm-modal" class="fullscreen-overlay" style="display:none">
+    <div class="alert-box">
+      <div class="brand-logo" style="margin:0 auto 20px;">P</div>
+      <h1 style="font-family:'Poppins'; margin-bottom:10px; color:var(--primary);">Alerta de Horario</h1>
+      <h2 id="wfm-alert-msg" style="font-size:24px; margin-bottom:40px;">Inicio de Almuerzo</h2>
+      <button class="btn-primary" onclick="closeWfmAlert()">
+        <span>Entendido / Detener Alerta</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let SESSION = null;
+    let LAST_CHAT_TOTAL = 0;
+    let LAST_CHAT_SEEN = 0;
+    let LAST_NOTIF_TOTAL = 0;
+    let LAST_NOTIF_SEEN = 0;
+    let POLL_CHAT = null;
+    let POLL_NOTIF = null;
+    let CURRENT_SHIFT = null;
+    let ALERT_INTERVAL = null;
+    let ACTIVE_WFM_NOTIF = null;
+
+    // --- INIT ---
+    window.onload = () => {
+      loadUsers();
+      const saved = localStorage.getItem('pbpo_session');
+      if (saved) {
+        SESSION = JSON.parse(saved);
+        startApp();
+      }
+      document.getElementById('live-date').innerText = new Date().toLocaleDateString('es-ES', { day:'numeric', month:'short', year:'numeric' });
+    };
+
+    function loadUsers() {
+      google.script.run.withSuccessHandler(users => {
+        const select = document.getElementById('login-user');
+        select.innerHTML = '<option value="">Selecciona funcionario...</option>';
+        users.forEach(u => {
+          select.innerHTML += `<option value="${u.id}">${u.nombre}</option>`;
+        });
+        if (SESSION) setupChatDestinations(users);
+      }).obtenerUsuarios();
     }
 
-    let estado="", color="#B7D400", porcentaje = 0;
+    function startApp() {
+      document.getElementById('login-view').style.opacity = '0';
+      setTimeout(() => {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('user-name').innerText = SESSION.nombre;
+        document.getElementById('user-avatar').innerText = SESSION.nombre[0];
 
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
+        refreshDashboard();
+        loadShift();
 
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
+        if (POLL_CHAT) clearInterval(POLL_CHAT);
+        if (POLL_NOTIF) clearInterval(POLL_NOTIF);
 
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
+        POLL_CHAT = setInterval(refreshChat, 4000);
+        POLL_NOTIF = setInterval(refreshNotifs, 10000);
+
+        setInterval(updateWFM, 1000);
+        setInterval(() => {
+          if (SESSION) google.script.run.verificarHorarios(SESSION.nombre);
+        }, 60000);
+
+        refreshChat();
+        refreshNotifs();
+        setupChatDestinations();
+      }, 500);
     }
 
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
+    function setupChatDestinations(usersList) {
+      if (!usersList) {
+        google.script.run.withSuccessHandler(l => setupChatDestinations(l)).obtenerUsuarios();
+        return;
+      }
+      const dest = document.getElementById('chat-dest');
+      dest.innerHTML = '<option value="TODOS">Canal Grupal</option>';
+      usersList.forEach(u => {
+        if (u.id !== SESSION.id) {
+          dest.innerHTML += `<option value="${u.id}">${u.id}</option>`;
+        }
+      });
+    }
 
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
+    function switchView(viewId, el) {
+      document.querySelectorAll('.view-container').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+      document.getElementById(`view-${viewId}`).classList.add('active');
+      el.classList.add('active');
 
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
+      const names = {
+        'dashboard': 'Panel de Control',
+        'registry': 'Nueva Radicación',
+        'snc': 'Gestión de Calidad (SNC)',
+        'search': 'Búsqueda Global',
+        'notifications': 'Centro de Notificaciones',
+        'chat': 'Comunicación Interna'
+      };
+      document.getElementById('current-view-name').innerText = names[viewId];
 
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
+      if (viewId === 'dashboard') refreshDashboard();
+      if (viewId === 'notifications') {
+        document.getElementById('badge-notif').classList.remove('active');
+        refreshNotifs();
+      }
+      if (viewId === 'chat') {
+        document.getElementById('badge-chat').classList.remove('active');
+        refreshChat();
+      }
+    }
 
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
+    function handleLogin() {
+      const u = document.getElementById('login-user').value;
+      const p = document.getElementById('login-pass').value;
+      if (!u || !p) return showToast('Datos incompletos', 'error');
 
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
+      const btn = document.getElementById('btn-login-action');
+      btn.disabled = true;
+      btn.innerText = 'Verificando...';
+
+      google.script.run.withSuccessHandler(res => {
+        btn.disabled = false;
+        btn.innerText = 'Entrar al sistema';
+        if (res.success) {
+          SESSION = res.user;
+          localStorage.setItem('pbpo_session', JSON.stringify(SESSION));
+          startApp();
+        } else {
+          showToast(res.message, 'error');
+        }
+      }).login(u, p);
+    }
+
+    function logout() {
+      localStorage.removeItem('pbpo_session');
+      SESSION = null;
+      CURRENT_SHIFT = null;
+      if (POLL_CHAT) clearInterval(POLL_CHAT);
+      if (POLL_NOTIF) clearInterval(POLL_NOTIF);
+      stopAlertSound();
+
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login-view').style.display = 'flex';
+      setTimeout(() => {
+        document.getElementById('login-view').style.opacity = '1';
+      }, 50);
+
+      document.getElementById('login-pass').value = '';
+      showToast('Sesión cerrada correctamente');
+    }
+
+    function submitRegistration() {
+      const data = {
+        radicado: document.getElementById('reg-radicado').value,
+        fecha: document.getElementById('reg-fecha').value,
+        devuelto: document.getElementById('reg-devuelto').checked,
+        sncProceso: document.getElementById('reg-snc').checked,
+        observacion: document.getElementById('reg-obs').value,
+        funcionaria: SESSION.nombre
+      };
+
+      if (!data.radicado) return showToast('El radicado es obligatorio', 'error');
+      if (data.sncProceso && !data.fecha) return showToast('Se requiere fecha para reporte SNC', 'error');
+
+      const btn = document.getElementById('btn-save-reg');
+      btn.disabled = true;
+      btn.innerText = 'Guardando...';
+
+      google.script.run.withSuccessHandler(() => {
+        showToast('Radicado registrado con éxito');
+        resetRegForm();
+        refreshDashboard();
+        btn.disabled = false;
+        btn.innerText = 'Registrar Radicado';
+      }).withFailureHandler(err => {
+        showToast(err.message, 'error');
+        btn.disabled = false;
+        btn.innerText = 'Registrar Radicado';
+      }).guardarRadicacion(data);
+    }
+
+    function resetRegForm() {
+      document.getElementById('reg-radicado').value = '';
+      document.getElementById('reg-fecha').value = '';
+      document.getElementById('reg-devuelto').checked = false;
+      document.getElementById('reg-snc').checked = false;
+      document.getElementById('reg-obs').value = '';
+    }
+
+    function refreshDashboard() {
+      google.script.run.withSuccessHandler(res => {
+        document.getElementById('stat-efectivos').innerText = res.efectivos;
+        document.getElementById('stat-devueltos').innerText = res.devueltos;
+        document.getElementById('stat-total').innerText = res.total > 0 ? Math.round((res.efectivos / res.total) * 100) + '%' : '0%';
+      }).obtenerResumenHoy(SESSION.nombre);
+
+      google.script.run.withSuccessHandler(data => {
+        const list = document.getElementById('history-list');
+        list.innerHTML = data.length ? '' : '<p style="padding:40px; text-align:center; color:var(--text-muted);">No hay registros recientes</p>';
+        data.forEach(item => {
+          const isDev = item.devuelto && (item.devuelto.toString().toLowerCase() === 'si' || item.devuelto.toString().toLowerCase() === 'sí');
+          list.innerHTML += `
+            <div class="history-row">
+              <div class="row-main">
+                <b>${item.radicado}</b>
+                <span>${item.fecha}</span>
+              </div>
+              <span class="status-pill ${isDev ? 'error' : 'success'}">${isDev ? 'Devuelto' : 'Exitoso'}</span>
+            </div>
+          `;
+        });
+      }).obtenerHistorial(SESSION.nombre);
+    }
+
+    function handleSncSearch() {
+      const rad = document.getElementById('snc-search').value;
+      if (!rad) return;
+
+      google.script.run.withSuccessHandler(res => {
+        const view = document.getElementById('snc-result');
+        view.style.display = 'block';
+        if (!res) {
+          view.innerHTML = '<div class="form-box" style="color:var(--error); text-align:center; font-weight:600;">Radicado no encontrado en sistema</div>';
+          return;
+        }
+        view.innerHTML = `
+          <div class="form-box">
+            <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
+              <h3>Radicado: ${res.radicado}</h3>
+              <span class="status-pill" style="background:var(--primary); color:white">${res.estado}</span>
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Asesor Responsable</label>
+              <div style="font-weight:600;">${res.funcionaria}</div>
+            </div>
+            <div style="margin-bottom:32px;">
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Observación Original</label>
+              <p style="font-style:italic; font-size:14px; margin-top:4px;">"${res.observacion || 'Sin detalles'}"</p>
+            </div>
+            ${res.canClose ? `<button class="btn-primary" onclick="closeSnc('${res.row}')">Marcar como Solucionado</button>` : ''}
+          </div>
+        `;
+      }).buscarSNC(rad);
+    }
+
+    function closeSnc(id) {
+      google.script.run.withSuccessHandler(() => {
+        showToast('SNC Cerrado correctamente');
+        handleSncSearch();
+      }).marcarSolucionado(Number(id));
+    }
+
+    function handleDbSearch() {
+      const rad = document.getElementById('db-search').value;
+      if (!rad) return;
+
+      google.script.run.withSuccessHandler(res => {
+        const view = document.getElementById('search-result');
+        view.style.display = 'block';
+        if (!res) {
+          view.innerHTML = '<div class="form-box" style="color:var(--error); text-align:center; font-weight:600;">No existe registro en la base de datos</div>';
+          return;
+        }
+        view.innerHTML = `
+          <div class="form-box">
+            <div style="margin-bottom:24px; text-align:center;">
+              <h3 style="color:var(--primary)">Resultado Encontrado</h3>
+            </div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-bottom:24px;">
+              <div>
+                <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Registrado por</label>
+                <div style="font-weight:600; font-size:16px;">${res.funcionaria}</div>
+              </div>
+              <div>
+                <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Fecha de Registro</label>
+                <div style="font-weight:600; font-size:16px;">${res.fecha}</div>
+              </div>
+            </div>
+            <div>
+              <label style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">Observaciones</label>
+              <p style="font-style:italic; font-size:14px; margin-top:4px; border-left:4px solid var(--primary); padding-left:16px;">"${res.observacion || 'Sin detalles adicionales'}"</p>
+            </div>
+          </div>
+        `;
+      }).buscarGeneral(rad);
+    }
+
+    function refreshNotifs() {
+      google.script.run.withSuccessHandler(data => {
+        const b = document.getElementById('badge-notif');
+        const activeView = document.querySelector('.view-container.active').id;
+        if (data.length > LAST_NOTIF_TOTAL) playAlert();
+        LAST_NOTIF_TOTAL = data.length;
+
+        if (activeView === 'view-notifications') {
+          LAST_NOTIF_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_NOTIF_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
           } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
+            b.classList.remove('active');
           }
         }
 
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
+        const list = document.getElementById('notifications-list');
+        list.innerHTML = data.length ? '' : '<div class="section-card" style="padding:48px; text-align:center; color:var(--text-muted);">No tienes notificaciones pendientes</div>';
+        data.forEach(n => {
+          if (n.radicado === 'HORARIO' && !document.getElementById('wfm-modal').offsetParent) {
+            showWfmAlert(n);
+          }
+          list.innerHTML += `
+            <div class="section-card" style="padding:24px 32px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b style="font-size:16px; display:block; margin-bottom:4px;">${n.radicado}</b>
+                <p style="font-size:14px; color:var(--text-muted);">${n.mensaje}</p>
+                <span style="font-size:10px; margin-top:8px; display:block; color:var(--primary); font-weight:600;">${n.fecha}</span>
+              </div>
+              <button class="btn-primary" style="width:auto; padding:10px 20px; font-size:12px;" onclick="markRead(${n.id})">Entendido</button>
+            </div>
           `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
+        });
+      }).obtenerNotificaciones(SESSION.nombre);
+    }
 
-  }).login(usuario,password);
-}
-</script>
+    function markRead(id) {
+      google.script.run.withSuccessHandler(() => refreshNotifs()).marcarRecibido(id);
+    }
+
+    function refreshChat() {
+      google.script.run.withSuccessHandler(data => {
+        const b = document.getElementById('badge-chat');
+        const activeView = document.querySelector('.view-container.active').id;
+        if (data.length > LAST_CHAT_TOTAL) {
+          const lastMsg = data[data.length - 1];
+          if (lastMsg.usuario !== SESSION.nombre) playAlert();
+        }
+        LAST_CHAT_TOTAL = data.length;
+
+        if (activeView === 'view-chat') {
+          LAST_CHAT_SEEN = data.length;
+          b.classList.remove('active');
+        } else {
+          const unread = data.length - LAST_CHAT_SEEN;
+          if (unread > 0) {
+            b.innerText = unread;
+            b.classList.add('active');
+          } else {
+            b.classList.remove('active');
+          }
+        }
+
+        const box = document.getElementById('chat-messages');
+        const isAtBottom = box.scrollHeight - box.clientHeight <= box.scrollTop + 1;
+        box.innerHTML = '';
+        data.forEach(m => {
+          const isOwn = m.usuario === SESSION.nombre;
+          box.innerHTML += `
+            <div class="chat-msg ${isOwn ? 'own' : 'other'}">
+              <div class="chat-info">${isOwn ? 'Tú' : m.usuario} • ${m.fecha}</div>
+              <div>${m.mensaje}</div>
+            </div>
+          `;
+        });
+        if (isAtBottom) box.scrollTop = box.scrollHeight;
+      }).obtenerChat(SESSION.nombre);
+    }
+
+    function handleChatSend() {
+      const msg = document.getElementById('chat-msg').value;
+      if (!msg) return;
+      google.script.run.withSuccessHandler(() => {
+        document.getElementById('chat-msg').value = '';
+        refreshChat();
+      }).enviarMensajeChat({
+        usuario: SESSION.nombre,
+        mensaje: msg,
+        destinatario: document.getElementById('chat-dest').value
+      });
+    }
+
+    function showToast(text, type = 'success') {
+      const t = document.getElementById('toast');
+      t.innerText = text;
+      t.className = type === 'error' ? 'active error' : 'active';
+      setTimeout(() => t.classList.remove('active'), 4000);
+    }
+
+    function playAlert() {
+      const audio = document.getElementById('alert-sound');
+      if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(() => {});
+      }
+    }
+
+    // --- WFM LOGIC ---
+    function loadShift() {
+      google.script.run.withSuccessHandler(res => {
+        CURRENT_SHIFT = res;
+        updateWFM();
+      }).obtenerHorarioHoy(SESSION.nombre);
+    }
+
+    function parseTime(str) {
+      if (!str || str === 'Sin break' || str === '-' || str === 'DESCANSO') return null;
+      const match = str.toLowerCase().match(/(\d+):(\d+)(am|pm)/);
+      if (!match) return null;
+      let hours = parseInt(match[1], 10);
+      const mins = parseInt(match[2], 10);
+      const mod = match[3];
+      if (hours === 12 && mod === 'am') hours = 0;
+      else if (hours !== 12 && mod === 'pm') hours += 12;
+      const d = new Date();
+      d.setHours(hours, mins, 0, 0);
+      return d;
+    }
+
+    function updateWFM() {
+       if (!CURRENT_SHIFT || !document.getElementById('wfm-status-text')) return;
+       const now = new Date();
+       let status = "Fuera de turno";
+       let colorClass = "status-offline";
+       let nextEvent = null;
+       let nextLabel = "";
+
+       if (CURRENT_SHIFT.descanso) {
+         status = "Día de Descanso";
+       } else {
+         const jornadaArr = CURRENT_SHIFT.jornada.split(' a ');
+         const almuerzoArr = CURRENT_SHIFT.almuerzo.split(' a ');
+         const b1Arr = (CURRENT_SHIFT.break1 && CURRENT_SHIFT.break1.includes(' a ')) ? CURRENT_SHIFT.break1.split(' a ') : null;
+         const b2Arr = (CURRENT_SHIFT.break2 && CURRENT_SHIFT.break2.includes(' a ')) ? CURRENT_SHIFT.break2.split(' a ') : null;
+
+         const jornada = { start: parseTime(jornadaArr[0]), end: parseTime(jornadaArr[1]) };
+         const almuerzo = { start: parseTime(almuerzoArr[0]), end: parseTime(almuerzoArr[1]) };
+         const b1 = b1Arr ? { start: parseTime(b1Arr[0]), end: parseTime(b1Arr[1]) } : null;
+         const b2 = b2Arr ? { start: parseTime(b2Arr[0]), end: parseTime(b2Arr[1]) } : null;
+
+         const events = [
+           { t: jornada.start, l: "Inicio Jornada", type: "in" },
+           { t: jornada.end, l: "Fin Jornada", type: "out" },
+           { t: almuerzo.start, l: "Inicio Almuerzo", type: "lunch" },
+           { t: almuerzo.end, l: "Fin Almuerzo", type: "in" },
+           { t: b1 ? b1.start : null, l: "Inicio Break 1", type: "break" },
+           { t: b1 ? b1.end : null, l: "Fin Break 1", type: "in" },
+           { t: b2 ? b2.start : null, l: "Inicio Break 2", type: "break" },
+           { t: b2 ? b2.end : null, l: "Fin Break 2", type: "in" }
+         ].filter(e => e.t);
+
+         events.sort((a,b) => a.t - b.t);
+
+         if (now < jornada.start || now > jornada.end) {
+           status = "Fuera de turno";
+           colorClass = "status-offline";
+         } else if (almuerzo && now >= almuerzo.start && now < almuerzo.end) {
+           status = "En almuerzo";
+           colorClass = "status-lunch";
+         } else if (b1 && b1.start && now >= b1.start && now < b1.end) {
+           status = "En break";
+           colorClass = "status-break";
+         } else if (b2 && b2.start && now >= b2.start && now < b2.end) {
+           status = "En break";
+           colorClass = "status-break";
+         } else {
+           status = "En jornada";
+           colorClass = "status-online";
+         }
+
+         const upcoming = events.filter(e => e.t > now);
+         if (upcoming.length > 0) {
+           nextEvent = upcoming[0].t;
+           nextLabel = upcoming[0].l;
+         }
+       }
+
+       document.getElementById('wfm-status-text').innerText = status;
+       document.getElementById('wfm-status-dot').className = 'status-dot ' + colorClass;
+       document.getElementById('wfm-jornada').innerText = CURRENT_SHIFT.descanso ? 'DESCANSO' : CURRENT_SHIFT.jornada;
+
+       if (nextEvent) {
+         const diff = nextEvent - now;
+         const mins = Math.floor(diff / 60000);
+         const secs = Math.floor((diff % 60000) / 1000);
+         document.getElementById('wfm-next').innerText = nextLabel;
+         document.getElementById('wfm-countdown').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+       } else {
+         document.getElementById('wfm-next').innerText = "Sin eventos";
+         document.getElementById('wfm-countdown').innerText = "--:--";
+       }
+    }
+
+    function showWfmAlert(n) {
+      ACTIVE_WFM_NOTIF = n.id;
+      document.getElementById('wfm-alert-msg').innerText = n.mensaje;
+      document.getElementById('wfm-modal').style.display = 'flex';
+      loopAlertSound();
+    }
+
+    function closeWfmAlert() {
+      stopAlertSound();
+      document.getElementById('wfm-modal').style.display = 'none';
+      if (ACTIVE_WFM_NOTIF) {
+        markRead(ACTIVE_WFM_NOTIF);
+        ACTIVE_WFM_NOTIF = null;
+      }
+    }
+
+    function loopAlertSound() {
+      playAlert();
+      if (ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
+      ALERT_INTERVAL = setInterval(playAlert, 3000);
+    }
+
+    function stopAlertSound() {
+      if (ALERT_INTERVAL) clearInterval(ALERT_INTERVAL);
+      ALERT_INTERVAL = null;
+    }
+  </script>
 </body>
 </html>
