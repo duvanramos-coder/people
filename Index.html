@@ -1,406 +1,633 @@
 <!DOCTYPE html>
 <html>
 <head>
+<base target="_top">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+:root {
+  --primary: #312B50;
+  --secondary: #BEDC16;
+  --bg: #F8F9FD;
+  --white: #FFFFFF;
+  --text-main: #312B50;
+  --text-muted: #6B7280;
+  --border: #E5E7EB;
+  --success: #10B981;
+  --error: #EF4444;
+  --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
+  background: radial-gradient(circle at top left, #312B50 0%, #1A162D 100%);
+  color: var(--text-main);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
 }
 
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
+header {
+  text-align: center;
+  margin-bottom: 30px;
+  color: var(--white);
+  animation: fadeInDown 0.8s ease-out;
+}
+
+header h2 {
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  font-size: 28px;
+  margin-bottom: 5px;
+}
+
+header small {
+  opacity: 0.7;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.container {
+  width: 100%;
+  max-width: 700px;
+  perspective: 1000px;
+  display: none; /* Hidden until login */
+}
 
 .card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
+  background: var(--white);
+  padding: 40px;
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  animation: cardEntrance 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.dashboard-header {
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: var(--secondary);
+}
+
+h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 25px;
+  color: var(--primary);
+}
+
+.form-group {
+  margin-bottom: 20px;
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.1s; }
+.form-group:nth-child(2) { animation-delay: 0.2s; }
+.form-group:nth-child(3) { animation-delay: 0.3s; }
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  background: #F9FAFB;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: white;
+  box-shadow: 0 0 0 4px rgba(49, 43, 80, 0.1);
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.grid {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.checks {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+  margin: 25px 0;
+}
+
+@media (min-width: 600px) {
+  .checks {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.check-item {
+  position: relative;
+  display: flex;
   align-items: center;
-  margin-bottom: 30px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12px;
+  font-weight: 500;
 }
 
-.header-info { text-align: center; }
-
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
-
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
+.check-item:hover {
+  background: #F3F4F6;
 }
 
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
+.check-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary);
 }
 
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
-
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
-
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
-
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
-
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
-
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
+.check-item.active {
+  border-color: var(--primary);
+  background: rgba(49, 43, 80, 0.05);
 }
 
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
-
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
-
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 16px;
+  background: var(--secondary);
+  color: var(--primary);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  filter: brightness(1.05);
 }
 
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
+.btn:active {
+  transform: translateY(0);
+}
+
+.btn:disabled {
+  background: #E5E7EB;
+  color: #9CA3AF;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--error);
+  color: var(--error);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 12px;
   font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  cursor: pointer;
+  margin-top: 20px;
   transition: all 0.2s;
 }
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
 
-.drive-icon { width: 14px; height: 14px; }
+.btn-logout:hover {
+  background: var(--error);
+  color: white;
+}
+
+.brand {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* LOGIN OVERLAY */
+.login-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at top left, #312B50 0%, #1A162D 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.login-card {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.login-card h1 {
+  font-size: 28px;
+  color: var(--primary);
+  margin-bottom: 5px;
+}
+
+.login-card h2 {
+  font-size: 18px;
+  color: var(--text-muted);
+  font-weight: 400;
+  margin-bottom: 30px;
+}
+
+.login-card .company {
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 20px;
+  display: block;
+}
+
+/* POPUP / MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(26, 22, 45, 0.8);
+  backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: white;
+  padding: 40px;
+  border-radius: 24px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  transform: scale(0.9);
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal.active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.modal-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 40px;
+}
+
+.modal-icon.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success);
+}
+
+.modal-icon.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.modal h3 {
+  margin-bottom: 10px;
+}
+
+.modal p {
+  color: var(--text-muted);
+  font-size: 14px;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+.modal-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.modal-btn.primary {
+  background: var(--primary);
+  color: white;
+}
+
+/* LOADER */
+.loader-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(49, 43, 80, 0.3);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* KEYFRAMES */
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes cardEntrance {
+  from { opacity: 0; transform: translateY(40px) rotateX(-5deg); }
+  to { opacity: 1; transform: translateY(0) rotateX(0); }
+}
+
 </style>
 </head>
 
 <body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-  </div>
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay">
+  <div class="login-card">
+    <h1>Bienvenido</h1>
+    <h2>Registro de Radicados</h2>
+    <span class="company">PEOPLE BPO</span>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
-      </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
-      </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
+    <div class="form-group" style="opacity: 1;">
+      <label for="loginUser">Seleccione su nombre</label>
+      <select id="loginUser">
+        <option value="">-- Seleccione --</option>
+        <option>Maria Aragones</option>
+        <option>Laura Buitrago</option>
+        <option>Joselyn Mendoza</option>
+      </select>
     </div>
 
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
+    <button class="btn" onclick="login()">Ingresar</button>
 
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
-      </div>
-    </div>
-
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
-
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
-    </div>
+    <p style="margin-top: 30px; font-size: 10px; color: var(--text-muted);">By Duvan Ramos 2026</p>
   </div>
 </div>
 
+<header id="mainHeader" style="display: none;">
+  <h2>RADICACIÓN - GESTIONES</h2>
+  <small>SISTEMA DE GESTIÓN INTERNA</small>
+  <div id="welcomeUser" style="margin-top: 10px; font-weight: 500;"></div>
+</header>
+
+<div class="container" id="mainContainer">
+  <div class="card">
+    <h3 style="text-align: center;">Registrar nueva gestión</h3>
+
+    <div class="grid">
+      <div class="form-group">
+        <label for="devuelto">¿Devuelto por errores?</label>
+        <select id="devuelto">
+          <option value="N/A">N/A</option>
+          <option>No</option>
+          <option>Sí</option>
+          <option>Gestionado por otro funcionario</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="radicado">Número de radicado</label>
+        <input type="text" id="radicado" placeholder="Ingrese el número">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="observacion">Observaciones detalladas</label>
+      <textarea id="observacion" placeholder="Escriba aquí las observaciones pertinentes..."></textarea>
+    </div>
+
+    <div class="checks">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" id="recibidoHoy">
+        <span>SNC Recibido hoy</span>
+      </label>
+
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" id="solucionadoHoy">
+        <span>SNC Solucionado hoy</span>
+      </label>
+
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" id="pqrsf">
+        <span>RADICADO</span>
+      </label>
+    </div>
+
+    <button class="btn" id="submitBtn" onclick="enviar()">
+      <span id="btnText">📥 Registrar gestión</span>
+      <div class="loader-spinner" id="btnLoader"></div>
+    </button>
+
+    <div style="text-align: center;">
+      <button class="btn-logout" onclick="logout()">Cerrar Sesión</button>
+    </div>
+
+    <p class="brand">By Duvan Ramos · 2026</p>
+  </div>
+</div>
+
+<!-- MODAL SYSTEM -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal">
+    <div class="modal-icon" id="modalIcon"></div>
+    <h3 id="modalTitle"></h3>
+    <p id="modalMessage"></p>
+    <button class="modal-btn primary" onclick="closeModal()">Entendido</button>
+  </div>
+</div>
+
+
 <script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
+window.onload = checkSession;
 
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
-    });
-  }).obtenerUsuarios();
+function checkSession() {
+  const usuario = localStorage.getItem('usuario_radicacion');
+  if (usuario) {
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('mainContainer').style.display = 'block';
+    document.getElementById('mainHeader').style.display = 'block';
+    document.getElementById('welcomeUser').innerText = 'Hola, ' + usuario;
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('mainContainer').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'none';
+  }
 }
-cargarUsuarios();
 
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
-  };
+function login() {
+  const user = document.getElementById('loginUser').value;
+  if (!user) {
+    alert('Por favor, seleccione su nombre.');
+    return;
+  }
+  localStorage.setItem('usuario_radicacion', user);
+  checkSession();
+}
 
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
+function logout() {
+  localStorage.removeItem('usuario_radicacion');
+  checkSession();
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('active');
+}
+
+function showModal(title, message, type) {
+  const overlay = document.getElementById('modalOverlay');
+  const modal = document.getElementById('modal');
+  const icon = document.getElementById('modalIcon');
+  const titleEl = document.getElementById('modalTitle');
+  const messageEl = document.getElementById('modalMessage');
+
+  titleEl.innerText = title;
+  messageEl.innerText = message;
+
+  if (type === 'error') {
+    icon.innerHTML = '✕';
+    icon.className = 'modal-icon error';
+  } else {
+    icon.innerHTML = '✓';
+    icon.className = 'modal-icon success';
   }
 
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
+  overlay.style.display = 'flex';
+  setTimeout(() => modal.classList.add('active'), 10);
 }
 
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
+function closeModal() {
+  const modal = document.getElementById('modal');
+  const overlay = document.getElementById('modalOverlay');
+  modal.classList.remove('active');
+  setTimeout(() => overlay.style.display = 'none', 300);
 }
 
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
+function setLoader(loading) {
+  const btn = document.getElementById('submitBtn');
+  const btnText = document.getElementById('btnText');
+  const loader = document.getElementById('btnLoader');
 
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
+  if (loading) {
+    btn.disabled = true;
+    btnText.style.opacity = '0';
+    loader.style.display = 'block';
+  } else {
+    btn.disabled = false;
+    btnText.style.opacity = '1';
+    loader.style.display = 'none';
+  }
+}
 
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
+function resetForm() {
+  document.getElementById("devuelto").value = "N/A";
+  document.getElementById("radicado").value = "";
+  document.getElementById("observacion").value = "";
+  document.getElementById("recibidoHoy").checked = false;
+  document.getElementById("solucionadoHoy").checked = false;
+  document.getElementById("pqrsf").checked = false;
 
-    let pec=res.pec*100; let penc=res.penc*100;
+  // Reset active classes on check labels
+  document.querySelectorAll('.check-item').forEach(el => el.classList.remove('active'));
+}
 
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
+function enviar() {
+  const usuario = localStorage.getItem('usuario_radicacion');
 
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
-    }
+  const data = {
+    funcionaria: usuario,
+    devuelto: document.getElementById("devuelto").value,
+    radicado: document.getElementById("radicado").value,
+    observacion: document.getElementById("observacion").value,
+    recibidoHoy: document.getElementById("recibidoHoy").checked,
+    solucionadoHoy: document.getElementById("solucionadoHoy").checked,
+    pqrsf: document.getElementById("pqrsf").checked
+  };
 
-    let estado="", color="#B7D400", porcentaje = 0;
+  if (!data.funcionaria) {
+    showModal("Sesión expirada", "Por favor, inicie sesión nuevamente.", "error");
+    logout();
+    return;
+  }
 
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
+  setLoader(true);
 
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
-    }
-
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
-
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
-
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
-
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
-          } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
-          }
-        }
-
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-          `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
-
-  }).login(usuario,password);
+  google.script.run
+    .withSuccessHandler(function() {
+      setLoader(false);
+      showModal("¡Excelente!", "La gestión ha sido registrada correctamente en el sistema.", "success");
+      resetForm();
+    })
+    .withFailureHandler(function(e) {
+      setLoader(false);
+      showModal("Error en el registro", e.message, "error");
+    })
+    .guardarRadicacion(data);
 }
 </script>
+
 </body>
 </html>
