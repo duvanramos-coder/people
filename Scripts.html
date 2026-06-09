@@ -1,0 +1,639 @@
+<script>
+  let allData = [];
+  let filteredData = [];
+  let charts = {};
+  let currentPage = 1;
+  const rowsPerPage = 10;
+  let currentSort = { column: null, direction: 'asc' };
+  let currentUser = null;
+  let heartbeatInterval = null;
+  let onlineAgentsPolling = null;
+  let assignedCheckInterval = null;
+  let activityPolling = null;
+  let lastAssignedCount = 0;
+
+  // --- Initialization ---
+  document.addEventListener('DOMContentLoaded', () => {
+    lucide.createIcons();
+    checkSession();
+    loadLoginUsers();
+
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('pqrsf_theme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+  });
+
+  function checkSession() {
+    const session = localStorage.getItem('pqrsf_session');
+    if (session) {
+      currentUser = JSON.parse(session);
+      showViewByRole(currentUser.role);
+      startHeartbeat();
+    } else {
+      showView('loginView');
+    }
+  }
+
+  function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (!currentUser) return;
+    google.script.run.registrarSesion(currentUser.nombre);
+    heartbeatInterval = setInterval(() => {
+      google.script.run.registrarSesion(currentUser.nombre);
+    }, 5 * 60 * 1000);
+  }
+
+  function loadLoginUsers() {
+    google.script.run
+      .withSuccessHandler(users => {
+        const selectLogin = document.getElementById('agentSelect');
+        if (selectLogin) {
+          selectLogin.innerHTML = '<option value="" disabled selected>Selecciona tu perfil...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectLogin.appendChild(opt);
+          });
+        }
+        const selectAssign = document.getElementById('assignAgentSelect');
+        if (selectAssign) {
+          selectAssign.innerHTML = '<option value="" disabled selected>Seleccionar asesor...</option>';
+          users.forEach(u => {
+            const opt = document.createElement('option');
+            opt.value = u.nombre;
+            opt.textContent = u.nombre;
+            selectAssign.appendChild(opt);
+          });
+        }
+      })
+      .obtenerUsuarios();
+  }
+
+  // --- Authentication ---
+  function handleLogin(e) {
+    e.preventDefault();
+    const user = document.getElementById('agentSelect').value;
+    const pass = document.getElementById('password').value;
+    const errorDiv = document.getElementById('loginError');
+    const btn = document.getElementById('btnLogin');
+
+    errorDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-sm"></span> Autenticando...';
+
+    google.script.run
+      .withSuccessHandler(res => {
+        if (res.success) {
+          currentUser = res;
+          localStorage.setItem('pqrsf_session', JSON.stringify(res));
+          showViewByRole(res.role);
+          startHeartbeat();
+        } else {
+          errorDiv.textContent = res.message;
+          errorDiv.style.display = 'block';
+          btn.disabled = false;
+          btn.innerHTML = '<span>Autenticar y Entrar</span> <i data-lucide="log-in"></i>';
+          lucide.createIcons();
+        }
+      })
+      .withFailureHandler(err => {
+        errorDiv.textContent = "Error de conexión: " + err.message;
+        errorDiv.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = '<span>Autenticar y Entrar</span> <i data-lucide="log-in"></i>';
+        lucide.createIcons();
+      })
+      .validarLogin(user, pass);
+  }
+
+  function handleLogout() {
+    if (currentUser) google.script.run.eliminarSesion(currentUser.nombre);
+    localStorage.removeItem('pqrsf_session');
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    if (activityPolling) clearInterval(activityPolling);
+    currentUser = null;
+    activeCase = null;
+    showView('loginView');
+  }
+
+  function togglePassword() {
+    const passInput = document.getElementById('password');
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      toggleBtn.textContent = 'HIDE';
+    } else {
+      passInput.type = 'password';
+      toggleBtn.textContent = 'SHOW';
+    }
+  }
+
+  // --- Navigation & Routing ---
+  function showViewByRole(role) {
+    if (role === 'admin') {
+      showView('adminView');
+      fetchData();
+      startAdminPolling();
+    } else {
+      showView('agentView');
+      fetchAgentInitialData();
+      startAssignedPolling();
+    }
+  }
+
+  function showView(viewId) {
+    document.querySelectorAll('.view-container').forEach(v => {
+      v.style.display = 'none';
+      v.classList.remove('active');
+    });
+    const target = document.getElementById(viewId);
+    if (!target) return;
+    target.style.display = 'block';
+    target.classList.add('active');
+    lucide.createIcons();
+  }
+
+  function showAgentSection(section) {
+    document.querySelectorAll('.agent-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+    const target = document.getElementById('agent-section-' + section);
+    if(target) target.style.display = section === 'gestion' ? 'grid' : 'block';
+    const nav = document.getElementById('nav-' + section);
+    if(nav) nav.classList.add('active');
+    if (section === 'historial') cargarHistorialAsesor();
+    else if (section === 'asignados') cargarAsignadosAsesor();
+    lucide.createIcons();
+  }
+
+  // --- Data Fetching & Refresh ---
+  function fetchData() {
+    toggleLoader(true);
+    google.script.run
+      .withSuccessHandler(data => {
+        allData = data;
+        filteredData = [...allData];
+        initializeFilters();
+        updateDashboard();
+        toggleLoader(false);
+      })
+      .withFailureHandler(err => {
+        showNotification('error', 'Error de Carga', err.message);
+        toggleLoader(false);
+      })
+      .getPQRSFData();
+  }
+
+  function refreshData() { fetchData(); }
+
+  // --- Polling Systems ---
+  function startAdminPolling() {
+    if (onlineAgentsPolling) clearInterval(onlineAgentsPolling);
+    updateOnlineAgents();
+    onlineAgentsPolling = setInterval(updateOnlineAgents, 30 * 1000);
+    if (activityPolling) clearInterval(activityPolling);
+    activityPolling = setInterval(pollActivity, 30 * 1000);
+  }
+
+  function startAssignedPolling() {
+    if (assignedCheckInterval) clearInterval(assignedCheckInterval);
+    assignedCheckInterval = setInterval(() => {
+      google.script.run
+        .withSuccessHandler(assigned => {
+          const badge = document.getElementById('assignedCountBadge');
+          const currentCount = assigned.length;
+          if (currentCount > 0) {
+            badge.textContent = currentCount; badge.style.display = 'inline-block';
+            if (currentCount > lastAssignedCount) showNotification('success', 'Nuevo Radicado', `Se te ha asignado ${currentCount - lastAssignedCount} nuevo(s) radicado(s).`);
+          } else badge.style.display = 'none';
+          lastAssignedCount = currentCount;
+        })
+        .obtenerAsignadosAsesor(currentUser.nombre);
+    }, 60000);
+  }
+
+  function updateOnlineAgents() {
+    google.script.run
+      .withSuccessHandler(agents => {
+        const container = document.getElementById('onlineAgentsContainer');
+        if (!container) return;
+        if (agents.length === 0) {
+          container.innerHTML = '<p class="text-muted text-center mt-1">No hay agentes en línea</p>';
+          return;
+        }
+        container.innerHTML = agents.map(a => `
+          <div class="rank-item">
+            <div class="d-flex flex-column">
+              <span class="rank-name">${a.nombre}</span>
+              <small class="text-muted" style="font-size: 0.65rem;">${a.tiempo}</small>
+            </div>
+            <span class="status-pill small ${a.enGestion ? 'warning' : 'green'}">${a.enGestion ? 'En gestión' : 'Disponible'}</span>
+          </div>
+        `).join('');
+      })
+      .obtenerAgentesConectados();
+  }
+
+  function pollActivity() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    google.script.run.withSuccessHandler(res => {
+      if (res.success && res.eventos) res.eventos.forEach(event => showToastNotification(event.mensaje, event.id));
+    }).obtenerActividadReciente();
+  }
+
+  function showToastNotification(mensaje, id) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const toastId = 'toast-' + id;
+    if (document.getElementById(toastId)) return;
+    const toast = document.createElement('div');
+    toast.id = toastId; toast.className = 'glass-card fade-in';
+    toast.style.padding = '1rem'; toast.style.width = '300px'; toast.style.borderLeft = '4px solid var(--success)';
+    toast.style.pointerEvents = 'auto'; toast.style.boxShadow = '0 10px 30px rgba(0,0,0,0.2)';
+    toast.innerHTML = `
+      <div class="d-flex justify-content-between align-items-start mb-1">
+        <strong style="font-size: 0.7rem; color: var(--success); text-transform: uppercase;">Actividad Reciente</strong>
+        <button onclick="this.parentElement.parentElement.remove()" style="background:none; border:none; color:var(--text-muted); padding:0; line-height:1; cursor:pointer;"><i data-lucide="x" style="width:14px;"></i></button>
+      </div>
+      <div style="font-size: 0.85rem; font-weight: 500;">${mensaje}</div>`;
+    container.appendChild(toast);
+    lucide.createIcons();
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 8000);
+  }
+
+  // --- Filtering & Table ---
+  function initializeFilters() {
+    const months = [...new Set(allData.map(d => {
+      if(!d.fechaCofrem) return null;
+      const date = new Date(d.fechaCofrem);
+      return date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+    }).filter(Boolean))].sort();
+    const companies = [...new Set(allData.map(d => d.empresa).filter(Boolean))].sort();
+    const channels = [...new Set(allData.map(d => d.canal).filter(Boolean))].sort();
+    const statuses = [...new Set(allData.map(d => d.estado).filter(Boolean))].sort();
+    const advisors = [...new Set(allData.map(d => d.asesor).filter(Boolean))].sort();
+    populateSelect('filterMonth', months, "Mes (Cofrem)");
+    populateSelect('filterCompany', companies, "Empresa");
+    populateSelect('filterChannel', channels, "Canal");
+    populateSelect('filterStatus', statuses, "Estado");
+    populateSelect('filterAdvisor', advisors, "Asesor");
+  }
+
+  function populateSelect(id, values, label) {
+    const select = document.getElementById(id); if(!select) return;
+    const currentValue = select.value;
+    select.innerHTML = `<option value="">Todos los ${label}</option>`;
+    values.forEach(v => { const opt = document.createElement('option'); opt.value = v; opt.textContent = v.charAt(0).toUpperCase() + v.slice(1); select.appendChild(opt); });
+    select.value = currentValue;
+  }
+
+  function applyFilters() {
+    const month = document.getElementById('filterMonth').value;
+    const company = document.getElementById('filterCompany').value;
+    const channel = document.getElementById('filterChannel').value;
+    const status = document.getElementById('filterStatus').value;
+    const advisor = document.getElementById('filterAdvisor') ? document.getElementById('filterAdvisor').value : '';
+    const dateFrom = document.getElementById('searchDateFrom') ? document.getElementById('searchDateFrom').value : '';
+    const dateTo = document.getElementById('searchDateTo') ? document.getElementById('searchDateTo').value : '';
+    const nameSearch = document.getElementById('searchName') ? document.getElementById('searchName').value.toLowerCase() : '';
+    const phoneSearch = document.getElementById('searchPhone') ? document.getElementById('searchPhone').value : '';
+
+    filteredData = allData.filter(d => {
+      const dMonth = d.fechaCofrem ? new Date(d.fechaCofrem).toLocaleString('es-ES', { month: 'long', year: 'numeric' }) : null;
+      const matchBase = (!month || dMonth === month) && (!company || d.empresa === company) && (!channel || d.canal === channel) && (!status || d.estado === status) && (!advisor || d.asesor === advisor);
+      const dDate = d.fechaCofrem ? new Date(d.fechaCofrem).toISOString().split('T')[0] : null;
+      const matchDate = (!dateFrom || (dDate && dDate >= dateFrom)) && (!dateTo || (dDate && dDate <= dateTo));
+      const matchName = !nameSearch || (d.nombre && d.nombre.toLowerCase().includes(nameSearch));
+      const matchPhone = !phoneSearch || (d.telefono && d.telefono.includes(phoneSearch));
+      return matchBase && matchDate && matchName && matchPhone;
+    });
+    currentPage = 1; updateDashboard();
+  }
+
+  function filterTable() {
+    const query = document.getElementById('tableSearch').value.toLowerCase();
+    const rows = document.getElementById('tableBody').getElementsByTagName('tr');
+    for (let i = 0; i < rows.length; i++) { const text = rows[i].textContent.toLowerCase(); rows[i].style.display = text.includes(query) ? "" : "none"; }
+  }
+
+  function sortTable(n) {
+    const columns = ['radicado', 'nombre', 'empresa', 'estado', 'canal', 'efectividad'];
+    const key = columns[n];
+    if (currentSort.column === key) currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    else { currentSort.column = key; currentSort.direction = 'asc'; }
+    filteredData.sort((a, b) => {
+      let valA = a[key] || ""; let valB = b[key] || "";
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+      if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+    currentPage = 1; renderTable();
+  }
+
+  function changePage(delta) { currentPage += delta; renderTable(); }
+
+  // --- Dashboard Rendering ---
+  function updateDashboard() {
+    if (currentUser && currentUser.role === 'admin' && typeof updateAdminDashboard === 'function') updateAdminDashboard();
+    else { renderKPIs(); renderCharts(); renderTable(); generateInsights(); renderRanking(); }
+  }
+
+  function renderKPIs() {
+    const todayStr = getBogotaDateStr();
+    const gestionesHoy = filteredData.filter(d => d.isManaged && d.recibidoPeople === todayStr).length;
+    const total = filteredData.length;
+    const managed = filteredData.filter(d => d.isManaged).length;
+    const pending = total - managed;
+    const effective = filteredData.filter(d => { const val = (d.efectividad || "").toLowerCase().trim(); return val === 'sí' || val === 'si'; }).length;
+    if(document.getElementById('kpiToday')) document.getElementById('kpiToday').textContent = gestionesHoy;
+    if(document.getElementById('kpiTotal')) document.getElementById('kpiTotal').textContent = total;
+    if(document.getElementById('kpiManaged')) document.getElementById('kpiManaged').textContent = managed;
+    if(document.getElementById('kpiPending')) document.getElementById('kpiPending').textContent = pending;
+    const managedPerc = total > 0 ? ((managed / total) * 100).toFixed(1) : 0;
+    const pendingPerc = total > 0 ? ((pending / total) * 100).toFixed(1) : 0;
+    const effectivePerc = total > 0 ? ((effective / total) * 100).toFixed(1) : 0;
+    if(document.getElementById('kpiManagedPerc')) document.getElementById('kpiManagedPerc').textContent = `${managedPerc}% del total`;
+    if(document.getElementById('kpiPendingPerc')) document.getElementById('kpiPendingPerc').textContent = `${pendingPerc}% del total`;
+    if(document.getElementById('kpiEffectiveness')) document.getElementById('kpiEffectiveness').textContent = `${effectivePerc}%`;
+  }
+
+  function renderCharts() {
+    const statusCounts = countBy(filteredData, 'estado');
+    updateChart('chartStatus', 'pie', Object.keys(statusCounts), Object.values(statusCounts), ['#3b3561', '#ef4444', '#facc15', '#64748b'], 'Estado');
+    const channelCounts = countBy(filteredData, 'canal');
+    updateChart('chartChannel', 'doughnut', Object.keys(channelCounts), Object.values(channelCounts), ['#6366f1', '#b7d400'], 'Canal');
+    const managedCounts = { 'Gestionados': filteredData.filter(d => d.isManaged).length, 'Pendientes': filteredData.filter(d => !d.isManaged).length };
+    updateChart('chartManaged', 'pie', Object.keys(managedCounts), Object.values(managedCounts), ['#22c55e', '#ef4444'], 'Gestión');
+    const effCounts = countBy(filteredData, 'efectividad');
+    updateChart('chartEffectiveness', 'bar', Object.keys(effCounts), Object.values(effCounts), ['#b7d400', '#e2e8f0'], 'Efectividad');
+  }
+
+  function updateChart(id, type, labels, data, colors, datasetLabel = '') {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id); if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    charts[id] = new Chart(ctx, {
+      type: type, data: { labels: labels, datasets: [{ label: datasetLabel, data: data, backgroundColor: colors, borderColor: '#ffffff', borderWidth: 2 }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10, weight: 600 } } }, datalabels: { color: '#1e293b', font: { weight: 'bold', size: 10 }, formatter: (value, ctx) => { let sum = 0; let dataArr = ctx.chart.data.datasets[0].data; dataArr.map(data => sum += data); let percentage = (value * 100 / sum).toFixed(1) + "%"; return type === 'bar' ? value : percentage; } } } },
+      plugins: [ChartDataLabels]
+    });
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('tableBody'); if(!tbody) return;
+    tbody.innerHTML = '';
+    const totalRows = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIdx = (currentPage - 1) * rowsPerPage;
+    const displayData = filteredData.slice(startIdx, startIdx + rowsPerPage);
+    displayData.forEach(row => {
+      const tr = document.createElement('tr'); tr.innerHTML = `<td><strong>${row.radicado}</strong></td><td>${row.nombre}</td><td>${row.empresa}</td><td><span class="status-pill ${getStatusClass(row.estado)}">${row.estado || '---'}</span></td><td>${row.canal || '---'}</td><td>${row.efectividad || 'No'}</td>`;
+      tbody.appendChild(tr);
+    });
+    const pagInfo = document.getElementById('paginationInfo'); if(pagInfo) pagInfo.textContent = `Mostrando ${Math.min(startIdx + 1, totalRows)} - ${Math.min(startIdx + rowsPerPage, totalRows)} de ${totalRows} registros.`;
+    if(document.getElementById('btnPrev')) document.getElementById('btnPrev').disabled = currentPage === 1;
+    if(document.getElementById('btnNext')) document.getElementById('btnNext').disabled = currentPage === totalPages;
+  }
+
+  function renderRanking() {
+    const container = document.getElementById('rankingContainer'); if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `<div class="rank-item"><span class="rank-name">${name}</span><span class="rank-badge">${count} casos</span></div>`).join('');
+  }
+
+  function generateInsights() {
+    const insightDiv = document.getElementById('autoInsight'); if(!insightDiv) return;
+    const total = filteredData.length; if (total === 0) { insightDiv.textContent = "No hay datos"; return; }
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+    insightDiv.innerHTML = `<div style="display:flex; align-items:center; gap:12px; margin-top:10px;"><i data-lucide="info" style="color:var(--accent)"></i><div style="font-size:0.85rem"><p>El <strong>${unmanagedPerc}%</strong> de los radicados están pendientes.</p><p>Canal principal: <strong>${topChannel}</strong>.</p></div></div>`;
+    lucide.createIcons();
+  }
+
+  // --- Admin Logic & Overrides ---
+  function updateAdminDashboard() {
+    renderKPIs(); renderAdminCharts(); renderTable(); generateAdminInsights(); renderAdminRanking();
+  }
+
+  function renderAdminCharts() {
+    const statusCounts = countBy(filteredData, 'estado');
+    const statusColors = Object.keys(statusCounts).map(key => {
+      const s = key.toLowerCase(); if (s.includes('no contesta') || s.includes('corta')) return '#EE5D50'; if (s.includes('contactado')) return '#B7D400'; return '#342D50';
+    });
+    updateAdminChart('chartStatus', Object.keys(statusCounts), Object.values(statusCounts), statusColors, 'Casos', true);
+    const channelCounts = countBy(filteredData, 'canal');
+    updateAdminChart('chartChannel', Object.keys(channelCounts), Object.values(channelCounts), ['#342D50', '#B7D400', '#1D1F49', '#8E94BB'], 'Casos', false);
+    const managedCounts = { 'Gestionados': filteredData.filter(d => d.isManaged).length, 'Pendientes': filteredData.filter(d => !d.isManaged).length };
+    updateAdminChart('chartManaged', Object.keys(managedCounts), Object.values(managedCounts), ['#B7D400', '#342D50'], 'Casos', true);
+    const effCounts = countBy(filteredData, 'efectividad');
+    const effColors = Object.keys(effCounts).map(key => {
+      const e = key.toLowerCase(); if (e.includes('si')) return '#B7D400'; if (e.includes('no')) return '#EE5D50'; return '#342D50';
+    });
+    updateAdminChart('chartEffectiveness', Object.keys(effCounts), Object.values(effCounts), effColors, 'Casos', false);
+  }
+
+  function updateAdminChart(id, labels, data, colors, datasetLabel = '', isHorizontal = false) {
+    if (charts[id]) charts[id].destroy();
+    const canvas = document.getElementById(id); if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const options = {
+      indexAxis: isHorizontal ? 'y' : 'x', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#1D1F49', titleFont: { size: 13, family: 'Plus Jakarta Sans', weight: '700' }, bodyFont: { size: 12, family: 'Plus Jakarta Sans' }, padding: 12, cornerRadius: 12, displayColors: false }, datalabels: { anchor: 'end', align: 'end', color: 'var(--text-main)', offset: 4, font: { weight: '800', family: 'Plus Jakarta Sans', size: 10 }, formatter: (value, context) => { const total = context.dataset.data.reduce((a, b) => a + b, 0); const percentage = total > 0 ? ((value / total) * 100).toFixed(1) + '%' : '0%'; return `${value} (${percentage})`; } } },
+      scales: { x: { grid: { display: isHorizontal, color: 'var(--border-color)', drawBorder: false }, ticks: { color: 'var(--text-muted)', font: { weight: '600', size: 10 } }, beginAtZero: true }, y: { grid: { display: !isHorizontal, color: 'var(--border-color)', drawBorder: false }, ticks: { color: 'var(--text-muted)', font: { weight: '600', size: 10 } } } },
+      layout: { padding: { right: isHorizontal ? 60 : 20, top: !isHorizontal ? 30 : 0 } }
+    };
+    charts[id] = new Chart(ctx, { type: 'bar', data: { labels: labels, datasets: [{ label: datasetLabel, data: data, backgroundColor: colors, borderRadius: 8, barThickness: 24 }] }, options: options, plugins: [ChartDataLabels] });
+  }
+
+  function renderAdminRanking() {
+    const container = document.getElementById('rankingContainer'); if (!container) return;
+    const ranking = filteredData.reduce((acc, d) => { if (d.asesor) acc[d.asesor] = (acc[d.asesor] || 0) + 1; return acc; }, {});
+    const sorted = Object.entries(ranking).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const max = sorted.length > 0 ? sorted[0][1] : 1;
+    if (sorted.length === 0) { container.innerHTML = '<p class="text-muted text-center mt-1" style="font-size: 0.8rem;">Sin datos</p>'; return; }
+    container.innerHTML = sorted.map(([name, count]) => `
+      <div class="advisor-item" style="margin-bottom: 1.5rem;">
+        <div class="advisor-info" style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+          <span class="advisor-name" style="font-size: 0.85rem; font-weight: 700;">${name}</span>
+          <span class="advisor-count" style="font-size: 0.85rem; font-weight: 800; color: var(--accent);">${count}</span>
+        </div>
+        <div class="progress" style="height: 6px; background: var(--bg-main); border-radius: 10px; overflow: hidden;">
+          <div class="progress-bar" style="width: ${(count/max)*100}%; background: var(--accent); border-radius: 10px;"></div>
+        </div>
+      </div>`).join('');
+  }
+
+  function generateAdminInsights() {
+    const insightDiv = document.getElementById('autoInsight'); if(!insightDiv) return;
+    const total = filteredData.length; if (total === 0) { insightDiv.innerHTML = "<p>No hay datos.</p>"; return; }
+    const unmanaged = filteredData.filter(d => !d.isManaged).length;
+    const unmanagedPerc = ((unmanaged / total) * 100).toFixed(1);
+    const channelCounts = countBy(filteredData, 'canal');
+    const topChannel = Object.keys(channelCounts).reduce((a, b) => (channelCounts[a] || 0) > (channelCounts[b] || 0) ? a : b) || 'Ninguno';
+    insightDiv.innerHTML = `
+      <div style="font-size: 0.85rem; color: rgba(255,255,255,0.7); line-height: 1.6;">
+        <p>• El <strong>${unmanagedPerc}%</strong> de los radicados requieren comunicación inmediata.</p>
+        <p>• El canal <strong>${topChannel}</strong> lidera la recepción de solicitudes.</p>
+        <p>• Se recomienda priorizar los casos de "No contesta" para optimizar la efectividad.</p>
+      </div>`;
+    lucide.createIcons();
+  }
+
+  // --- Agent Workflows ---
+  function fetchAgentInitialData() {
+    if(document.getElementById('agentName')) document.getElementById('agentName').textContent = currentUser.nombre;
+    google.script.run.withSuccessHandler(data => { allData = data; updateAgentStats(); cargarAsignadosAsesor(true); }).getPQRSFData();
+  }
+
+  function updateAgentStats() {
+    const todayStr = getBogotaDateStr();
+    const managedToday = allData.filter(d => d.asesor === currentUser.nombre && d.isManaged && d.recibidoPeople === todayStr).length;
+    const pendingToComm = allData.filter(d => !d.estado || d.estado.trim() === "").length;
+    if(document.getElementById('agentCountToday')) document.getElementById('agentCountToday').textContent = managedToday;
+    if(document.getElementById('pendingToCommunicate')) document.getElementById('pendingToCommunicate').textContent = pendingToComm;
+  }
+
+  function claimNextCase() {
+    const btn = document.getElementById('btnClaim'); btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> Solicitando...';
+    google.script.run.withSuccessHandler(res => {
+      btn.disabled = false; btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado'; lucide.createIcons();
+      if (res.success) { activeCase = res.data; showActiveCase(); }
+      else showNotification('error', 'Sin radicados', res.message);
+    }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = '<i data-lucide="grab"></i> Solicitar Radicado'; lucide.createIcons(); showNotification('error', 'Error Técnico', err.message); }).claimNextCase(currentUser.nombre);
+  }
+
+  function showActiveCase() {
+    document.getElementById('claimCaseCard').style.display = 'none';
+    document.getElementById('activeCaseCard').style.display = 'block';
+    document.getElementById('activeRadicadoLabel').textContent = activeCase.radicado;
+    document.getElementById('caseNombre').textContent = activeCase.nombre;
+    document.getElementById('caseTelefono').textContent = activeCase.telefono;
+    document.getElementById('caseEmpresa').textContent = activeCase.empresa;
+    document.getElementById('caseFecha').textContent = activeCase.fecha;
+    lucide.createIcons();
+  }
+
+  function saveManagement(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSaveMgmt'); const card = document.querySelector('.active-case-view');
+    const data = { rowId: activeCase.rowId, asesor: currentUser.nombre, estado: document.getElementById('mgmtEstado').value, canal: document.getElementById('mgmtCanal').value, efectividad: document.getElementById('mgmtEfectividad').value, otraSolucion: document.getElementById('mgmtOtraSolucion').value, seEncontro: document.getElementById('mgmtSeEncontro').value, notas: document.getElementById('mgmtNotas').value, observacionManual: document.getElementById('mgmtObservacionManual').value, emailContacto: document.getElementById('mgmtEmailContact').value };
+    btn.disabled = true; btn.innerHTML = '<span class="spinner-sm"></span> PROCESANDO...';
+    google.script.run.withSuccessHandler(res => {
+      if (res.success) { if(card) card.classList.add('animate-success'); setTimeout(() => { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); fetchAgentInitialData(); resetManagement(); showNotification('success', 'Gestión Exitosa', '¡La gestión se ha guardado con éxito!'); }, 600); }
+      else { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); showNotification('error', 'Error al guardar', res.message); }
+    }).withFailureHandler(err => { btn.disabled = false; btn.innerHTML = '<i data-lucide="save"></i> Guardar Gestión'; lucide.createIcons(); showNotification('error', 'Error de Conexión', err.message); }).saveManagement(data);
+  }
+
+  function resetManagement() { activeCase = null; document.getElementById('activeCaseCard').style.display = 'none'; document.getElementById('claimCaseCard').style.display = 'block'; document.getElementById('managementForm').reset(); if(document.getElementById('aiInput')) document.getElementById('aiInput').value = ''; if(document.getElementById('aiOutputContainer')) document.getElementById('aiOutputContainer').style.display = 'none'; }
+
+  function liberarRadicadoActivo() {
+    if (!activeCase) return; toggleLoader(true);
+    google.script.run.withSuccessHandler(res => { toggleLoader(false); if (res.success) { showNotification('success', 'Radicado Liberado', 'El radicado ha sido liberado.'); resetManagement(); fetchAgentInitialData(); } else showNotification('error', 'Error al liberar', res.message); }).withFailureHandler(err => { toggleLoader(false); showNotification('error', 'Error de conexión', err.message); }).liberarRadicado(activeCase.rowId);
+  }
+
+  function toggleMgmtFields() {
+    const estado = document.getElementById('mgmtEstado').value; const efectividad = document.getElementById('mgmtEfectividad').value;
+    const emailGroup = document.getElementById('emailContactGroup'); const notasLabel = document.getElementById('mgmtNotasLabel'); const notasTextarea = document.getElementById('mgmtNotas');
+    if (estado === 'No contesta' || estado === 'Corta llamada') {
+      emailGroup.style.display = 'block'; notasLabel.textContent = 'Notas del intento (Automático)';
+      if (efectividad === 'No') notasTextarea.value = "Se intentó comunicar por medio de llamada y correo electrónico, pero no fue posible por falta de información de contacto del usuario.";
+      else notasTextarea.value = "Se realizaron tres (3) intentos de llamada al usuario, sin lograr comunicación exitosa. Se procede a enviar comunicación al correo electrónico.";
+    } else if (estado === 'Contactado') { emailGroup.style.display = 'none'; notasLabel.textContent = 'Notas del intento (Automático)'; notasTextarea.value = "Se realizó comunicación telefónica de manera satisfactoria, brindando respuesta a su solicitud."; }
+    else { emailGroup.style.display = 'none'; notasLabel.textContent = 'Notas del intento (Automático)'; notasTextarea.value = ""; }
+  }
+
+  function improveText(tipo) {
+    if (!activeCase) { showNotification('error', 'Acción denegada', 'Debes tener un caso activo.'); return; }
+    const radicado = activeCase.radicado; const agente = currentUser.nombre; const correo = document.getElementById('mgmtEmailContact').value || "";
+    const outputContainer = document.getElementById('aiOutputContainer'); const headerBox = document.getElementById('headerOutput'); const bodyBox = document.getElementById('bodyOutput');
+    outputContainer.style.display = 'block'; headerBox.value = "Procesando..."; bodyBox.value = "Procesando...";
+    if (tipo === "PQRSF-RES") {
+      const prompt = document.getElementById('aiInput').value.trim(); if (!prompt) { showNotification('error', 'Campo Requerido', 'Por favor escribe la solución.'); headerBox.value = ""; bodyBox.value = ""; return; }
+      google.script.run.withSuccessHandler(res => { if (res.success) mostrarResultado(construirRespuestaFront("PQRSF-RES", { radicado, agente, cuerpoIA: res.text })); else { headerBox.value = "Error"; bodyBox.value = "Error: " + res.message; } }).withFailureHandler(err => { headerBox.value = "Error"; bodyBox.value = "Error: " + err.message; }).generarRespuestaIA(prompt, { nombre: activeCase.nombre });
+    }
+    else if (tipo === "PQRSF-NC") { if (!correo) { showNotification('error', 'Correo Faltante', 'Debes ingresar el correo del usuario.'); headerBox.value = ""; bodyBox.value = ""; return; } mostrarResultado(construirRespuestaFront("PQRSF-NC", { radicado, agente, correo })); }
+  }
+
+  function mostrarResultado(data) { document.getElementById('headerOutput').value = data.header; document.getElementById('bodyOutput').value = data.body; document.getElementById('aiOutputContainer').style.display = 'block'; }
+
+  function construirRespuestaFront(tipo, data) {
+    const baseHeader = `RESPUESTA A SU PQRSF - RADICADO N.° ${data.radicado}`;
+    const baseFooter = `\n\nAgradecemos su comunicación y reiteramos nuestro compromiso con la correcta prestación del servicio.\n\nCordialmente,\n\n${data.agente}\nAsesora de Servicio al Cliente\nTeléfono: (608) 681 83 20\nLínea gratuita nacional: 01 8000 111 879`;
+    const baseSalutation = `Cordial saludo,\nHemos intentado comunicarnos con usted vía telefónica; sin embargo, no fue posible establecer la comunicación.\n\n`;
+    if (tipo === "PQRSF-RES") return { header: baseHeader, body: baseSalutation + `En atención a su solicitud radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, se obtuvo el siguiente resultado:\n\n${data.cuerpoIA}` + baseFooter };
+    if (tipo === "PQRSF-NC") return { header: baseHeader, body: baseSalutation + `En atención a su solicitud PQRSF radicada ante la Caja de Compensación Familiar COFREM, nos permitimos informarle que, una vez realizado el estudio y validación correspondiente de su caso, la misma ya fue debidamente respondida.\n\nLa información asociada a su solicitud fue enviada al siguiente correo electrónico:\n\n📧 ${data.correo}\n\nEn caso de requerir información adicional, puede comunicarse a través de nuestros canales de atención.` + baseFooter };
+  }
+
+  // --- Search & Assign (Admin Actions) ---
+  function ejecutarBusquedaAdmin() {
+    const numero = document.getElementById('adminSearchInput').value.trim();
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
+    buscarYMostrarEditor(numero);
+  }
+
+  function ejecutarAsignacion() {
+    const agente = document.getElementById('assignAgentSelect').value;
+    const radicado = document.getElementById('assignRadicadoInput').value.trim();
+    if (!agente || !radicado) { showNotification('error', 'Datos Faltantes', 'Seleccione asesor e ingrese radicado.'); return; }
+    toggleLoader(true);
+    google.script.run.withSuccessHandler(res => {
+      toggleLoader(false); if (res.success) { showNotification('success', 'Asignación Exitosa', res.message); document.getElementById('assignRadicadoInput').value = ''; fetchData(); }
+      else showNotification('error', 'Error de Asignación', res.message);
+    }).withFailureHandler(err => { toggleLoader(false); showNotification('error', 'Error de Conexión', err.message); }).asignarRadicado(radicado, agente);
+  }
+
+  function ejecutarBusquedaAgente() {
+    const numero = document.getElementById('agentSearchInput').value.trim();
+    if (!numero) { showNotification('error', 'Dato requerido', 'Ingrese un número de radicado.'); return; }
+    buscarYMostrarEditor(numero);
+  }
+
+  // --- Utils ---
+  function getBogotaDateStr() { return new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()); }
+  function countBy(arr, key) { return arr.reduce((acc, obj) => { const val = obj[key] || 'Sin definir'; acc[val] = (acc[val] || 0) + 1; return acc; }, {}); }
+  function copiarCampo(id) { const el = document.getElementById(id); el.select(); document.execCommand('copy'); showNotification('success', 'Copiado', 'Contenido copiado al portapapeles.'); }
+  function toggleLoader(show) { const loader = document.getElementById('loader'); if(loader) loader.style.display = show ? 'flex' : 'none'; }
+  function getStatusClass(status) { const s = (status || "").toLowerCase(); if (s.includes('contactado')) return 'green'; if (s.includes('no contesta') || s.includes('corte') || s.includes('corta')) return 'red'; return 'warning'; }
+  function exportToPDF() { window.print(); }
+  function exportToCSV() {
+    let csvContent = "data:text/csv;charset=utf-8,Radicado,Nombre,Empresa,Estado,Canal,Efectividad\r\n";
+    filteredData.forEach(row => { csvContent += [row.radicado, row.nombre, row.empresa, row.estado, row.canal, row.efectividad].join(",") + "\r\n"; });
+    const encodedUri = encodeURI(csvContent); const link = document.createElement("a"); link.setAttribute("href", encodedUri); link.setAttribute("download", "pqrsf_data.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }
+
+  // --- Theme ---
+  function toggleTheme() {
+    const body = document.body; const currentTheme = body.getAttribute('data-theme'); const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    body.setAttribute('data-theme', newTheme); localStorage.setItem('pqrsf_theme', newTheme); updateThemeIcon(newTheme);
+    if (currentUser && currentUser.role === 'admin') renderAdminCharts();
+  }
+  function updateThemeIcon(theme) {
+    const adminIcon = document.getElementById('themeIcon'); if (adminIcon) adminIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+    const agentIcon = document.querySelector('.theme-icon-agent'); if (agentIcon) agentIcon.setAttribute('data-lucide', theme === 'dark' ? 'moon' : 'sun');
+    lucide.createIcons();
+  }
+
+  // --- Feature Logic ---
+  function toggleAdvancedSearch() { const panel = document.getElementById('advancedSearchPanel'); if(!panel) return; panel.style.display = panel.style.display === 'none' ? 'block' : 'none'; lucide.createIcons(); }
+  function resetAdvancedSearch() { if(document.getElementById('searchDateFrom')) document.getElementById('searchDateFrom').value = ''; if(document.getElementById('searchDateTo')) document.getElementById('searchDateTo').value = ''; if(document.getElementById('searchName')) document.getElementById('searchName').value = ''; if(document.getElementById('searchPhone')) document.getElementById('searchPhone').value = ''; applyFilters(); }
+  function renderDailyStats() {
+    const dateVal = document.getElementById('dailyStatsDate').value; const content = document.getElementById('dailyStatsContent'); const empty = document.getElementById('dailyStatsEmpty'); const table = document.getElementById('dailyAdvisorTable');
+    if (!dateVal) { content.style.display = 'none'; empty.style.display = 'block'; return; }
+    const dayData = allData.filter(d => d.recibidoPeople === dateVal); const managed = dayData.filter(d => d.isManaged); const total = dayData.length; const effective = managed.filter(d => { const val = (d.efectividad || "").toLowerCase().trim(); return val === 'sí' || val === 'si'; }).length;
+    document.getElementById('dailyTotal').textContent = total; document.getElementById('dailyManaged').textContent = managed.length; document.getElementById('dailyEff').textContent = total > 0 ? ((effective / total) * 100).toFixed(0) + '%' : '0%';
+    const advisorStats = managed.reduce((acc, d) => { if (!acc[d.asesor]) acc[d.asesor] = { count: 0, eff: 0 }; acc[d.asesor].count++; const val = (d.efectividad || "").toLowerCase().trim(); if (val === 'sí' || val === 'si') acc[d.asesor].eff++; return acc; }, {});
+    table.innerHTML = Object.entries(advisorStats).map(([name, stats]) => `<tr><td class="text-truncate" style="max-width: 100px;">${name}</td><td class="text-center">${stats.count}</td><td class="text-end fw-bold text-success">${((stats.eff / stats.count) * 100).toFixed(0)}%</td></tr>`).join('');
+    if (Object.keys(advisorStats).length === 0) table.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Sin gestiones</td></tr>';
+    content.style.display = 'block'; empty.style.display = 'none';
+  }
+</script>

@@ -1,0 +1,67 @@
+<div id="loginView" class="view-container active">
+  <div class="login-wrapper">
+    <div class="login-container-premium">
+
+      <!-- Panel Izquierdo: Branding y Decoración -->
+      <div class="login-left-panel">
+        <div class="branding-content" style="position: relative; z-index: 2;">
+          <div class="logo-container-login">
+            <div class="du-logo"></div>
+          </div>
+          <p class="welcome-label">BIENVENIDO A</p>
+          <h1 class="brand-title">PEOPLE BPO</h1>
+          <p class="brand-description">
+            Sistema de Gestión Centralizado v4.0.<br>
+            Accede a tu perfil de manera segura y eficiente.
+          </p>
+          <p class="by-author-login">By Duvan Ramos</p>
+        </div>
+
+        <!-- Esferas decorativas -->
+        <div class="decoration-sphere sphere-1"></div>
+        <div class="decoration-sphere sphere-2"></div>
+      </div>
+
+      <!-- Panel Derecho: Formulario -->
+      <div class="login-right-panel">
+        <div class="login-form-box">
+          <h2 class="form-title">Iniciar Sesión</h2>
+          <p class="form-subtitle">Ingresa tus credenciales para acceder al panel de PQRSF.</p>
+
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group-premium">
+              <label class="premium-label">SELECCIONAR PERFIL</label>
+              <div class="premium-input-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <select id="agentSelect" required>
+                  <option value="" disabled selected>Cargando perfiles...</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group-premium">
+              <label class="premium-label">CONTRASEÑA</label>
+              <div class="premium-input-wrapper">
+                <i data-lucide="lock" class="input-icon"></i>
+                <input type="password" id="password" placeholder="••••••••" required>
+                <button type="button" id="togglePasswordBtn" class="btn-toggle-pass" onclick="togglePassword()">SHOW</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-auth-premium" id="btnLogin">
+              <span>Autenticar y Entrar</span>
+              <i data-lucide="log-in"></i>
+            </button>
+          </form>
+
+          <div id="loginError" class="error-box-premium" style="display: none;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Global de Login -->
+    <div class="login-footer-fixed">
+      <p>SYSTEM VERSION 4.0</p>
+    </div>
+  </div>
+</div>
