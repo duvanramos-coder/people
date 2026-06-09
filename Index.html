@@ -1,406 +1,181 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
-
-<style>
-body {
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg,#3B3561,#2C2848);
-  min-height: 100vh; margin: 0; display: flex; justify-content: center; align-items: center;
-}
-
-.dashboardContainer { width: 1100px; max-width: 95%; margin: 20px 0; }
-.container { width: 600px; max-width: 95%; }
-
-.card {
-  background: white; padding: 40px; border-radius: 14px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25); text-align: center; position: relative;
-}
-
-.dashboard-header {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.header-info { text-align: center; }
-
-.title { font-size: 24px; font-weight: 600; color: #3B3561; margin: 0; }
-.subtitle { font-size: 13px; color: #777; margin-top: 5px; }
-
-select, input {
-  width: 100%; height: 42px; padding: 0 12px; margin: 10px 0;
-  border-radius: 8px; border: 1px solid #ddd; font-size: 14px; box-sizing: border-box;
-}
-
-button {
-  width: 100%; padding: 13px; background: #B7D400; color: #2C2848;
-  border: none; border-radius: 8px; font-weight: 600; cursor: pointer;
-}
-
-.metricGrid { display: grid; grid-template-columns: repeat(5,1fr); gap: 15px; margin-top: 20px; }
-.metricCard {
-  background: #f6f6f6; padding: 20px; border-radius: 10px;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.metricCard:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
-
-.metricHeader { display: flex; justify-content: center; align-items: center; gap: 6px; }
-.metricTitle { font-size: 12px; color: #777; }
-.metricValue { font-size: 26px; font-weight: 700; color: #3B3561; }
-
-.infoIcon {
-  background: transparent; color: #3B3561; opacity: 0.35; font-size: 12px;
-  width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center;
-  justify-content: center; cursor: pointer; position: relative;
-}
-.tooltip {
-  position: absolute; bottom: 22px; background: #2C2848; color: white;
-  font-size: 11px; padding: 6px 8px; border-radius: 6px; white-space: nowrap; display: none;
-}
-.infoIcon:hover .tooltip { display: block; }
-
-.chartRow { display: flex; justify-content: center; gap: 40px; margin-top: 40px; flex-wrap: wrap; }
-.chartBox { width: 380px; }
-canvas { max-height: 240px; }
-
-.footer { font-size: 11px; color: #999; }
-.footer-login { position: absolute; top: 20px; right: 25px; }
-
-/* ANIMACIONES */
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-.fade-in { animation: fadeIn 0.5s ease-out forwards; }
-
-/* LOADER */
-#loader {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(44, 40, 72, 0.8); display: none; flex-direction: column;
-  justify-content: center; align-items: center; z-index: 9999; color: white; backdrop-filter: blur(4px);
-}
-.spinner {
-  width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
-  border-top-color: #B7D400; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px;
-}
-
-/* BOTON CERRAR SESIÓN */
-.logout-btn {
-  width: auto;
-  justify-self: start;
-  background: white; color: #666;
-  padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 500;
-  cursor: pointer; transition: all 0.3s; border: 1px solid #eee; display: flex; align-items: center; gap: 5px;
-  white-space: nowrap;
-}
-.logout-btn:hover { background: #fff1f1; color: #ef4444; border-color: #fecaca; transform: translateY(-1px); }
-
-/* ESTILOS TABLA */
-.tableContainer { margin-top: 40px; overflow-x: auto; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: fadeIn 0.8s forwards; }
-table { width: 100%; border-collapse: collapse; background: white; font-size: 13px; text-align: left; }
-th { background: #3B3561; color: white; padding: 8px 15px; font-weight: 600; text-transform: uppercase; font-size: 11px; }
-td { padding: 8px 15px; border-bottom: 1px solid #eee; color: #444; }
-tr:hover { background: #f9f9f9; }
-.text-center { text-align: center; }
-
-/* REPRODUCTOR DE AUDIO MINIMALISTA */
-.audio-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-audio {
-  height: 35px;
-  width: 200px;
-  border-radius: 20px;
-  filter: sepia(20%) saturate(70%) grayscale(1) contrast(90%) invert(12%);
-}
-
-.btn-link {
-  background: #B7D400;
-  color: #2C2848;
-  padding: 8px 12px;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.2s;
-}
-.btn-link:hover { background: #c5e400; transform: scale(1.05); }
-
-.drive-icon { width: 14px; height: 14px; }
-</style>
+  <base target="_top">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <?!= include('Styles'); ?>
 </head>
+<body class="bg-[#F8FAFB] text-[#1A1D23] font-['Plus_Jakarta_Sans']">
 
-<body>
-<div id="loader"><div class="spinner"></div><div>Cargando información...</div></div>
+  <section id="vistaLogin" class="fixed inset-0 z-[100] flex items-center justify-center bg-[#2B234F]">
+    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#CCFF00 1px, transparent 1px); background-size: 40px 40px;"></div>
+    <div class="bg-white p-12 rounded-[3.5rem] shadow-2xl w-full max-w-md text-center relative border-t-8 border-[#CCFF00] animate-fade-in">
+      <div class="w-24 h-24 bg-[#2B234F] rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl transform -rotate-6">
+        <span class="text-[#CCFF00] font-bold text-5xl">Du</span>
+      </div>
+      <h2 class="text-4xl font-bold mb-2 tracking-tighter text-slate-800 uppercase">Academy <span class="text-indigo-600">PRO</span></h2>
+      <p class="text-slate-400 text-[10px] font-bold uppercase tracking-[0.3em] mb-12">Level Up Your Expertise</p>
 
-<div class="container fade-in" id="contenedor">
-  <!-- LOGIN -->
-  <div class="card" id="login">
-    <div class="footer footer-login">By Duvan Ramos 2026</div>
-    <div class="title">Desempeño - Funcionarios</div>
-    <div class="subtitle">People BPO</div>
-    <select id="usuario"></select>
-    <input id="password" type="password" placeholder="Contraseña">
-    <button onclick="login()">Ingresar</button>
-  </div>
+      <div class="space-y-4">
+        <div class="relative">
+          <input type="email" id="loginEmail" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-slate-700" placeholder="Correo electrónico">
+        </div>
+        <div class="relative">
+          <input type="password" id="loginPass" class="w-full p-5 bg-slate-50 rounded-2xl outline-none font-bold text-slate-700" placeholder="Contraseña">
+        </div>
+        <button onclick="intentarLogin()" id="btnLogin" class="btn-primary w-full bg-[#2B234F] text-[#CCFF00] font-bold py-5 rounded-2xl shadow-xl uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
+          Acceder al Portal
+        </button>
+      </div>
+      <p class="mt-8 text-[9px] font-bold text-slate-300 uppercase tracking-widest">By Duvan Ramos — 2026</p>
+    </div>
+  </section>
 
-  <!-- DASHBOARD -->
-  <div class="card" id="dashboard" style="display:none">
-    <div class="dashboard-header">
-      <button class="logout-btn" onclick="logout()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-        Cerrar Sesión
+  <div id="interfazPrincipal" class="hidden flex h-screen overflow-hidden bg-[#F3F4F9]">
+
+    <!-- Sidebar -->
+    <aside id="mainSidebar" class="sidebar bg-white border-r border-slate-100 flex flex-col p-8 shrink-0 relative z-20 shadow-sm">
+      <!-- Sidebar Toggle Button -->
+      <button onclick="toggleSidebar()" class="absolute -right-3 top-10 w-6 h-6 bg-[#2B234F] text-[#CCFF00] rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform z-30">
+        <span id="sidebarToggleIcon" class="text-[10px]">❮</span>
       </button>
-      <div class="header-info">
-        <div class="title" id="asesor"></div>
-        <div class="subtitle">People BPO</div>
-      </div>
-      <div class="footer" style="text-align: right; justify-self: end;">By Duvan Ramos 2026</div>
-    </div>
 
-    <div class="metricGrid">
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePec">PEC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPec">Porcentaje de evaluaciones correctas</div></div></div>
-        <div class="metricValue" id="pec"></div>
+      <div class="sidebar-logo-container flex items-center gap-3 mb-12 overflow-hidden px-1 transition-all">
+        <div class="w-10 h-10 bg-[#2B234F] rounded-xl flex items-center justify-center text-[#CCFF00] font-bold shadow-lg shrink-0">Du</div>
+        <div class="sidebar-header-text">
+          <span class="font-bold text-xl tracking-tighter text-[#2B234F] block leading-none">COURSUE</span>
+          <span class="text-[8px] font-bold text-indigo-500 uppercase tracking-[0.2em]">Learning System</span>
+        </div>
       </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePenc">PENC</div><div class="infoIcon">?<div class="tooltip" id="tooltipPenc">Porcentaje de evaluaciones no conformes</div></div></div>
-        <div class="metricValue" id="penc"></div>
-      </div>
-      <div class="metricCard" id="cardPromedio">
-        <div class="metricHeader"><div class="metricTitle">Promedio equipo</div><div class="infoIcon">?<div class="tooltip">Promedio general del equipo</div></div></div>
-        <div class="metricValue" id="promedio"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle">Ranking</div><div class="infoIcon">?<div class="tooltip">Posición frente al equipo</div></div></div>
-        <div class="metricValue" id="ranking"></div>
-      </div>
-      <div class="metricCard" id="cardAuditorias">
-        <div class="metricHeader"><div class="metricTitle">Auditorías</div><div class="infoIcon">?<div class="tooltip">Cantidad de auditorías</div></div></div>
-        <div class="metricValue" id="auditorias"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfCreados">PQRSF Creados</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfCreados">Cantidad de radicados generados</div></div></div>
-        <div class="metricValue" id="pqrsfCreados"></div>
-      </div>
-      <div class="metricCard">
-        <div class="metricHeader"><div class="metricTitle" id="titlePqrsfDevueltos">PQRSF Devueltos</div><div class="infoIcon">?<div class="tooltip" id="tooltipPqrsfDevueltos">Radicados devueltos</div></div></div>
-        <div class="metricValue" id="pqrsfDevueltos"></div>
-      </div>
-    </div>
 
-    <div style="margin-top:25px;text-align:center">
-      <div id="estadoTexto" style="font-weight:600;margin-bottom:6px;color:#3B3561;"></div>
-      <div style="width:100%;height:8px;background:#e6e6e6;border-radius:10px;overflow:hidden;">
-        <div id="barraEstado" style="height:8px;width:0%;background:#B7D400;transition:width 0.8s;"></div>
+      <nav class="flex-grow space-y-3">
+        <p class="sidebar-text text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-6 px-4">Workspace</p>
+        <div class="sidebar-nav-item flex items-center gap-4 p-4 rounded-2xl bg-indigo-50 text-indigo-600 font-bold cursor-pointer group transition-all">
+          <div class="w-2 h-2 rounded-full bg-indigo-600 group-hover:scale-150 transition-all shrink-0"></div>
+          <span class="sidebar-text">Dashboard</span>
+        </div>
+      </nav>
+
+      <div class="mt-auto space-y-6 px-1">
+        <div class="sidebar-text bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100/50">
+          <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expert System</p>
+          <p class="text-[10px] font-bold text-[#2B234F] uppercase opacity-60">By Duvan Ramos</p>
+        </div>
+        <button onclick="cerrarSesion()" class="sidebar-nav-item flex items-center gap-4 p-4 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-2xl font-bold transition-all w-full uppercase text-[10px] tracking-widest">
+          <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+          <span class="sidebar-text">Cerrar Sesión</span>
+        </button>
       </div>
-    </div>
+    </aside>
 
-    <div class="chartRow">
-      <div class="chartBox"><canvas id="grafica"></canvas></div>
-      <div class="chartBox"><canvas id="graficaPQRSF"></canvas></div>
-    </div>
+    <main class="flex-grow overflow-y-auto p-10 custom-scrollbar relative">
+      <div id="vistaDashboard" class="max-w-5xl mx-auto">
+        <div class="bg-gradient-to-br from-[#2B234F] to-indigo-900 rounded-[2.5rem] p-10 text-white relative overflow-hidden mb-12 shadow-2xl">
+          <div class="relative z-10 max-w-lg">
+            <span class="inline-block px-4 py-1.5 bg-[#CCFF00] text-[#2B234F] rounded-full text-[10px] font-bold uppercase tracking-widest mb-4">Plataforma de Éxito</span>
+            <h2 class="text-3xl font-bold leading-tight mb-4 text-white tracking-tighter">Domina tus habilidades <br>de Gestión.</h2>
+            <p class="text-indigo-100 text-base font-medium opacity-80 leading-relaxed">Aprende a tu ritmo con módulos interactivos diseñados para la excelencia operativa.</p>
+          </div>
+          <div class="absolute right-[-10%] top-[-10%] w-80 h-80 bg-indigo-500/20 rounded-full blur-[100px]"></div>
+          <div class="absolute right-[10%] bottom-[-20%] w-64 h-64 bg-[#CCFF00]/10 rounded-full blur-[80px]"></div>
+        </div>
 
-    <!-- TABLA DE EVALUACIONES -->
-    <div class="tableContainer" id="tablaContenedor" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th id="thFecha">FECHA DE LLAMADA</th>
-            <th>PUNTOS POSITIVOS</th>
-            <th>PUNTOS DE MEJORA</th>
-            <th id="thGrabacion" class="text-center">GRABACIÓN</th>
-          </tr>
-        </thead>
-        <tbody id="cuerpoTabla"></tbody>
-      </table>
-    </div>
+        <div class="flex items-center justify-between mb-8 px-4">
+          <h3 class="text-xl font-bold text-slate-800 tracking-tight">Módulos de Aprendizaje</h3>
+          <div class="h-px bg-slate-200 flex-grow mx-8 opacity-50"></div>
+        </div>
+        <div id="gridCursos" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
+      </div>
+
+      <section id="vistaModulo" class="hidden animate-fade-in max-w-4xl mx-auto">
+        <button onclick="regresarAlInicio()" class="group mb-8 flex items-center gap-3 font-bold text-slate-400 hover:text-[#2B234F] text-xs uppercase tracking-widest transition-all">
+          <span class="text-xl group-hover:-translate-x-1 transition-transform">←</span> Volver al Panel
+        </button>
+        <div class="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100">
+          <div id="contenedorPresentacion" class="aspect-video bg-[#0A0D14] shadow-2xl relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+              <span class="text-white font-bold text-[200px]">DU</span>
+            </div>
+          </div>
+          <div class="p-8 md:p-12">
+             <div class="max-w-2xl mx-auto text-center">
+               <div id="statusBadgeModulo" class="hidden mb-6">
+                 <span class="bg-indigo-100 text-indigo-600 text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest border border-indigo-200 shadow-sm">
+                   Resultado: <span id="notaPreviaModulo">0%</span>
+                 </span>
+               </div>
+               <h2 id="tituloModuloInterno" class="text-2xl md:text-3xl font-bold mb-4 tracking-tighter text-[#2B234F]"></h2>
+               <div id="textoModuloInterno" class="text-slate-500 text-sm md:text-base mb-10 font-medium leading-relaxed"></div>
+               <button id="btnRealizarEvaluacion" onclick="cargarExamen()" class="btn-primary px-10 py-4 rounded-[1.2rem] font-bold uppercase text-[10px] tracking-[0.2em] shadow-2xl mx-auto">Iniciar Evaluación</button>
+             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="vistaExamen" class="hidden animate-fade-in max-w-xl mx-auto pt-10">
+        <div class="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden">
+          <div class="absolute top-0 left-0 w-full h-2 bg-slate-50">
+             <div id="barraProgreso" class="h-full bg-[#CCFF00] transition-all duration-1000 ease-out" style="width: 0%"></div>
+          </div>
+          <div id="preguntaActualContenedor" class="mt-6"></div>
+          <div class="mt-10 flex justify-between items-center bg-slate-50 p-5 rounded-[1.8rem]">
+             <div class="flex items-center gap-3">
+               <span class="w-10 h-10 bg-white rounded-full flex items-center justify-center font-bold text-slate-800 shadow-sm text-sm" id="contadorPreguntas"></span>
+               <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pregunta actual</span>
+             </div>
+             <button id="btnSiguiente" onclick="siguientePregunta()" class="btn-primary px-12 py-5 rounded-2xl font-bold uppercase text-xs tracking-widest shadow-lg">Continuar</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="vistaResultado" class="hidden animate-fade-in pt-10">
+        <div id="cardResultado" class="result-card border-b-[16px] transition-all duration-700">
+           <div id="iconResultado" class="w-24 h-24 rounded-[2.5rem] mx-auto mb-8 flex items-center justify-center text-5xl shadow-2xl animate-bounce"></div>
+           <h2 id="textoResultado" class="text-3xl font-bold mb-3 uppercase tracking-tighter text-slate-800"></h2>
+           <p class="text-slate-400 font-bold uppercase text-[9px] tracking-[0.3em] mb-4">Calificación Obtenida</p>
+           <p id="notaFinal" class="text-8xl font-bold text-[#2B234F] mb-12 tracking-tighter"></p>
+           <button onclick="regresarAlInicio()" class="btn-primary w-full py-6 rounded-[2rem] font-bold uppercase text-xs tracking-[0.2em] shadow-xl">Finalizar y Salir</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Sidebar Historial -->
+    <aside id="historySidebar" class="w-80 bg-white border-l border-slate-100 p-8 flex flex-col shrink-0 overflow-y-auto z-20">
+      <div class="flex flex-col items-center mb-12 text-center">
+        <div class="relative mb-6 group cursor-pointer">
+          <div class="absolute inset-0 bg-[#CCFF00] rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+          <div id="avatarContainer" class="w-20 h-20 rounded-[2rem] bg-[#2B234F] relative flex items-center justify-center font-bold text-white text-3xl transform group-hover:rotate-6 transition-transform shadow-2xl border-4 border-white"></div>
+        </div>
+        <h4 id="profileNombre" class="font-bold text-lg text-[#2B234F] tracking-tighter uppercase"></h4>
+        <div class="flex items-center justify-center gap-2 mt-2">
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          <p class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">Asesora Senior Especializada</p>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mb-8 px-2">
+        <h3 class="font-bold text-slate-800 text-[10px] uppercase tracking-[0.2em]">Trayectoria</h3>
+        <span class="text-[8px] font-bold text-indigo-500 bg-indigo-50 px-2 py-1 rounded-lg">Top Performer</span>
+      </div>
+
+      <div id="gridCompletados" class="space-y-4"></div>
+
+      <div class="mt-12 bg-slate-50 p-8 rounded-[3rem] border border-slate-100 text-center">
+        <div class="text-2xl mb-2">🎓</div>
+        <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-2">Consejo del día</p>
+        <p class="text-[10px] font-medium text-slate-600">"La excelencia no es un acto, sino un hábito."</p>
+      </div>
+    </aside>
+
   </div>
-</div>
 
-<script>
-let chart, pqrsfChart;
-const asesorasEspeciales=["J.MENDOZA382","L.BUITRAGO104","M.ARAGONES300"];
+  <!-- Custom Notification Toast -->
+  <div id="notification" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[200] transform translate-y-32 opacity-0 transition-all duration-500 bg-[#2B234F]/90 text-white px-6 py-3.5 rounded-[1.2rem] shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md pointer-events-none">
+    <div id="notifIcon" class="w-7 h-7 rounded-full bg-[#CCFF00] text-[#2B234F] flex items-center justify-center font-bold shadow-lg shrink-0">!</div>
+    <span id="notifMessage" class="font-bold text-[13px] tracking-tight pr-2"></span>
+  </div>
 
-function cargarUsuarios(){
-  document.getElementById("loader").style.display = "flex";
-  google.script.run.withSuccessHandler(function(lista){
-    document.getElementById("loader").style.display = "none";
-    let select=document.getElementById("usuario");
-    lista.forEach(usuario=>{
-      let option=document.createElement("option");
-      option.value=usuario; option.text=usuario;
-      select.appendChild(option);
-    });
-  }).obtenerUsuarios();
-}
-cargarUsuarios();
-
-function updateLabels(isSpecial) {
-  const labels = {
-    titlePec: isSpecial ? "SNC Recibidos" : "PEC",
-    tooltipPec: isSpecial ? "SNC recibidos" : "Porcentaje de evaluaciones correctas",
-    titlePenc: isSpecial ? "Radicados" : "PENC",
-    tooltipPenc: isSpecial ? "Cantidad de radicados" : "Porcentaje de evaluaciones no conformes",
-    titlePqrsfCreados: isSpecial ? "Devueltos" : "PQRSF Creados",
-    tooltipPqrsfCreados: isSpecial ? "Radicados devueltos" : "Cantidad de radicados generados",
-    titlePqrsfDevueltos: isSpecial ? "SNC Solucionado" : "PQRSF Devueltos",
-    tooltipPqrsfDevueltos: isSpecial ? "SNC solucionados" : "Radicados devueltos"
-  };
-
-  for (let id in labels) {
-    document.getElementById(id).innerText = labels[id];
-  }
-
-  document.getElementById("cardPromedio").style.display = isSpecial ? "none" : "block";
-  document.getElementById("cardAuditorias").style.display = isSpecial ? "none" : "block";
-  document.getElementById("thFecha").style.display = isSpecial ? "none" : "table-cell";
-  document.getElementById("thGrabacion").style.display = isSpecial ? "none" : "table-cell";
-}
-
-function logout(){
-  document.getElementById("dashboard").style.display="none";
-  document.getElementById("login").style.display="block";
-  document.getElementById("contenedor").className="container";
-  document.getElementById("password").value = "";
-  updateLabels(false);
-}
-
-function login(){
-  let usuario=document.getElementById("usuario").value;
-  let password=document.getElementById("password").value;
-  document.getElementById("loader").style.display = "flex";
-
-  google.script.run.withSuccessHandler(function(res){
-    document.getElementById("loader").style.display = "none";
-    if(res=="ERROR"){ alert("Contraseña incorrecta"); return; }
-
-    document.getElementById("login").style.display="none";
-    document.getElementById("dashboard").style.display="block";
-    document.getElementById("contenedor").className="dashboardContainer";
-    document.getElementById("asesor").innerHTML=res.nombre;
-
-    let pec=res.pec*100; let penc=res.penc*100;
-
-    const isSpecial = asesorasEspeciales.includes(usuario);
-    updateLabels(isSpecial);
-
-    if(isSpecial){
-      document.getElementById("pec").innerHTML=res.sncRecibidos;
-      document.getElementById("penc").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfDevueltos;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.sncSolucionado;
-      document.getElementById("ranking").innerHTML="#"+res.rankingSNC;
-    } else {
-      document.getElementById("pec").innerHTML=pec.toFixed(0)+"%";
-      document.getElementById("penc").innerHTML=penc.toFixed(2)+"%";
-      document.getElementById("promedio").innerHTML=(res.promedio*100).toFixed(1)+"%";
-      document.getElementById("ranking").innerHTML="#"+res.ranking;
-      document.getElementById("auditorias").innerHTML=res.auditorias;
-      document.getElementById("pqrsfCreados").innerHTML=res.pqrsfCreados;
-      document.getElementById("pqrsfDevueltos").innerHTML=res.pqrsfDevueltos;
-    }
-
-    let estado="", color="#B7D400", porcentaje = 0;
-
-    if (isSpecial) {
-      let errorRate = res.pqrsfCreados > 0 ? (res.sncRecibidos / res.pqrsfCreados) * 100 : 0;
-      porcentaje = Math.max(0, 100 - (errorRate * 4));
-
-      if(errorRate <= 2.5){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(errorRate <= 5){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-
-      document.getElementById("estadoTexto").innerHTML= estado + " (" + errorRate.toFixed(1) + "% Error / 5% máx)";
-    } else {
-      porcentaje = penc;
-      if(porcentaje>=90){ estado="🟢 Excelente"; color="#22c55e"; }
-      else if(porcentaje>=80){ estado="🟡 Bueno"; color="#eab308"; }
-      else { estado="🔴 Mejora requerida"; color="#ef4444"; }
-      document.getElementById("estadoTexto").innerHTML= estado+" ("+porcentaje.toFixed(1)+"% de 100%)";
-    }
-
-    let barra=document.getElementById("barraEstado");
-    barra.style.width=Math.min(porcentaje,100)+"%"; barra.style.background=color;
-
-    if(chart) chart.destroy();
-    chart = new Chart(document.getElementById("grafica"), {
-      type: 'bar',
-      data: {
-        labels: asesorasEspeciales.includes(usuario) ? ["Radicados","SNC"] : ["PEC","PENC"],
-        datasets: [{ data: asesorasEspeciales.includes(usuario) ? [res.pqrsfCreados,res.sncRecibidos] : [pec,penc], backgroundColor:["#3B3561","#B7D400"] }]
-      },
-      plugins:[ChartDataLabels],
-      options: { plugins: { legend: {display:false}, datalabels: { color:"#000", anchor:"end", align:"top", formatter:v=>v.toFixed(1)+(asesorasEspeciales.includes(usuario)?"":"%") } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    if(pqrsfChart) pqrsfChart.destroy();
-    pqrsfChart = new Chart(document.getElementById("graficaPQRSF"), {
-      type:'bar',
-      data:{
-        labels: isSpecial ? ["Radicados","Devueltos"] : ["Creados","Devueltos"],
-        datasets:[{ data:[res.pqrsfCreados,res.pqrsfDevueltos], backgroundColor:["#3B3561","#ef4444"] }]
-      },
-      plugins:[ChartDataLabels],
-      options:{ plugins:{ legend:{display:false}, datalabels:{ color:"#000", anchor:"end", align:"top" } }, scales:{y:{beginAtZero:true}} }
-    });
-
-    const cuerpoTabla = document.getElementById("cuerpoTabla");
-    cuerpoTabla.innerHTML = "";
-    if(res.tablaData && res.tablaData.length > 0){
-      document.getElementById("tablaContenedor").style.display = "block";
-      res.tablaData.forEach(fila => {
-        let tr = document.createElement("tr");
-        let contentHTML = "No disponible";
-
-        if(fila.link && fila.link.toString().startsWith("http")){
-          let match = fila.link.match(/\/d\/([^\/]+)\//) || fila.link.match(/id=([^&]+)/);
-          if(match && match[1]){
-            let fileId = match[1];
-            let driveUrl = "https://drive.google.com/file/d/" + fileId + "/view";
-
-            contentHTML = `
-              <div class="audio-container">
-                <a href="${driveUrl}" target="_blank" class="btn-link" title="Abrir en Google Drive">
-                  <svg class="drive-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M7.71,3.5L1.15,15L4.58,21L11.13,9.5L7.71,3.5Z M9.73,15L6.3,21L19.42,21L22.85,15L9.73,15Z M22.28,14L15.42,2L8.58,2L15.43,14L22.28,14Z"/></svg>
-                  Drive
-                </a>
-              </div>`;
-          } else {
-            contentHTML = `<a href="${fila.link}" target="_blank" class="btn-link">Ver Grabación</a>`;
-          }
-        }
-
-        if(isSpecial){
-          tr.innerHTML = `
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-          `;
-        } else {
-          tr.innerHTML = `
-            <td>${fila.fecha || "-"}</td>
-            <td>${fila.positivos || "N/A"}</td>
-            <td>${fila.mejora || "N/A"}</td>
-            <td class="text-center" style="min-width:260px">${contentHTML}</td>
-          `;
-        }
-        cuerpoTabla.appendChild(tr);
-      });
-    } else { document.getElementById("tablaContenedor").style.display = "none"; }
-
-  }).login(usuario,password);
-}
-</script>
+  <?!= include('Scripts'); ?>
 </body>
 </html>

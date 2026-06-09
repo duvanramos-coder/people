@@ -1,0 +1,261 @@
+<script>
+  let userData = { todosLosCursos: [], asignadosCursos: [], historial: [] };
+  let cursoActualId = "";
+  let emailActivo = "";
+  let preguntas = [];
+  let indicePregunta = 0;
+  let respuestasUsuario = [];
+
+  let notifTimeout;
+  function showNotification(msg, type = 'info') {
+    const notif = document.getElementById('notification');
+    const icon = document.getElementById('notifIcon');
+    const text = document.getElementById('notifMessage');
+
+    text.innerText = msg;
+    icon.innerText = type === 'error' ? '!' : '✓';
+    icon.style.backgroundColor = type === 'error' ? '#F43F5E' : '#CCFF00';
+    icon.style.color = type === 'error' ? 'white' : '#2B234F';
+
+    notif.classList.remove('translate-y-32', 'opacity-0');
+    if(notifTimeout) clearTimeout(notifTimeout);
+    notifTimeout = setTimeout(() => {
+      notif.classList.add('translate-y-32', 'opacity-0');
+    }, 2000);
+  }
+
+  function intentarLogin() {
+    const e = document.getElementById('loginEmail').value;
+    const p = document.getElementById('loginPass').value;
+    if(!e || !p) {
+      showNotification("Por favor completa los campos", "error");
+      return;
+    }
+    const btn = document.getElementById('btnLogin');
+    btn.innerText = "Verificando...";
+    btn.disabled = true;
+
+    google.script.run.withSuccessHandler(res => {
+      btn.innerText = "Acceder al Portal";
+      btn.disabled = false;
+      if(res.success) {
+        emailActivo = res.email;
+        document.getElementById('vistaLogin').classList.add('hidden');
+        document.getElementById('interfazPrincipal').classList.remove('hidden');
+        cargarDashboard();
+        showNotification(`Bienvenida de nuevo`, "success");
+      } else {
+        showNotification(res.message, "error");
+      }
+    }).iniciarSesion(e, p);
+  }
+
+  function cerrarSesion() {
+    // Regla de Oro: Limpiar todo y volver al Login
+    document.getElementById('interfazPrincipal').classList.add('hidden');
+    document.getElementById('vistaLogin').classList.remove('hidden');
+    document.getElementById('loginEmail').value = "";
+    document.getElementById('loginPass').value = "";
+    emailActivo = "";
+    userData = { todosLosCursos: [], asignadosCursos: [], historial: [] };
+    // Reset sidebar state if closed
+    document.getElementById('mainSidebar').classList.remove('collapsed');
+    document.getElementById('sidebarToggleIcon').innerText = "❮";
+  }
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('mainSidebar');
+    const icon = document.getElementById('sidebarToggleIcon');
+    const isCollapsed = sidebar.classList.toggle('collapsed');
+    icon.innerText = isCollapsed ? "❯" : "❮";
+  }
+
+  function cargarDashboard() {
+    google.script.run.withSuccessHandler(data => {
+      userData = data;
+      document.getElementById('profileNombre').innerText = data.nombre;
+      document.getElementById('avatarContainer').innerText = data.nombre.charAt(0).toUpperCase();
+      renderDashboard();
+    }).obtenerDatosCompletos(emailActivo);
+  }
+
+  function renderDashboard() {
+    const grC = document.getElementById('gridCursos');
+    const grCom = document.getElementById('gridCompletados');
+
+    const misCursos = userData.todosLosCursos.filter(c => userData.asignadosCursos.includes(c.ID_MODULO));
+
+    grC.innerHTML = misCursos.map(c => {
+      const notaObj = userData.historial.find(h => h.idItem === c.ID_MODULO);
+      const realizado = !!notaObj;
+      const aprobado = realizado && (notaObj.nota * 100) >= 70;
+      const notaVisual = notaObj ? Math.round(notaObj.nota * 100) : 0;
+
+      return `
+      <div onclick="abrirModulo('${c.ID_MODULO}')" class="course-card group glass p-5 rounded-[2.5rem] relative cursor-pointer overflow-hidden flex items-center gap-6">
+        <div class="relative w-32 h-32 shrink-0 overflow-hidden rounded-3xl shadow-lg">
+          <img src="${c.URL_IMAGEN}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+          ${realizado ? `
+            <div class="absolute inset-0 ${aprobado ? 'bg-[#CCFF00]/10' : 'bg-rose-500/10'} flex items-center justify-center backdrop-blur-[2px]">
+              <div class="${aprobado ? 'bg-[#CCFF00] text-[#2B234F]' : 'bg-rose-500 text-white'} text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter shadow-xl">Completado</div>
+            </div>` : ''}
+        </div>
+
+        <div class="flex-grow pr-4">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[9px] font-bold text-indigo-500/50 uppercase tracking-widest">${c.ID_MODULO}</span>
+            ${realizado ? `<span class="text-[11px] font-bold ${aprobado ? 'text-indigo-600' : 'text-rose-500'} bg-white px-2 py-0.5 rounded-lg shadow-sm">${notaVisual}%</span>` : ''}
+          </div>
+          <h4 class="font-bold text-slate-800 text-base group-hover:text-indigo-600 transition-colors leading-snug mb-4 tracking-tight">${c.TITULO}</h4>
+          <div class="flex items-center gap-3">
+            <div class="h-1.5 flex-grow bg-slate-100 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-600 transition-all duration-1000 ease-out" style="width: ${realizado ? '100%' : '5%'}"></div>
+            </div>
+            <span class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">${realizado ? 'Finalizado' : 'Pendiente'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    grCom.innerHTML = userData.historial.map(h => {
+        const info = userData.todosLosCursos.find(c => c.ID_MODULO === h.idItem);
+        if(!info) return '';
+        const notaHistorial = Math.round(h.nota * 100);
+        const isAproved = notaHistorial >= 70;
+        return `
+        <div class="flex items-center gap-5 glass p-5 rounded-[2.5rem] border border-white/50 hover:bg-white transition-all group cursor-default">
+          <div class="relative">
+            <img src="${info.URL_IMAGEN}" class="w-14 h-14 object-cover rounded-2xl shadow-lg transform group-hover:scale-105 transition-transform">
+            <div class="absolute -top-2 -right-2 w-6 h-6 ${isAproved ? 'bg-[#CCFF00]' : 'bg-rose-500'} rounded-full border-2 border-white flex items-center justify-center text-[10px]">
+              ${isAproved ? '✓' : '!'}
+            </div>
+          </div>
+          <div class="flex-grow text-left overflow-hidden">
+            <h5 class="text-[11px] font-bold text-slate-700 leading-tight mb-1 uppercase tracking-tighter truncate">${info.TITULO}</h5>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-bold ${isAproved ? 'text-indigo-600' : 'text-rose-500'} uppercase tracking-widest">${notaHistorial}%</span>
+              <span class="text-[8px] font-bold text-slate-300 uppercase tracking-widest">${h.fecha.split(' ')[0]}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function abrirModulo(id) {
+    cursoActualId = id;
+    const c = userData.todosLosCursos.find(x => x.ID_MODULO === id);
+    const yaRealizo = userData.historial.find(h => h.idItem === id);
+    const yaAprobo = yaRealizo && (yaRealizo.nota * 100) >= 70;
+
+    document.getElementById('tituloModuloInterno').innerText = c.TITULO;
+    document.getElementById('textoModuloInterno').innerText = c.CONTENIDO_TEXTO;
+    document.getElementById('contenedorPresentacion').innerHTML = `<iframe src="${c.URL_VIDEO}" width="100%" height="100%" style="border:0;" allowfullscreen="true"></iframe>`;
+
+    // Lógica de "Una sola evaluación"
+    const btnEval = document.getElementById('btnRealizarEvaluacion');
+    const badge = document.getElementById('statusBadgeModulo');
+    const notaSpan = document.getElementById('notaPreviaModulo');
+
+    if(yaRealizo) {
+      btnEval.classList.add('hidden');
+      badge.classList.remove('hidden');
+      const pct = Math.round(yaRealizo.nota * 100);
+      notaSpan.innerText = pct + "%";
+
+      if(yaAprobo) {
+        setTimeout(() => showNotification("Módulo aprobado. Puedes repasar el contenido.", "success"), 300);
+      } else {
+        setTimeout(() => showNotification("Ya realizaste este examen. Nota persistida.", "info"), 300);
+      }
+    } else {
+      btnEval.classList.remove('hidden');
+      badge.classList.add('hidden');
+    }
+
+    document.getElementById('vistaDashboard').classList.add('hidden');
+    document.getElementById('vistaModulo').classList.remove('hidden');
+  }
+
+  function cargarExamen() {
+    google.script.run.withSuccessHandler(preg => {
+      preguntas = preg;
+      indicePregunta = 0;
+      respuestasUsuario = [];
+      document.getElementById('vistaModulo').classList.add('hidden');
+      document.getElementById('vistaExamen').classList.remove('hidden');
+      mostrarPregunta();
+    }).obtenerPreguntas(cursoActualId);
+  }
+
+  function mostrarPregunta() {
+    const p = preguntas[indicePregunta];
+    const progreso = ((indicePregunta + 1) / preguntas.length) * 100;
+    document.getElementById('barraProgreso').style.width = progreso + "%";
+    document.getElementById('contadorPreguntas').innerText = `${indicePregunta + 1} / ${preguntas.length}`;
+
+    document.getElementById('preguntaActualContenedor').innerHTML = `
+      <div class="mb-8">
+        <span class="text-[9px] font-bold text-indigo-500 uppercase tracking-[0.3em] mb-2 block">Pregunta ${indicePregunta + 1}</span>
+        <h3 class="text-xl md:text-2xl font-bold text-[#2B234F] leading-tight tracking-tight">${p.PREGUNTA}</h3>
+      </div>
+      <div class="grid gap-3">
+        ${['A','B','C','D'].map(l => {
+          if(!p['OPCION_'+l]) return '';
+          return `
+          <label class="flex items-center gap-4 p-4 bg-slate-50/50 border-2 border-transparent rounded-[1.5rem] cursor-pointer hover:bg-white hover:border-indigo-100 hover:shadow-md transition-all has-[:checked]:border-[#2B234F] has-[:checked]:bg-white group relative overflow-hidden">
+            <input type="radio" name="pregunta" value="${l}" class="w-6 h-6 accent-[#2B234F] opacity-0 absolute">
+            <div class="w-6 h-6 rounded-lg border-2 border-slate-200 flex items-center justify-center font-bold text-[9px] text-slate-400 group-has-[:checked]:bg-[#2B234F] group-has-[:checked]:border-[#2B234F] group-has-[:checked]:text-[#CCFF00] transition-all shrink-0">
+              ${l}
+            </div>
+            <span class="text-sm font-bold text-slate-600 group-has-[:checked]:text-[#2B234F] transition-colors leading-snug">${p['OPCION_'+l]}</span>
+          </label>
+        `}).join('')}
+      </div>
+    `;
+  }
+
+  function siguientePregunta() {
+    const s = document.querySelector('input[name="pregunta"]:checked');
+    if(!s) {
+      showNotification("Selecciona una opción", "error");
+      return;
+    }
+    respuestasUsuario.push(s.value);
+    if(indicePregunta < preguntas.length - 1) {
+        indicePregunta++;
+        mostrarPregunta();
+    } else {
+        let a = 0;
+        preguntas.forEach((p, i) => { if(respuestasUsuario[i] === p.RESPUESTA_CORRECTA) a++; });
+        const n = Math.round((a / preguntas.length) * 100);
+
+        // UI Resultado
+        document.getElementById('vistaExamen').classList.add('hidden');
+        document.getElementById('vistaResultado').classList.remove('hidden');
+        document.getElementById('notaFinal').innerText = n + "%";
+
+        if(n >= 70) {
+            document.getElementById('cardResultado').style.borderColor = "#CCFF00";
+            document.getElementById('iconResultado').innerHTML = "🏆";
+            document.getElementById('textoResultado').innerText = "¡Aprobado!";
+            showNotification("Módulo completado con éxito", "success");
+        } else {
+            document.getElementById('cardResultado').style.borderColor = "#F43F5E";
+            document.getElementById('iconResultado').innerHTML = "⚡";
+            document.getElementById('textoResultado').innerText = "No Aprobado";
+            showNotification("Examen realizado. Sigue practicando", "info");
+        }
+
+        google.script.run.withSuccessHandler(() => cargarDashboard()).guardarResultado(emailActivo, cursoActualId, n);
+    }
+  }
+
+  function regresarAlInicio() {
+    document.getElementById('vistaModulo').classList.add('hidden');
+    document.getElementById('vistaExamen').classList.add('hidden');
+    document.getElementById('vistaResultado').classList.add('hidden');
+    document.getElementById('contenedorPresentacion').innerHTML = "";
+    document.getElementById('vistaDashboard').classList.remove('hidden');
+    cargarDashboard();
+  }
+</script>
